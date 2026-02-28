@@ -26,7 +26,7 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 
 const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 const DEVICE_ID_KEY = 'lunchcrew.device_id';
-const BUILD_LABEL = 'Build 4eb7f2a';
+const BUILD_LABEL = 'Build 02383dd';
 
 function generateInviteCode() {
   const part = () => Math.random().toString(36).slice(2, 6).toUpperCase();
