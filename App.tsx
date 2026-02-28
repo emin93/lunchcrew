@@ -84,7 +84,6 @@ export default function App() {
     if (!supabase) return;
     const code = extractInviteCode(url);
     if (!code) {
-      Alert.alert('Invalid invite link', 'Missing invite code in link.');
       return;
     }
 
@@ -130,7 +129,9 @@ export default function App() {
     void bootstrap();
 
     const sub = Linking.addEventListener('url', (event) => {
-      void joinByDeepLink(event.url);
+      if (extractInviteCode(event.url)) {
+        void joinByDeepLink(event.url);
+      }
     });
 
     return () => sub.remove();
