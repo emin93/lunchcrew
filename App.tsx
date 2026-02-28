@@ -12,6 +12,7 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
@@ -78,6 +79,8 @@ export default function App() {
   const [onboardingIndex, setOnboardingIndex] = useState(0);
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
+  const onboardingScrollRef = useRef<ScrollView | null>(null);
+  const { width } = useWindowDimensions();
   const initialized = useRef(false);
   const isConfigured = useMemo(() => !!supabase, []);
 
@@ -288,7 +291,6 @@ export default function App() {
   };
 
   const top = options.slice().sort((a, b) => b.votes - a.votes)[0];
-  const slide = ONBOARDING_SLIDES[onboardingIndex];
 
   if (!onboardingReady) {
     return (
@@ -309,12 +311,27 @@ export default function App() {
         <StatusBar style="light" />
         <View style={styles.onboardingScreen}>
           <View style={styles.onboardingTop}>
-            <View style={styles.heroFull}>
-              <Text style={styles.kicker}>Welcome to LunchCrew</Text>
-              <Text style={styles.title}>{slide.title}</Text>
-              <Text style={styles.subtitle}>{slide.body}</Text>
-              <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
-            </View>
+            <ScrollView
+              ref={onboardingScrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={width - 32}
+              decelerationRate="fast"
+              onMomentumScrollEnd={(e) => {
+                const next = Math.round(e.nativeEvent.contentOffset.x / (width - 32));
+                setOnboardingIndex(Math.max(0, Math.min(ONBOARDING_SLIDES.length - 1, next)));
+              }}
+            >
+              {ONBOARDING_SLIDES.map((item) => (
+                <View key={item.title} style={[styles.heroFull, { width: width - 32 }]}>
+                  <Text style={styles.kicker}>Welcome to LunchCrew</Text>
+                  <Text style={styles.title}>{item.title}</Text>
+                  <Text style={styles.subtitle}>{item.body}</Text>
+                  <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
+                </View>
+              ))}
+            </ScrollView>
           </View>
 
           <View style={styles.onboardingBottom}>
@@ -330,7 +347,15 @@ export default function App() {
               </Pressable>
               <Pressable
                 style={styles.addBtn}
-                onPress={isLast ? completeOnboarding : () => setOnboardingIndex((v) => v + 1)}
+                onPress={() => {
+                  if (isLast) {
+                    void completeOnboarding();
+                    return;
+                  }
+                  const next = onboardingIndex + 1;
+                  onboardingScrollRef.current?.scrollTo({ x: (width - 32) * next, animated: true });
+                  setOnboardingIndex(next);
+                }}
               >
                 <Text style={styles.addBtnText}>{isLast ? 'Get started' : 'Next'}</Text>
               </Pressable>
