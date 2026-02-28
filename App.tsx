@@ -30,7 +30,7 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 const DEVICE_ID_KEY = 'lunchcrew.device_id';
 const ONBOARDING_SEEN_KEY = 'lunchcrew.onboarding_seen';
-const BUILD_LABEL = 'Build onboarding-v3';
+const BUILD_LABEL = 'Build onboarding-v4';
 
 const ONBOARDING_SLIDES = [
   { title: 'Create or Join Instantly', body: 'Open the app to create a workspace, or open an invite link to join your team.' },
@@ -342,7 +342,7 @@ export default function App() {
             >
               {ONBOARDING_SLIDES.map((item) => (
                 <View key={item.title} style={[styles.onboardingPage, { width }]}> 
-                  <View style={styles.heroFull}>
+                  <View style={styles.onboardingContent}>
                     <Text style={styles.kicker}>Welcome to LunchCrew</Text>
                     <Text style={styles.title}>{item.title}</Text>
                     <Text style={styles.subtitle}>{item.body}</Text>
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
 
   onboardingScreen: {
     flex: 1,
-    padding: 16,
+    padding: 0,
     justifyContent: 'space-between',
   },
   onboardingTop: {
@@ -492,6 +492,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   onboardingBottom: {
+    paddingHorizontal: 20,
     paddingBottom: 8,
     gap: 18,
   },
@@ -505,18 +506,13 @@ const styles = StyleSheet.create({
   },
   onboardingPage: {
     width: '100%',
-    paddingHorizontal: 0,
-  },
-  heroFull: {
-    marginHorizontal: 0,
-    borderRadius: 0,
-    paddingHorizontal: 22,
-    paddingVertical: 28,
-    minHeight: 320,
+    flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#0b1220',
-    borderWidth: 0,
-    borderColor: '#1e293b',
+  },
+  onboardingContent: {
+    paddingHorizontal: 22,
+    paddingVertical: 8,
+    justifyContent: 'center',
   },
   kicker: { color: '#22d3ee', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   title: { color: '#f8fafc', fontSize: 34, fontWeight: '800', marginTop: 2 },
