@@ -40,6 +40,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
 
   const isConfigured = useMemo(() => !!supabase, []);
+  const canJoin = !loading && joinCode.trim().length > 0;
 
   const createWorkspace = async () => {
     if (!isConfigured || !supabase) {
@@ -149,8 +150,11 @@ export default function App() {
             onChangeText={(v) => setJoinCode(v.toUpperCase())}
             autoCapitalize="characters"
           />
-          <Pressable style={styles.secondaryButton} onPress={joinWorkspace}>
-            <Text style={styles.secondaryButtonText}>Join by Code</Text>
+          <Pressable
+            style={[styles.secondaryButton, !canJoin && styles.buttonDisabled]}
+            onPress={joinWorkspace}
+          >
+            <Text style={styles.secondaryButtonText}>{canJoin ? 'Join by Code' : 'Enter code to join'}</Text>
           </Pressable>
         </View>
 
@@ -218,6 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: { color: '#f1f5f9', fontWeight: '700' },
+  buttonDisabled: { opacity: 0.6 },
   workspaceName: { color: '#f8fafc', fontWeight: '700', fontSize: 16 },
   inviteCode: { color: '#93c5fd', fontSize: 14 },
 });
