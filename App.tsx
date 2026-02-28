@@ -307,30 +307,34 @@ export default function App() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style="light" />
-        <View style={styles.container}>
-          <View style={styles.hero}>
-            <Text style={styles.kicker}>Welcome to LunchCrew</Text>
-            <Text style={styles.title}>{slide.title}</Text>
-            <Text style={styles.subtitle}>{slide.body}</Text>
-            <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
+        <View style={styles.onboardingScreen}>
+          <View style={styles.onboardingTop}>
+            <View style={styles.heroFull}>
+              <Text style={styles.kicker}>Welcome to LunchCrew</Text>
+              <Text style={styles.title}>{slide.title}</Text>
+              <Text style={styles.subtitle}>{slide.body}</Text>
+              <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
+            </View>
           </View>
 
-          <View style={styles.dotsWrap}>
-            {ONBOARDING_SLIDES.map((_, idx) => (
-              <View key={idx} style={[styles.dot, idx === onboardingIndex && styles.dotActive]} />
-            ))}
-          </View>
+          <View style={styles.onboardingBottom}>
+            <View style={styles.dotsWrap}>
+              {ONBOARDING_SLIDES.map((_, idx) => (
+                <View key={idx} style={[styles.dot, idx === onboardingIndex && styles.dotActive]} />
+              ))}
+            </View>
 
-          <View style={styles.rowBetween}>
-            <Pressable onPress={completeOnboarding}>
-              <Text style={styles.skipText}>Skip</Text>
-            </Pressable>
-            <Pressable
-              style={styles.addBtn}
-              onPress={isLast ? completeOnboarding : () => setOnboardingIndex((v) => v + 1)}
-            >
-              <Text style={styles.addBtnText}>{isLast ? 'Get started' : 'Next'}</Text>
-            </Pressable>
+            <View style={styles.rowBetween}>
+              <Pressable onPress={completeOnboarding}>
+                <Text style={styles.skipText}>Skip</Text>
+              </Pressable>
+              <Pressable
+                style={styles.addBtn}
+                onPress={isLast ? completeOnboarding : () => setOnboardingIndex((v) => v + 1)}
+              >
+                <Text style={styles.addBtnText}>{isLast ? 'Get started' : 'Next'}</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </SafeAreaView>
@@ -426,9 +430,32 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#030712' },
   container: { padding: 16, gap: 14 },
 
+  onboardingScreen: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  onboardingTop: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  onboardingBottom: {
+    paddingBottom: 8,
+    gap: 18,
+  },
+
   hero: {
     borderRadius: 20,
     padding: 18,
+    backgroundColor: '#0b1220',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  heroFull: {
+    borderRadius: 24,
+    padding: 22,
+    minHeight: 260,
+    justifyContent: 'center',
     backgroundColor: '#0b1220',
     borderWidth: 1,
     borderColor: '#1e293b',
