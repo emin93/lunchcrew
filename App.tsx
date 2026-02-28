@@ -1,8 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -33,31 +34,89 @@ function generateInviteCode() {
   return `LC-${part()}-${part()}`;
 }
 
+function extractInviteCode(input: string) {
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+
+  if (trimmed.startsWith('LC-')) return trimmed.toUpperCase();
+
+  try {
+    const url = new URL(trimmed);
+    const code = url.searchParams.get('code');
+    return (code || '').toUpperCase();
+  } catch {
+    return '';
+  }
+}
+
 export default function App() {
   const [workspaceName, setWorkspaceName] = useState('');
-  const [joinCode, setJoinCode] = useState('');
+  const [inviteLinkInput, setInviteLinkInput] = useState('');
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(false);
 
   const isConfigured = useMemo(() => !!supabase, []);
-  const canJoin = !loading && joinCode.trim().length > 0;
+
+  const joinByInviteLink = async (input: string) => {
+    if (!isConfigured || !supabase) {
+      Alert.alert(
+        'Missing Supabase config',
+        'Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.',
+      );
+      return;
+    }
+
+    const code = extractInviteCode(input);
+    if (!code) {
+      Alert.alert('Invalid invite link', 'Please open a valid LunchCrew invite link.');
+      return;
+    }
+
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('workspaces')
+      .select('*')
+      .eq('invite_code', code)
+      .single();
+    setLoading(false);
+
+    if (error || !data) {
+      Alert.alert('Workspace not found', 'This invite link is invalid or expired.');
+      return;
+    }
+
+    setWorkspace(data as Workspace);
+    Alert.alert('Joined!', `Welcome to ${data.name}.`);
+  };
+
+  useEffect(() => {
+    const applyUrl = (url: string | null) => {
+      if (!url) return;
+      void joinByInviteLink(url);
+    };
+
+    Linking.getInitialURL().then(applyUrl);
+
+    const sub = Linking.addEventListener('url', (event) => applyUrl(event.url));
+    return () => sub.remove();
+  }, []);
 
   const createWorkspace = async () => {
     if (!isConfigured || !supabase) {
-      Alert.alert('Missing Supabase config', 'Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.');
-      return;
-    }
-    if (!workspaceName.trim()) {
-      Alert.alert('Name required', 'Please enter a workspace name.');
+      Alert.alert(
+        'Missing Supabase config',
+        'Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.',
+      );
       return;
     }
 
     setLoading(true);
     const inviteCode = generateInviteCode();
+    const name = workspaceName.trim() || 'LunchCrew Workspace';
 
     const { data, error } = await supabase
       .from('workspaces')
-      .insert({ name: workspaceName.trim(), invite_code: inviteCode })
+      .insert({ name, invite_code: inviteCode })
       .select('*')
       .single();
 
@@ -69,44 +128,16 @@ export default function App() {
     }
 
     setWorkspace(data as Workspace);
-    setJoinCode((data as Workspace).invite_code);
-  };
-
-  const joinWorkspace = async () => {
-    if (!isConfigured || !supabase) {
-      Alert.alert('Missing Supabase config', 'Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.');
-      return;
-    }
-    if (!joinCode.trim()) {
-      Alert.alert('Invite code required', 'Paste an invite code to join.');
-      return;
-    }
-
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('workspaces')
-      .select('*')
-      .eq('invite_code', joinCode.trim().toUpperCase())
-      .single();
-    setLoading(false);
-
-    if (error) {
-      Alert.alert('Workspace not found', 'Invalid invite code.');
-      return;
-    }
-
-    setWorkspace(data as Workspace);
   };
 
   const shareInvite = async () => {
     if (!workspace) return;
 
-    const deepLink = `lunchcrew://join?code=${workspace.invite_code}`;
-    const fallback = `Join my LunchCrew workspace "${workspace.name}" with code: ${workspace.invite_code}`;
+    const link = `https://lunchcrew.app/join?code=${workspace.invite_code}`;
 
     await Share.share({
-      message: `${fallback}\n\nOpen in app: ${deepLink}`,
-      title: 'LunchCrew invite',
+      message: `Join my LunchCrew workspace: ${link}`,
+      title: 'LunchCrew Invite',
     });
   };
 
@@ -115,13 +146,13 @@ export default function App() {
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>🍽️ LunchCrew</Text>
-        <Text style={styles.subtitle}>Create a workspace, share invite code, join instantly.</Text>
+        <Text style={styles.subtitle}>Zero friction lunch planning for coworkers.</Text>
 
         {!isConfigured && (
           <View style={styles.warningCard}>
             <Text style={styles.warningTitle}>Supabase not configured</Text>
             <Text style={styles.warningText}>
-              Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to run real workspace/invite flow.
+              Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.
             </Text>
           </View>
         )}
@@ -130,31 +161,31 @@ export default function App() {
           <Text style={styles.cardTitle}>Create workspace</Text>
           <TextInput
             style={styles.input}
-            placeholder="e.g. Acme Berlin Office"
+            placeholder="Workspace name (optional)"
             placeholderTextColor="#8d98a8"
             value={workspaceName}
             onChangeText={setWorkspaceName}
           />
           <Pressable style={styles.primaryButton} onPress={createWorkspace}>
-            <Text style={styles.primaryButtonText}>Create + Generate Invite</Text>
+            <Text style={styles.primaryButtonText}>Create in 1 Tap</Text>
           </Pressable>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Join workspace</Text>
+          <Text style={styles.cardTitle}>Join from invite link</Text>
           <TextInput
             style={styles.input}
-            placeholder="Invite code (LC-XXXX-XXXX)"
+            placeholder="Paste invite link"
             placeholderTextColor="#8d98a8"
-            value={joinCode}
-            onChangeText={(v) => setJoinCode(v.toUpperCase())}
-            autoCapitalize="characters"
+            value={inviteLinkInput}
+            onChangeText={setInviteLinkInput}
+            autoCapitalize="none"
           />
           <Pressable
-            style={[styles.secondaryButton, !canJoin && styles.buttonDisabled]}
-            onPress={joinWorkspace}
+            style={[styles.secondaryButton, !inviteLinkInput.trim() && styles.buttonDisabled]}
+            onPress={() => joinByInviteLink(inviteLinkInput)}
           >
-            <Text style={styles.secondaryButtonText}>{canJoin ? 'Join by Code' : 'Enter code to join'}</Text>
+            <Text style={styles.secondaryButtonText}>Join Workspace</Text>
           </Pressable>
         </View>
 
@@ -164,9 +195,9 @@ export default function App() {
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Active workspace</Text>
             <Text style={styles.workspaceName}>{workspace.name}</Text>
-            <Text style={styles.inviteCode}>Invite code: {workspace.invite_code}</Text>
+            <Text style={styles.inviteCode}>Invite link ready</Text>
             <Pressable style={styles.primaryButton} onPress={shareInvite}>
-              <Text style={styles.primaryButtonText}>Share Invite</Text>
+              <Text style={styles.primaryButtonText}>Share Invite Link</Text>
             </Pressable>
           </View>
         )}
