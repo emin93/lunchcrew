@@ -1,4 +1,3 @@
--- LunchCrew MVP schema
 create extension if not exists pgcrypto;
 
 create table if not exists public.workspaces (
@@ -28,9 +27,9 @@ create table if not exists public.votes (
   id uuid primary key default gen_random_uuid(),
   poll_id uuid not null references public.polls(id) on delete cascade,
   option_id uuid not null references public.poll_options(id) on delete cascade,
-  voter_token text not null,
+  voter_id text not null,
   created_at timestamptz not null default now(),
-  unique (poll_id, voter_token)
+  unique (poll_id, voter_id)
 );
 
 alter table public.workspaces enable row level security;
@@ -38,7 +37,7 @@ alter table public.polls enable row level security;
 alter table public.poll_options enable row level security;
 alter table public.votes enable row level security;
 
--- MVP open policies (tighten before production)
+-- Open MVP policies (tighten before production)
 drop policy if exists "workspaces_select_all" on public.workspaces;
 drop policy if exists "workspaces_insert_all" on public.workspaces;
 create policy "workspaces_select_all" on public.workspaces for select using (true);
@@ -56,7 +55,7 @@ create policy "poll_options_insert_all" on public.poll_options for insert with c
 
 drop policy if exists "votes_select_all" on public.votes;
 drop policy if exists "votes_insert_all" on public.votes;
-drop policy if exists "votes_delete_all" on public.votes;
+drop policy if exists "votes_update_all" on public.votes;
 create policy "votes_select_all" on public.votes for select using (true);
 create policy "votes_insert_all" on public.votes for insert with check (true);
-create policy "votes_delete_all" on public.votes for delete using (true);
+create policy "votes_update_all" on public.votes for update using (true) with check (true);
