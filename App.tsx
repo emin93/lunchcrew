@@ -26,6 +26,7 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 
 const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 const DEVICE_ID_KEY = 'lunchcrew.device_id';
+const BUILD_LABEL = 'Build 4eb7f2a';
 
 function generateInviteCode() {
   const part = () => Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -270,6 +271,7 @@ export default function App() {
         <View style={styles.headerCard}>
           <Text style={styles.title}>🍽️ LunchCrew</Text>
           <Text style={styles.subtitle}>Open app = workspace + today vote, instantly.</Text>
+          <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
         </View>
 
         {loading && (
@@ -354,6 +356,7 @@ const styles = StyleSheet.create({
   },
   title: { color: '#f8fafc', fontSize: 32, fontWeight: '800' },
   subtitle: { color: '#cbd5e1', marginTop: 2, fontSize: 14 },
+  buildLabel: { color: '#64748b', marginTop: 8, fontSize: 12, fontWeight: '600' },
   loadingWrap: {
     flexDirection: 'row',
     alignItems: 'center',
