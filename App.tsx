@@ -210,11 +210,20 @@ export default function App() {
     }
 
     const boot = async () => {
-      await loadDeviceId();
-      const initialUrl = await Linking.getInitialURL();
-      const initialCode = extractInviteCode(initialUrl || '');
-      if (initialUrl && initialCode) await joinByDeepLink(initialUrl);
-      else await createWorkspace();
+      try {
+        await loadDeviceId();
+
+        const initialUrl = await Promise.race<string | null>([
+          Linking.getInitialURL(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
+        ]);
+
+        const initialCode = extractInviteCode(initialUrl || '');
+        if (initialUrl && initialCode) await joinByDeepLink(initialUrl);
+        else await createWorkspace();
+      } catch {
+        await createWorkspace();
+      }
     };
 
     void boot();
