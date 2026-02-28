@@ -3,7 +3,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Linking,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -313,9 +315,14 @@ export default function App() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style="light" />
-        <View style={styles.onboardingScreen}>
-          <View style={styles.onboardingTop}>
-            <ScrollView
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 14 : 0}
+        >
+          <View style={styles.onboardingScreen}>
+            <View style={styles.onboardingTop}>
+              <ScrollView
               ref={onboardingScrollRef}
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -347,34 +354,35 @@ export default function App() {
             </ScrollView>
           </View>
 
-          <View style={styles.onboardingBottom}>
-            <View style={styles.dotsWrap}>
-              {ONBOARDING_SLIDES.map((_, idx) => (
-                <View key={idx} style={[styles.dot, idx === onboardingIndex && styles.dotActive]} />
-              ))}
-            </View>
+            <View style={styles.onboardingBottom}>
+              <View style={styles.dotsWrap}>
+                {ONBOARDING_SLIDES.map((_, idx) => (
+                  <View key={idx} style={[styles.dot, idx === onboardingIndex && styles.dotActive]} />
+                ))}
+              </View>
 
-            <View style={styles.rowBetween}>
-              <Pressable style={styles.onboardingSkipBtn} onPress={completeOnboarding}>
-                <Text style={styles.skipText}>Skip</Text>
-              </Pressable>
-              <Pressable
-                style={styles.onboardingPrimaryBtn}
-                onPress={() => {
-                  if (isLast) {
-                    void completeOnboarding();
-                    return;
-                  }
-                  const next = onboardingIndex + 1;
-                  onboardingScrollRef.current?.scrollTo({ x: snapInterval * next, animated: true });
-                  setOnboardingIndex(next);
-                }}
-              >
-                <Text style={styles.onboardingPrimaryBtnText}>{isLast ? 'Get started' : 'Next'}</Text>
-              </Pressable>
+              <View style={styles.rowBetween}>
+                <Pressable style={styles.onboardingSkipBtn} onPress={completeOnboarding}>
+                  <Text style={styles.skipText}>Skip</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.onboardingPrimaryBtn}
+                  onPress={() => {
+                    if (isLast) {
+                      void completeOnboarding();
+                      return;
+                    }
+                    const next = onboardingIndex + 1;
+                    onboardingScrollRef.current?.scrollTo({ x: snapInterval * next, animated: true });
+                    setOnboardingIndex(next);
+                  }}
+                >
+                  <Text style={styles.onboardingPrimaryBtnText}>{isLast ? 'Get started' : 'Next'}</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
@@ -382,8 +390,13 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.hero}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 14 : 0}
+      >
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.hero}>
           <Text style={styles.kicker}>Lunch planning, simplified</Text>
           <Text style={styles.title}>LunchCrew</Text>
           <Text style={styles.subtitle}>Pick a spot in seconds with your team.</Text>
@@ -414,58 +427,60 @@ export default function App() {
           <Text style={styles.helper}>Setting things up…</Text>
         )}
 
-        {poll && (
-          <View style={styles.panel}>
-            <View style={styles.rowBetween}>
-              <Text style={styles.pollTitle}>{poll.title}</Text>
-              {top ? <Text style={styles.leaderTag}>Top: {top.name}</Text> : null}
-            </View>
+          {poll && (
+            <View style={styles.panel}>
+              <View style={styles.rowBetween}>
+                <Text style={styles.pollTitle}>{poll.title}</Text>
+                {top ? <Text style={styles.leaderTag}>Top: {top.name}</Text> : null}
+              </View>
 
-            <View style={styles.optionList}>
-              {options.map((opt) => {
-                const isActive = myOptionId === opt.id;
-                const isVotingThis = votingOptionId === opt.id;
-                return (
-                  <Pressable
-                    key={opt.id}
-                    style={[styles.optionCard, isActive && styles.optionCardActive, !!votingOptionId && styles.optionDisabled]}
-                    onPress={() => vote(opt.id)}
-                    disabled={!!votingOptionId}
-                  >
-                    <View>
-                      <Text style={styles.optionName}>{opt.name}</Text>
-                      {isActive ? <Text style={styles.myVoteTag}>Your vote</Text> : null}
-                    </View>
-                    <View style={styles.voteMeta}>
-                      {isVotingThis ? <ActivityIndicator size="small" color="#22d3ee" /> : null}
-                      <Text style={styles.voteCount}>{opt.votes}</Text>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
+              <View style={styles.optionList}>
+                {options.map((opt) => {
+                  const isActive = myOptionId === opt.id;
+                  const isVotingThis = votingOptionId === opt.id;
+                  return (
+                    <Pressable
+                      key={opt.id}
+                      style={[styles.optionCard, isActive && styles.optionCardActive, !!votingOptionId && styles.optionDisabled]}
+                      onPress={() => vote(opt.id)}
+                      disabled={!!votingOptionId}
+                    >
+                      <View>
+                        <Text style={styles.optionName}>{opt.name}</Text>
+                        {isActive ? <Text style={styles.myVoteTag}>Your vote</Text> : null}
+                      </View>
+                      <View style={styles.voteMeta}>
+                        {isVotingThis ? <ActivityIndicator size="small" color="#22d3ee" /> : null}
+                        <Text style={styles.voteCount}>{opt.votes}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
 
-            <View style={styles.addWrap}>
-              <TextInput
-                style={styles.input}
-                placeholder="Suggest a place"
-                placeholderTextColor="#64748b"
-                value={newOption}
-                onChangeText={setNewOption}
-              />
-              <Pressable style={[styles.addBtn, addingOption && styles.optionDisabled]} onPress={addOption} disabled={addingOption}>
-                {addingOption ? <ActivityIndicator size="small" color="#071018" /> : <Text style={styles.addBtnText}>Add</Text>}
-              </Pressable>
+              <View style={styles.addWrap}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Suggest a place"
+                  placeholderTextColor="#64748b"
+                  value={newOption}
+                  onChangeText={setNewOption}
+                />
+                <Pressable style={[styles.addBtn, addingOption && styles.optionDisabled]} onPress={addOption} disabled={addingOption}>
+                  {addingOption ? <ActivityIndicator size="small" color="#071018" /> : <Text style={styles.addBtnText}>Add</Text>}
+                </Pressable>
+              </View>
             </View>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#030712' },
+  flex: { flex: 1 },
   container: { padding: 16, gap: 14 },
 
   onboardingScreen: {
