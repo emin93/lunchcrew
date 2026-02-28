@@ -26,7 +26,7 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 
 const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 const DEVICE_ID_KEY = 'lunchcrew.device_id';
-const BUILD_LABEL = 'Build 02383dd';
+const BUILD_LABEL = 'Build 9a-design';
 
 function generateInviteCode() {
   const part = () => Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -268,75 +268,80 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.headerCard}>
-          <Text style={styles.title}>🍽️ LunchCrew</Text>
-          <Text style={styles.subtitle}>Open app = workspace + today vote, instantly.</Text>
+        <View style={styles.hero}>
+          <Text style={styles.kicker}>Lunch planning, simplified</Text>
+          <Text style={styles.title}>LunchCrew</Text>
+          <Text style={styles.subtitle}>Pick a spot in seconds with your team.</Text>
           <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
         </View>
 
         {loading && (
           <View style={styles.loadingWrap}>
-            <ActivityIndicator color="#7dd3fc" />
-            <Text style={styles.loadingText}>Setting things up…</Text>
+            <ActivityIndicator color="#22d3ee" />
+            <Text style={styles.loadingText}>Syncing workspace…</Text>
           </View>
         )}
 
         {workspace ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{workspace.name}</Text>
-            <Text style={styles.inviteCode}>Code: {workspace.invite_code}</Text>
-            <Pressable style={styles.primaryButton} onPress={shareInvite}>
-              <Text style={styles.primaryButtonText}>Share Invite Link</Text>
-            </Pressable>
+          <View style={styles.panel}>
+            <View style={styles.rowBetween}>
+              <View>
+                <Text style={styles.panelLabel}>Workspace</Text>
+                <Text style={styles.workspaceTitle}>{workspace.name}</Text>
+              </View>
+              <Pressable style={styles.sharePill} onPress={shareInvite}>
+                <Text style={styles.sharePillText}>Share invite</Text>
+              </Pressable>
+            </View>
+            <Text style={styles.codeText}>Code: {workspace.invite_code}</Text>
           </View>
         ) : (
-          <Text style={styles.helper}>Creating your workspace…</Text>
+          <Text style={styles.helper}>Setting things up…</Text>
         )}
 
         {poll && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{poll.title}</Text>
-            {options.map((opt) => {
-              const isActive = myOptionId === opt.id;
-              const isVotingThis = votingOptionId === opt.id;
-              return (
-                <Pressable
-                  key={opt.id}
-                  style={[styles.optionButton, isActive && styles.optionActive, !!votingOptionId && styles.optionDisabled]}
-                  onPress={() => vote(opt.id)}
-                  disabled={!!votingOptionId}
-                >
-                  <Text style={styles.optionText}>{opt.name}</Text>
-                  <View style={styles.voteRight}>
-                    {isVotingThis && <ActivityIndicator size="small" color="#7dd3fc" />}
-                    <Text style={styles.optionVotes}>{opt.votes} votes</Text>
-                  </View>
-                </Pressable>
-              );
-            })}
+          <View style={styles.panel}>
+            <View style={styles.rowBetween}>
+              <Text style={styles.pollTitle}>{poll.title}</Text>
+              {top ? <Text style={styles.leaderTag}>Top: {top.name}</Text> : null}
+            </View>
 
-            <View style={styles.row}>
+            <View style={styles.optionList}>
+              {options.map((opt) => {
+                const isActive = myOptionId === opt.id;
+                const isVotingThis = votingOptionId === opt.id;
+                return (
+                  <Pressable
+                    key={opt.id}
+                    style={[styles.optionCard, isActive && styles.optionCardActive, !!votingOptionId && styles.optionDisabled]}
+                    onPress={() => vote(opt.id)}
+                    disabled={!!votingOptionId}
+                  >
+                    <View>
+                      <Text style={styles.optionName}>{opt.name}</Text>
+                      {isActive ? <Text style={styles.myVoteTag}>Your vote</Text> : null}
+                    </View>
+                    <View style={styles.voteMeta}>
+                      {isVotingThis ? <ActivityIndicator size="small" color="#22d3ee" /> : null}
+                      <Text style={styles.voteCount}>{opt.votes}</Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={styles.addWrap}>
               <TextInput
                 style={styles.input}
-                placeholder="Add place"
-                placeholderTextColor="#94a3b8"
+                placeholder="Suggest a place"
+                placeholderTextColor="#64748b"
                 value={newOption}
                 onChangeText={setNewOption}
               />
-              <Pressable
-                style={[styles.secondaryButton, addingOption && styles.optionDisabled]}
-                onPress={addOption}
-                disabled={addingOption}
-              >
-                {addingOption ? (
-                  <ActivityIndicator size="small" color="#f1f5f9" />
-                ) : (
-                  <Text style={styles.secondaryButtonText}>Add</Text>
-                )}
+              <Pressable style={[styles.addBtn, addingOption && styles.optionDisabled]} onPress={addOption} disabled={addingOption}>
+                {addingOption ? <ActivityIndicator size="small" color="#071018" /> : <Text style={styles.addBtnText}>Add</Text>}
               </Pressable>
             </View>
-
-            <Text style={styles.helper}>Top choice: {top ? top.name : 'No votes yet'}</Text>
           </View>
         )}
       </ScrollView>
@@ -345,81 +350,84 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#070b14' },
-  container: { padding: 18, gap: 16 },
-  headerCard: {
+  safeArea: { flex: 1, backgroundColor: '#030712' },
+  container: { padding: 16, gap: 14 },
+
+  hero: {
+    borderRadius: 20,
+    padding: 18,
+    backgroundColor: '#0b1220',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  kicker: { color: '#22d3ee', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
+  title: { color: '#f8fafc', fontSize: 34, fontWeight: '800', marginTop: 2 },
+  subtitle: { color: '#94a3b8', fontSize: 14, marginTop: 2 },
+  buildLabel: { color: '#475569', fontSize: 11, marginTop: 8, fontWeight: '600' },
+
+  loadingWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
+  loadingText: { color: '#67e8f9', fontSize: 13 },
+
+  panel: {
     borderRadius: 18,
-    padding: 16,
-    backgroundColor: '#0e1627',
-    borderWidth: 1,
-    borderColor: '#22304a',
-  },
-  title: { color: '#f8fafc', fontSize: 32, fontWeight: '800' },
-  subtitle: { color: '#cbd5e1', marginTop: 2, fontSize: 14 },
-  buildLabel: { color: '#64748b', marginTop: 8, fontSize: 12, fontWeight: '600' },
-  loadingWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 4,
-  },
-  loadingText: { color: '#93c5fd', fontSize: 13 },
-  card: {
-    backgroundColor: '#0f172a',
-    borderRadius: 16,
     padding: 14,
+    backgroundColor: '#0b1220',
     borderWidth: 1,
-    borderColor: '#22304a',
+    borderColor: '#1e293b',
     gap: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
   },
-  cardTitle: { color: '#f8fafc', fontSize: 18, fontWeight: '700' },
-  inviteCode: { color: '#7dd3fc', fontSize: 14 },
-  primaryButton: {
-    backgroundColor: '#0ea5e9',
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  primaryButtonText: { color: '#082f49', fontWeight: '800' },
-  optionButton: {
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  panelLabel: { color: '#64748b', fontSize: 12 },
+  workspaceTitle: { color: '#f8fafc', fontWeight: '700', fontSize: 17 },
+  sharePill: { backgroundColor: '#0e7490', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999 },
+  sharePillText: { color: '#ecfeff', fontWeight: '700', fontSize: 12 },
+  codeText: { color: '#67e8f9', fontSize: 13, fontWeight: '600' },
+
+  pollTitle: { color: '#f8fafc', fontSize: 18, fontWeight: '700' },
+  leaderTag: { color: '#c4b5fd', fontSize: 12, fontWeight: '700' },
+
+  optionList: { gap: 8 },
+  optionCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#334155',
+    backgroundColor: '#0f172a',
+    paddingVertical: 11,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderColor: '#334155',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    backgroundColor: '#111827',
   },
-  voteRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  optionActive: { borderColor: '#22c55e', backgroundColor: '#0b2b1c' },
+  optionCardActive: {
+    borderColor: '#22c55e',
+    backgroundColor: '#052e1d',
+  },
   optionDisabled: { opacity: 0.65 },
-  optionText: { color: '#f8fafc', fontWeight: '600' },
-  optionVotes: { color: '#cbd5e1', fontSize: 13 },
-  row: { flexDirection: 'row', gap: 8, marginTop: 2 },
+  optionName: { color: '#e2e8f0', fontWeight: '700', fontSize: 15 },
+  myVoteTag: { color: '#86efac', fontSize: 11, marginTop: 2, fontWeight: '700' },
+  voteMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  voteCount: { color: '#cbd5e1', fontWeight: '700', minWidth: 18, textAlign: 'right' },
+
+  addWrap: { flexDirection: 'row', gap: 8, marginTop: 2 },
   input: {
     flex: 1,
-    backgroundColor: '#111827',
-    borderWidth: 1,
-    borderColor: '#26334f',
-    color: '#f8fafc',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#334155',
+    backgroundColor: '#111827',
+    color: '#f8fafc',
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  secondaryButton: {
-    backgroundColor: '#334155',
-    borderRadius: 12,
-    justifyContent: 'center',
+  addBtn: {
+    minWidth: 64,
     alignItems: 'center',
-    minWidth: 60,
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: '#22d3ee',
     paddingHorizontal: 12,
   },
-  secondaryButtonText: { color: '#f1f5f9', fontWeight: '700' },
-  helper: { color: '#cbd5e1', fontSize: 13 },
+  addBtnText: { color: '#0f172a', fontWeight: '800' },
+
+  helper: { color: '#94a3b8', fontSize: 13 },
 });
