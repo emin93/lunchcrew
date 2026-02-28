@@ -30,7 +30,7 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 const DEVICE_ID_KEY = 'lunchcrew.device_id';
 const ONBOARDING_SEEN_KEY = 'lunchcrew.onboarding_seen';
-const BUILD_LABEL = 'Build onboarding-v1';
+const BUILD_LABEL = 'Build onboarding-v2';
 
 const ONBOARDING_SLIDES = [
   { title: 'Create or Join Instantly', body: 'Open the app to create a workspace, or open an invite link to join your team.' },
@@ -294,9 +294,7 @@ export default function App() {
   };
 
   const top = options.slice().sort((a, b) => b.votes - a.votes)[0];
-  const slideWidth = width - 64;
-  const slideGap = 14;
-  const snapInterval = slideWidth + slideGap;
+  const snapInterval = width;
 
   if (!onboardingReady) {
     return (
@@ -325,30 +323,27 @@ export default function App() {
               <ScrollView
               ref={onboardingScrollRef}
               horizontal
+              pagingEnabled
               showsHorizontalScrollIndicator={false}
               snapToInterval={snapInterval}
               decelerationRate="fast"
-              contentContainerStyle={styles.onboardingSlidesTrack}
-              onMomentumScrollEnd={(e) => {
+              disableIntervalMomentum
+              onScroll={(e) => {
                 const next = Math.round(e.nativeEvent.contentOffset.x / snapInterval);
-                setOnboardingIndex(Math.max(0, Math.min(ONBOARDING_SLIDES.length - 1, next)));
+                if (next !== onboardingIndex) {
+                  setOnboardingIndex(Math.max(0, Math.min(ONBOARDING_SLIDES.length - 1, next)));
+                }
               }}
+              scrollEventThrottle={16}
             >
-              {ONBOARDING_SLIDES.map((item, idx) => (
-                <View
-                  key={item.title}
-                  style={[
-                    styles.heroFull,
-                    {
-                      width: slideWidth,
-                      marginRight: idx === ONBOARDING_SLIDES.length - 1 ? 0 : slideGap,
-                    },
-                  ]}
-                >
-                  <Text style={styles.kicker}>Welcome to LunchCrew</Text>
-                  <Text style={styles.title}>{item.title}</Text>
-                  <Text style={styles.subtitle}>{item.body}</Text>
-                  <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
+              {ONBOARDING_SLIDES.map((item) => (
+                <View key={item.title} style={{ width }}>
+                  <View style={styles.heroFull}>
+                    <Text style={styles.kicker}>Welcome to LunchCrew</Text>
+                    <Text style={styles.title}>{item.title}</Text>
+                    <Text style={styles.subtitle}>{item.body}</Text>
+                    <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
+                  </View>
                 </View>
               ))}
             </ScrollView>
@@ -492,9 +487,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  onboardingSlidesTrack: {
-    paddingHorizontal: 8,
-  },
   onboardingBottom: {
     paddingBottom: 8,
     gap: 18,
@@ -508,6 +500,7 @@ const styles = StyleSheet.create({
     borderColor: '#1e293b',
   },
   heroFull: {
+    marginHorizontal: 16,
     borderRadius: 24,
     padding: 22,
     minHeight: 260,
