@@ -39,16 +39,17 @@ function extractInviteCode(input: string) {
   const upper = trimmed.toUpperCase();
   if (upper.startsWith('LC-')) return upper;
 
-  const match = trimmed.match(/[?&]code=([^&#]+)/i);
-  if (match?.[1]) {
-    try {
-      return decodeURIComponent(match[1]).toUpperCase();
-    } catch {
-      return match[1].toUpperCase();
-    }
-  }
+  try {
+    const url = new URL(trimmed);
+    const host = url.hostname.toLowerCase();
+    const isLunchCrewLink = host.endsWith('lunchcrew.app') || url.protocol === 'lunchcrew:';
+    if (!isLunchCrewLink) return '';
 
-  return '';
+    const code = url.searchParams.get('code');
+    return (code || '').toUpperCase();
+  } catch {
+    return '';
+  }
 }
 
 export default function App() {
