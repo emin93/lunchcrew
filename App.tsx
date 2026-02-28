@@ -26,7 +26,14 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 
 const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 const DEVICE_ID_KEY = 'lunchcrew.device_id';
-const BUILD_LABEL = 'Build 9a-design';
+const ONBOARDING_SEEN_KEY = 'lunchcrew.onboarding_seen';
+const BUILD_LABEL = 'Build onboarding-v1';
+
+const ONBOARDING_SLIDES = [
+  { title: 'Create or Join Instantly', body: 'Open the app to create a workspace, or open an invite link to join your team.' },
+  { title: 'Vote in One Tap', body: 'Today\'s lunch options appear automatically. Tap once to vote.' },
+  { title: 'Keep It Collaborative', body: 'Anyone can add a new place idea, so the whole office can decide together.' },
+];
 
 function generateInviteCode() {
   const part = () => Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -68,6 +75,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [votingOptionId, setVotingOptionId] = useState<string | null>(null);
   const [addingOption, setAddingOption] = useState(false);
+  const [onboardingIndex, setOnboardingIndex] = useState(0);
+  const [onboardingDone, setOnboardingDone] = useState(false);
+  const [onboardingReady, setOnboardingReady] = useState(false);
   const initialized = useRef(false);
   const isConfigured = useMemo(() => !!supabase, []);
 
@@ -209,7 +219,22 @@ export default function App() {
     setAddingOption(false);
   };
 
+  const completeOnboarding = async () => {
+    await AsyncStorage.setItem(ONBOARDING_SEEN_KEY, '1');
+    setOnboardingDone(true);
+  };
+
   useEffect(() => {
+    const loadOnboarding = async () => {
+      const seen = await AsyncStorage.getItem(ONBOARDING_SEEN_KEY);
+      setOnboardingDone(seen === '1');
+      setOnboardingReady(true);
+    };
+    void loadOnboarding();
+  }, []);
+
+  useEffect(() => {
+    if (!onboardingReady || !onboardingDone) return;
     if (initialized.current) return;
     initialized.current = true;
 
@@ -241,7 +266,7 @@ export default function App() {
       if (extractInviteCode(event.url)) void joinByDeepLink(event.url);
     });
     return () => sub.remove();
-  }, [isConfigured]);
+  }, [isConfigured, onboardingReady, onboardingDone]);
 
   useEffect(() => {
     if (!workspace || !deviceId) return;
@@ -263,6 +288,54 @@ export default function App() {
   };
 
   const top = options.slice().sort((a, b) => b.votes - a.votes)[0];
+  const slide = ONBOARDING_SLIDES[onboardingIndex];
+
+  if (!onboardingReady) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="light" />
+        <View style={styles.centered}>
+          <ActivityIndicator color="#22d3ee" />
+          <Text style={styles.helper}>Loading…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!onboardingDone) {
+    const isLast = onboardingIndex === ONBOARDING_SLIDES.length - 1;
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="light" />
+        <View style={styles.container}>
+          <View style={styles.hero}>
+            <Text style={styles.kicker}>Welcome to LunchCrew</Text>
+            <Text style={styles.title}>{slide.title}</Text>
+            <Text style={styles.subtitle}>{slide.body}</Text>
+            <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
+          </View>
+
+          <View style={styles.dotsWrap}>
+            {ONBOARDING_SLIDES.map((_, idx) => (
+              <View key={idx} style={[styles.dot, idx === onboardingIndex && styles.dotActive]} />
+            ))}
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Pressable onPress={completeOnboarding}>
+              <Text style={styles.skipText}>Skip</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={isLast ? completeOnboarding : () => setOnboardingIndex((v) => v + 1)}
+            >
+              <Text style={styles.addBtnText}>{isLast ? 'Get started' : 'Next'}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -430,4 +503,9 @@ const styles = StyleSheet.create({
   addBtnText: { color: '#0f172a', fontWeight: '800' },
 
   helper: { color: '#94a3b8', fontSize: 13 },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  dotsWrap: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 6 },
+  dot: { width: 8, height: 8, borderRadius: 999, backgroundColor: '#334155' },
+  dotActive: { backgroundColor: '#22d3ee', width: 20 },
+  skipText: { color: '#94a3b8', fontWeight: '700', fontSize: 14, paddingVertical: 10 },
 });
