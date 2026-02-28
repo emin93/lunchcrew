@@ -118,7 +118,9 @@ export default function App() {
 
     const bootstrap = async () => {
       const initialUrl = await Linking.getInitialURL();
-      if (initialUrl) {
+      const initialCode = extractInviteCode(initialUrl || '');
+
+      if (initialUrl && initialCode) {
         await joinByDeepLink(initialUrl);
       } else {
         await createWorkspace();
