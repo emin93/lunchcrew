@@ -229,9 +229,10 @@ export default function App() {
 
   useEffect(() => {
     const loadOnboarding = async () => {
-      const seen = await AsyncStorage.getItem(ONBOARDING_SEEN_KEY);
-      setOnboardingDone(seen === '1');
+      // TEMP: always show onboarding while we iterate on design
+      setOnboardingDone(false);
       setOnboardingReady(true);
+      await AsyncStorage.removeItem(ONBOARDING_SEEN_KEY);
     };
     void loadOnboarding();
   }, []);
