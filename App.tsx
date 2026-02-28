@@ -292,6 +292,9 @@ export default function App() {
   };
 
   const top = options.slice().sort((a, b) => b.votes - a.votes)[0];
+  const slideWidth = width - 64;
+  const slideGap = 14;
+  const snapInterval = slideWidth + slideGap;
 
   if (!onboardingReady) {
     return (
@@ -315,17 +318,26 @@ export default function App() {
             <ScrollView
               ref={onboardingScrollRef}
               horizontal
-              pagingEnabled
               showsHorizontalScrollIndicator={false}
-              snapToInterval={width - 32}
+              snapToInterval={snapInterval}
               decelerationRate="fast"
+              contentContainerStyle={styles.onboardingSlidesTrack}
               onMomentumScrollEnd={(e) => {
-                const next = Math.round(e.nativeEvent.contentOffset.x / (width - 32));
+                const next = Math.round(e.nativeEvent.contentOffset.x / snapInterval);
                 setOnboardingIndex(Math.max(0, Math.min(ONBOARDING_SLIDES.length - 1, next)));
               }}
             >
-              {ONBOARDING_SLIDES.map((item) => (
-                <View key={item.title} style={[styles.heroFull, { width: width - 32 }]}>
+              {ONBOARDING_SLIDES.map((item, idx) => (
+                <View
+                  key={item.title}
+                  style={[
+                    styles.heroFull,
+                    {
+                      width: slideWidth,
+                      marginRight: idx === ONBOARDING_SLIDES.length - 1 ? 0 : slideGap,
+                    },
+                  ]}
+                >
                   <Text style={styles.kicker}>Welcome to LunchCrew</Text>
                   <Text style={styles.title}>{item.title}</Text>
                   <Text style={styles.subtitle}>{item.body}</Text>
@@ -343,22 +355,22 @@ export default function App() {
             </View>
 
             <View style={styles.rowBetween}>
-              <Pressable onPress={completeOnboarding}>
+              <Pressable style={styles.onboardingSkipBtn} onPress={completeOnboarding}>
                 <Text style={styles.skipText}>Skip</Text>
               </Pressable>
               <Pressable
-                style={styles.addBtn}
+                style={styles.onboardingPrimaryBtn}
                 onPress={() => {
                   if (isLast) {
                     void completeOnboarding();
                     return;
                   }
                   const next = onboardingIndex + 1;
-                  onboardingScrollRef.current?.scrollTo({ x: (width - 32) * next, animated: true });
+                  onboardingScrollRef.current?.scrollTo({ x: snapInterval * next, animated: true });
                   setOnboardingIndex(next);
                 }}
               >
-                <Text style={styles.addBtnText}>{isLast ? 'Get started' : 'Next'}</Text>
+                <Text style={styles.onboardingPrimaryBtnText}>{isLast ? 'Get started' : 'Next'}</Text>
               </Pressable>
             </View>
           </View>
@@ -465,6 +477,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  onboardingSlidesTrack: {
+    paddingHorizontal: 8,
+  },
   onboardingBottom: {
     paddingBottom: 8,
     gap: 18,
@@ -560,5 +575,23 @@ const styles = StyleSheet.create({
   dotsWrap: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 6 },
   dot: { width: 8, height: 8, borderRadius: 999, backgroundColor: '#334155' },
   dotActive: { backgroundColor: '#22d3ee', width: 20 },
-  skipText: { color: '#94a3b8', fontWeight: '700', fontSize: 14, paddingVertical: 10 },
+  onboardingSkipBtn: {
+    minHeight: 48,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  skipText: { color: '#cbd5e1', fontWeight: '700', fontSize: 16 },
+  onboardingPrimaryBtn: {
+    minHeight: 48,
+    minWidth: 152,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#22d3ee',
+  },
+  onboardingPrimaryBtnText: { color: '#0f172a', fontWeight: '800', fontSize: 16 },
 });
