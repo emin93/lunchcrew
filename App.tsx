@@ -30,7 +30,7 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 const DEVICE_ID_KEY = 'lunchcrew.device_id';
 const ONBOARDING_SEEN_KEY = 'lunchcrew.onboarding_seen';
-const BUILD_LABEL = 'Build onboarding-v2';
+const BUILD_LABEL = 'Build onboarding-v3';
 
 const ONBOARDING_SLIDES = [
   { title: 'Create or Join Instantly', body: 'Open the app to create a workspace, or open an invite link to join your team.' },
@@ -324,6 +324,10 @@ export default function App() {
               ref={onboardingScrollRef}
               horizontal
               pagingEnabled
+              bounces={false}
+              overScrollMode="never"
+              contentInsetAdjustmentBehavior="never"
+              automaticallyAdjustContentInsets={false}
               showsHorizontalScrollIndicator={false}
               snapToInterval={snapInterval}
               decelerationRate="fast"
@@ -337,7 +341,7 @@ export default function App() {
               scrollEventThrottle={16}
             >
               {ONBOARDING_SLIDES.map((item) => (
-                <View key={item.title} style={{ width }}>
+                <View key={item.title} style={[styles.onboardingPage, { width }]}> 
                   <View style={styles.heroFull}>
                     <Text style={styles.kicker}>Welcome to LunchCrew</Text>
                     <Text style={styles.title}>{item.title}</Text>
@@ -499,14 +503,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1e293b',
   },
+  onboardingPage: {
+    width: '100%',
+    paddingHorizontal: 0,
+  },
   heroFull: {
-    marginHorizontal: 16,
-    borderRadius: 24,
-    padding: 22,
-    minHeight: 260,
+    marginHorizontal: 0,
+    borderRadius: 0,
+    paddingHorizontal: 22,
+    paddingVertical: 28,
+    minHeight: 320,
     justifyContent: 'center',
     backgroundColor: '#0b1220',
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: '#1e293b',
   },
   kicker: { color: '#22d3ee', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
