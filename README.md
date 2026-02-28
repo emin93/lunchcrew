@@ -3,52 +3,40 @@
 Mobile lunch-planning app for coworkers.
 
 ## Stack
-
 - React Native + TypeScript (Expo)
-- Planned backend: Supabase (auth + postgres + realtime)
+- Supabase (workspace + invite code storage)
 
-## Current status
+## What works now
+- Create real workspace in Supabase
+- Auto-generate invite code (`LC-XXXX-XXXX`)
+- Join workspace by invite code
+- Share invite via native share sheet
 
-Initial MVP frontend scaffold is ready in `App.tsx`:
+## Setup
 
-- Workspace naming
-- Open invite code display
-- Join flow (name)
-- Daily lunch poll options
-- One-tap voting
-- Add new lunch place option
-- Current top-choice preview
-
-This is an on-device prototype UI state for quick iteration.
-
-## Run locally
-
+1) Install deps
 ```bash
 npm install
-npm run web
-# or
-npm run android
-npm run ios
 ```
 
-## Next implementation steps
+2) Configure env
+```bash
+cp .env.example .env
+# then fill EXPO_PUBLIC_SUPABASE_URL + EXPO_PUBLIC_SUPABASE_ANON_KEY
+```
 
-1. Supabase project setup + `.env`
-2. Real auth (magic link)
-3. Workspace/member tables
-4. Poll + options + votes tables
-5. Realtime updates for live votes
-6. Daily poll auto-create logic
-7. Push notifications before lunchtime
+3) Create DB table/policies in Supabase SQL editor
+- Run `supabase.sql`
 
-## Suggested first DB schema
+4) Start app
+```bash
+npm run start
+# or npx expo start --tunnel
+```
 
-- `workspaces` (id, name, invite_code, created_at)
-- `profiles` (id, full_name, workspace_id)
-- `polls` (id, workspace_id, title, closes_at, created_at)
-- `poll_options` (id, poll_id, name)
-- `votes` (id, poll_id, option_id, user_id, created_at)
+## Notes
+- Current RLS is intentionally open for MVP speed.
+- Before production: add auth + workspace membership checks.
 
 ## Repo
-
-Intended repo name: `lunch-crew-app`
+- https://github.com/emin93/lunch-crew-app
