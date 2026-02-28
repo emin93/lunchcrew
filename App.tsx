@@ -65,6 +65,8 @@ export default function App() {
   const [newOption, setNewOption] = useState('');
   const [deviceId, setDeviceId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [votingOptionId, setVotingOptionId] = useState<string | null>(null);
+  const [addingOption, setAddingOption] = useState(false);
   const initialized = useRef(false);
   const isConfigured = useMemo(() => !!supabase, []);
 
@@ -170,34 +172,40 @@ export default function App() {
   };
 
   const vote = async (optionId: string) => {
-    if (!supabase || !poll || !deviceId) return;
+    if (!supabase || !poll || !deviceId || votingOptionId) return;
 
+    setVotingOptionId(optionId);
     const { error } = await supabase.from('votes').upsert(
       { poll_id: poll.id, option_id: optionId, voter_id: deviceId },
       { onConflict: 'poll_id,voter_id' },
     );
 
     if (error) {
+      setVotingOptionId(null);
       Alert.alert('Vote failed', error.message);
       return;
     }
 
     await refreshPollData(poll.id, deviceId);
+    setVotingOptionId(null);
   };
 
   const addOption = async () => {
-    if (!supabase || !poll) return;
+    if (!supabase || !poll || addingOption) return;
     const name = newOption.trim();
     if (!name) return;
 
+    setAddingOption(true);
     const { error } = await supabase.from('poll_options').insert({ poll_id: poll.id, name });
     if (error) {
+      setAddingOption(false);
       Alert.alert('Could not add option', error.message);
       return;
     }
 
     setNewOption('');
     await refreshPollData(poll.id, deviceId);
+    setAddingOption(false);
   };
 
   useEffect(() => {
@@ -259,10 +267,17 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>🍽️ LunchCrew</Text>
-        <Text style={styles.subtitle}>Open app = workspace + today vote, instantly.</Text>
+        <View style={styles.headerCard}>
+          <Text style={styles.title}>🍽️ LunchCrew</Text>
+          <Text style={styles.subtitle}>Open app = workspace + today vote, instantly.</Text>
+        </View>
 
-        {loading && <ActivityIndicator color="#93c5fd" />}
+        {loading && (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator color="#7dd3fc" />
+            <Text style={styles.loadingText}>Setting things up…</Text>
+          </View>
+        )}
 
         {workspace ? (
           <View style={styles.card}>
@@ -273,22 +288,30 @@ export default function App() {
             </Pressable>
           </View>
         ) : (
-          <Text style={styles.helper}>Setting things up…</Text>
+          <Text style={styles.helper}>Creating your workspace…</Text>
         )}
 
         {poll && (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{poll.title}</Text>
-            {options.map((opt) => (
-              <Pressable
-                key={opt.id}
-                style={[styles.optionButton, myOptionId === opt.id && styles.optionActive]}
-                onPress={() => vote(opt.id)}
-              >
-                <Text style={styles.optionText}>{opt.name}</Text>
-                <Text style={styles.optionVotes}>{opt.votes} votes</Text>
-              </Pressable>
-            ))}
+            {options.map((opt) => {
+              const isActive = myOptionId === opt.id;
+              const isVotingThis = votingOptionId === opt.id;
+              return (
+                <Pressable
+                  key={opt.id}
+                  style={[styles.optionButton, isActive && styles.optionActive, !!votingOptionId && styles.optionDisabled]}
+                  onPress={() => vote(opt.id)}
+                  disabled={!!votingOptionId}
+                >
+                  <Text style={styles.optionText}>{opt.name}</Text>
+                  <View style={styles.voteRight}>
+                    {isVotingThis && <ActivityIndicator size="small" color="#7dd3fc" />}
+                    <Text style={styles.optionVotes}>{opt.votes} votes</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
 
             <View style={styles.row}>
               <TextInput
@@ -298,8 +321,16 @@ export default function App() {
                 value={newOption}
                 onChangeText={setNewOption}
               />
-              <Pressable style={styles.secondaryButton} onPress={addOption}>
-                <Text style={styles.secondaryButtonText}>Add</Text>
+              <Pressable
+                style={[styles.secondaryButton, addingOption && styles.optionDisabled]}
+                onPress={addOption}
+                disabled={addingOption}
+              >
+                {addingOption ? (
+                  <ActivityIndicator size="small" color="#f1f5f9" />
+                ) : (
+                  <Text style={styles.secondaryButtonText}>Add</Text>
+                )}
               </Pressable>
             </View>
 
@@ -312,27 +343,45 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0b1220' },
+  safeArea: { flex: 1, backgroundColor: '#070b14' },
   container: { padding: 18, gap: 16 },
-  title: { color: '#f8fafc', fontSize: 34, fontWeight: '800' },
-  subtitle: { color: '#cbd5e1', marginTop: -8, fontSize: 15 },
+  headerCard: {
+    borderRadius: 18,
+    padding: 16,
+    backgroundColor: '#0e1627',
+    borderWidth: 1,
+    borderColor: '#22304a',
+  },
+  title: { color: '#f8fafc', fontSize: 32, fontWeight: '800' },
+  subtitle: { color: '#cbd5e1', marginTop: 2, fontSize: 14 },
+  loadingWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  loadingText: { color: '#93c5fd', fontSize: 13 },
   card: {
-    backgroundColor: '#111b2e',
+    backgroundColor: '#0f172a',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
     borderColor: '#22304a',
     gap: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
   },
   cardTitle: { color: '#f8fafc', fontSize: 18, fontWeight: '700' },
-  inviteCode: { color: '#93c5fd', fontSize: 14 },
+  inviteCode: { color: '#7dd3fc', fontSize: 14 },
   primaryButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#0ea5e9',
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
   },
-  primaryButtonText: { color: '#eff6ff', fontWeight: '700' },
+  primaryButtonText: { color: '#082f49', fontWeight: '800' },
   optionButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -341,16 +390,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#0f172a',
+    paddingVertical: 11,
+    backgroundColor: '#111827',
   },
-  optionActive: { borderColor: '#22c55e' },
+  voteRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  optionActive: { borderColor: '#22c55e', backgroundColor: '#0b2b1c' },
+  optionDisabled: { opacity: 0.65 },
   optionText: { color: '#f8fafc', fontWeight: '600' },
   optionVotes: { color: '#cbd5e1', fontSize: 13 },
-  row: { flexDirection: 'row', gap: 8 },
+  row: { flexDirection: 'row', gap: 8, marginTop: 2 },
   input: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#111827',
     borderWidth: 1,
     borderColor: '#26334f',
     color: '#f8fafc',
@@ -362,8 +413,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#334155',
     borderRadius: 12,
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    alignItems: 'center',
+    minWidth: 60,
+    paddingHorizontal: 12,
   },
   secondaryButtonText: { color: '#f1f5f9', fontWeight: '700' },
-  helper: { color: '#cbd5e1' },
+  helper: { color: '#cbd5e1', fontSize: 13 },
 });
