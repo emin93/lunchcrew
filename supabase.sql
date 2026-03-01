@@ -40,8 +40,10 @@ alter table public.votes enable row level security;
 -- Open MVP policies (tighten before production)
 drop policy if exists "workspaces_select_all" on public.workspaces;
 drop policy if exists "workspaces_insert_all" on public.workspaces;
+drop policy if exists "workspaces_update_all" on public.workspaces;
 create policy "workspaces_select_all" on public.workspaces for select using (true);
 create policy "workspaces_insert_all" on public.workspaces for insert with check (true);
+create policy "workspaces_update_all" on public.workspaces for update using (true) with check (true);
 
 drop policy if exists "polls_select_all" on public.polls;
 drop policy if exists "polls_insert_all" on public.polls;

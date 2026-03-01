@@ -82,10 +82,13 @@ export function useWorkspaceData({ enabled }: Params) {
     setLoadError(null);
     try {
       const { data, error } = await withTimeout(
-        supabase.from('workspaces').update({ name: nextName }).eq('id', workspace.id).select('*').single(),
+        supabase.from('workspaces').update({ name: nextName }).eq('id', workspace.id).select('*').maybeSingle(),
       );
       setRenaming(false);
-      if (error || !data) return setLoadError('Could not rename crew. Please retry.');
+      if (error || !data) {
+        const extra = error?.message ? ` (${error.message})` : '';
+        return setLoadError(`Could not rename crew. Please retry${extra}`);
+      }
       setWorkspace(data as Workspace);
     } catch {
       setRenaming(false);
