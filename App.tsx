@@ -139,60 +139,60 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" />
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={14}>
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.maxWidthWrap}>
-          <View style={styles.hero}>
-            <Text style={styles.kicker}>Lunch planning, simplified</Text>
-            <Text style={styles.title}>LunchCrew</Text>
-            <Text style={styles.subtitle}>Pick a spot in seconds with your team.</Text>
-            <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
-          </View>
-
-          {loading && (
-            <View style={styles.loadingWrap}>
-              <ActivityIndicator color="#22d3ee" />
-              <Text style={styles.loadingText}>Syncing crew...</Text>
+            <View style={styles.hero}>
+              <Text style={styles.kicker}>Lunch planning, simplified</Text>
+              <Text style={styles.title}>LunchCrew</Text>
+              <Text style={styles.subtitle}>Pick a spot in seconds with your team.</Text>
+              <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
             </View>
-          )}
 
-          {configError && (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorTitle}>Config missing</Text>
-              <Text style={styles.errorText}>{configError}</Text>
-            </View>
-          )}
+            {loading && (
+              <View style={styles.loadingWrap}>
+                <ActivityIndicator color="#22d3ee" />
+                <Text style={styles.loadingText}>Syncing crew...</Text>
+              </View>
+            )}
 
-          {loadError && (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorTitle}>Connection problem</Text>
-              <Text style={styles.errorText}>{loadError}</Text>
-              <Pressable style={styles.retryBtn} onPress={() => void retryLoad()}>
-                <Text style={styles.retryBtnText}>Retry</Text>
-              </Pressable>
-            </View>
-          )}
+            {configError && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorTitle}>Config missing</Text>
+                <Text style={styles.errorText}>{configError}</Text>
+              </View>
+            )}
 
-          {workspace ? (
-            <WorkspacePanel workspace={workspace} onShare={shareInvite} onRename={renameCrew} renaming={renaming} />
-          ) : !configError && !loadError ? (
-            <Text style={styles.helper}>Setting things up…</Text>
-          ) : null}
+            {loadError && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorTitle}>Connection problem</Text>
+                <Text style={styles.errorText}>{loadError}</Text>
+                <Pressable style={styles.retryBtn} onPress={() => void retryLoad()}>
+                  <Text style={styles.retryBtnText}>Retry</Text>
+                </Pressable>
+              </View>
+            )}
 
-          {poll && (
-            <PollPanel
-              poll={poll}
-              options={options}
-              myOptionId={myOptionId}
-              votingOptionId={votingOptionId}
-              addingOption={addingOption}
-              newOption={newOption}
-              topChoice={topChoice}
-              onVote={vote}
-              onChangeNewOption={setNewOption}
-              onAddOption={addOption}
-            />
-          )}
+            {workspace ? (
+              <WorkspacePanel workspace={workspace} onShare={shareInvite} onRename={renameCrew} renaming={renaming} />
+            ) : !configError && !loadError ? (
+              <Text style={styles.helper}>Setting things up…</Text>
+            ) : null}
+
+            {poll && (
+              <PollPanel
+                poll={poll}
+                options={options}
+                myOptionId={myOptionId}
+                votingOptionId={votingOptionId}
+                addingOption={addingOption}
+                newOption={newOption}
+                topChoice={topChoice}
+                onVote={vote}
+                onChangeNewOption={setNewOption}
+                onAddOption={addOption}
+              />
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -203,7 +203,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#030712' },
   flex: { flex: 1 },
-  container: { padding: 16, gap: 14 },
+  scrollContent: { flexGrow: 1, padding: 16, gap: 14 },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
   hero: {
     borderRadius: 20,
