@@ -7,7 +7,6 @@ import {
   Linking,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Share,
   StyleSheet,
@@ -16,6 +15,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
@@ -30,7 +30,7 @@ const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supa
 const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 const DEVICE_ID_KEY = 'lunchcrew.device_id';
 const ONBOARDING_SEEN_KEY = 'lunchcrew.onboarding_seen';
-const BUILD_LABEL = 'Build onboarding-v4';
+const BUILD_LABEL = 'Build qa-v1';
 
 const ONBOARDING_SLIDES = [
   { title: 'Create or Join Instantly', body: 'Open the app to create a workspace, or open an invite link to join your team.' },
@@ -231,10 +231,9 @@ export default function App() {
 
   useEffect(() => {
     const loadOnboarding = async () => {
-      // TEMP: always show onboarding while we iterate on design
-      setOnboardingDone(false);
+      const seen = await AsyncStorage.getItem(ONBOARDING_SEEN_KEY);
+      setOnboardingDone(seen === '1');
       setOnboardingReady(true);
-      await AsyncStorage.removeItem(ONBOARDING_SEEN_KEY);
     };
     void loadOnboarding();
   }, []);
