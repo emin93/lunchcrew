@@ -98,6 +98,25 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const root = document.getElementById('root');
+
+    html.style.backgroundColor = '#030712';
+    body.style.backgroundColor = '#030712';
+    body.style.margin = '0';
+    body.style.minHeight = '100vh';
+    body.style.overflowX = 'hidden';
+
+    if (root) {
+      root.style.backgroundColor = '#030712';
+      root.style.minHeight = '100vh';
+    }
+  }, []);
+
+  useEffect(() => {
     if (onboardingReady && onboardingDone && !isConfigured) {
       Alert.alert('Supabase missing', 'Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env');
     }
@@ -139,7 +158,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" />
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.maxWidthWrap}>
             <View style={styles.hero}>
