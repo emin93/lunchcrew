@@ -15,7 +15,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
@@ -84,6 +84,7 @@ export default function App() {
   const [onboardingReady, setOnboardingReady] = useState(false);
   const onboardingScrollRef = useRef<ScrollView | null>(null);
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const initialized = useRef(false);
   const isConfigured = useMemo(() => !!supabase, []);
 
@@ -335,7 +336,7 @@ export default function App() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 14 : 0}
         >
-          <View style={styles.onboardingScreen}>
+          <View style={[styles.onboardingScreen, { paddingTop: insets.top }]}>
             <View style={styles.onboardingTop}>
               <ScrollView
               ref={onboardingScrollRef}
@@ -370,7 +371,7 @@ export default function App() {
             </ScrollView>
           </View>
 
-            <View style={styles.onboardingBottom}>
+            <View style={[styles.onboardingBottom, { paddingBottom: Math.max(insets.bottom + 10, 20) }]}>
               <View style={styles.dotsWrap}>
                 {ONBOARDING_SLIDES.map((_, idx) => (
                   <View key={idx} style={[styles.dot, idx === onboardingIndex && styles.dotActive]} />
