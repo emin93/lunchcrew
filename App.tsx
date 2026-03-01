@@ -98,25 +98,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
-
-    const html = document.documentElement;
-    const body = document.body;
-    const root = document.getElementById('root');
-
-    html.style.backgroundColor = '#030712';
-    body.style.backgroundColor = '#030712';
-    body.style.margin = '0';
-    body.style.minHeight = '100vh';
-    body.style.overflowX = 'hidden';
-
-    if (root) {
-      root.style.backgroundColor = '#030712';
-      root.style.minHeight = '100vh';
-    }
-  }, []);
-
-  useEffect(() => {
     if (onboardingReady && onboardingDone && !isConfigured) {
       Alert.alert('Supabase missing', 'Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env');
     }
@@ -220,7 +201,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, minHeight: '100%', backgroundColor: '#030712' },
+  safeArea: { flex: 1, backgroundColor: '#030712' },
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, padding: 16, gap: 14 },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
