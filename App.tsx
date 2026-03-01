@@ -1,10 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -20,32 +19,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { PollPanel } from './src/components/PollPanel';
 import { WorkspacePanel } from './src/components/WorkspacePanel';
-import {
-  BUILD_LABEL,
-  DEFAULT_OPTIONS,
-  DEVICE_ID_KEY,
-  ONBOARDING_SEEN_KEY,
-  extractInviteCode,
-  generateInviteCode,
-  makeDeviceId,
-  todayDateUTC,
-  withTimeout,
-} from './src/lib/helpers';
-import { isConfigured, supabase } from './src/lib/supabase';
-import { ONBOARDING_SLIDES, Poll, PollOption, Workspace } from './src/types';
+import { BUILD_LABEL, ONBOARDING_SEEN_KEY } from './src/lib/helpers';
+import { isConfigured } from './src/lib/supabase';
+import { ONBOARDING_SLIDES } from './src/types';
+import { useWorkspaceData } from './src/hooks/useWorkspaceData';
+import { usePollData } from './src/hooks/usePollData';
 
 export default function App() {
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [poll, setPoll] = useState<Poll | null>(null);
-  const [options, setOptions] = useState<PollOption[]>([]);
-  const [myOptionId, setMyOptionId] = useState<string | null>(null);
-  const [newOption, setNewOption] = useState('');
-  const [deviceId, setDeviceId] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [votingOptionId, setVotingOptionId] = useState<string | null>(null);
-  const [addingOption, setAddingOption] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
   const [onboardingIndex, setOnboardingIndex] = useState(0);
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
@@ -55,145 +35,42 @@ export default function App() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
+  const {
+    workspace,
+    deviceId,
+    loading,
+    loadError,
+    setLoadError,
+    retryWorkspaceLoad,
+  } = useWorkspaceData({ enabled: onboardingReady && onboardingDone && !initialized.current });
+
+  useEffect(() => {
+    if (onboardingReady && onboardingDone && !initialized.current) {
+      initialized.current = true;
+    }
+  }, [onboardingReady, onboardingDone]);
+
+  const {
+    poll,
+    options,
+    myOptionId,
+    newOption,
+    setNewOption,
+    votingOptionId,
+    addingOption,
+    topChoice,
+    vote,
+    addOption,
+    retryPollLoad,
+  } = usePollData({ workspace, deviceId, onLoadError: setLoadError });
+
   const configError = !isConfigured
     ? 'Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY in runtime.'
     : null;
 
-  const loadDeviceId = async () => {
-    const existing = await AsyncStorage.getItem(DEVICE_ID_KEY);
-    if (existing) {
-      setDeviceId(existing);
-      return existing;
-    }
-    const created = makeDeviceId();
-    await AsyncStorage.setItem(DEVICE_ID_KEY, created);
-    setDeviceId(created);
-    return created;
-  };
-
-  const createWorkspace = async () => {
-    if (!supabase) return;
-    setLoading(true);
-    setLoadError(null);
-
-    try {
-      const { data, error } = await withTimeout(
-        supabase
-          .from('workspaces')
-          .insert({ name: 'LunchCrew Workspace', invite_code: generateInviteCode() })
-          .select('*')
-          .single(),
-      );
-      setLoading(false);
-      if (error || !data) return setLoadError('Could not create workspace. Check internet and retry.');
-      setWorkspace(data as Workspace);
-    } catch {
-      setLoading(false);
-      setLoadError('Network timeout while creating workspace. Please retry.');
-    }
-  };
-
-  const joinByDeepLink = async (url: string) => {
-    if (!supabase) return;
-    const code = extractInviteCode(url);
-    if (!code) return;
-
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const { data, error } = await withTimeout(
-        supabase.from('workspaces').select('*').eq('invite_code', code).single(),
-      );
-      setLoading(false);
-      if (error || !data) return setLoadError('Join failed. Invite link invalid or network issue.');
-      setWorkspace(data as Workspace);
-    } catch {
-      setLoading(false);
-      setLoadError('Network timeout while joining workspace. Please retry.');
-    }
-  };
-
-  const ensureTodayPoll = async (workspaceId: string) => {
-    if (!supabase) return null;
-    const date = todayDateUTC();
-
-    try {
-      const existing = await withTimeout(
-        supabase.from('polls').select('*').eq('workspace_id', workspaceId).eq('poll_date', date).maybeSingle(),
-      );
-      if (existing.data) return existing.data as Poll;
-
-      const created = await withTimeout(
-        supabase
-          .from('polls')
-          .insert({ workspace_id: workspaceId, poll_date: date, title: "Today's Lunch" })
-          .select('*')
-          .single(),
-      );
-      if (created.error || !created.data) {
-        setLoadError('Could not create today poll. Please retry.');
-        return null;
-      }
-
-      await withTimeout(
-        supabase.from('poll_options').insert(DEFAULT_OPTIONS.map((name) => ({ poll_id: created.data.id, name }))),
-      );
-      return created.data as Poll;
-    } catch {
-      setLoadError('Network timeout while loading today poll. Please retry.');
-      return null;
-    }
-  };
-
-  const refreshPollData = async (pollId: string, voterId: string) => {
-    if (!supabase) return;
-    const [optionsRes, myVoteRes] = await Promise.all([
-      withTimeout(supabase.from('poll_options').select('id,poll_id,name,votes(count)').eq('poll_id', pollId).order('created_at')),
-      withTimeout(supabase.from('votes').select('option_id').eq('poll_id', pollId).eq('voter_id', voterId).maybeSingle()),
-    ]);
-
-    if (optionsRes.error) return setLoadError('Could not load poll options. Check internet and retry.');
-
-    const mapped: PollOption[] = ((optionsRes.data as any[]) || []).map((r) => ({
-      id: r.id,
-      poll_id: r.poll_id,
-      name: r.name,
-      votes: r.votes?.[0]?.count ?? 0,
-    }));
-
-    setOptions(mapped);
-    setMyOptionId((myVoteRes.data as any)?.option_id ?? null);
-  };
-
-  const vote = async (optionId: string) => {
-    if (!supabase || !poll || !deviceId || votingOptionId) return;
-    setVotingOptionId(optionId);
-    const { error } = await supabase
-      .from('votes')
-      .upsert({ poll_id: poll.id, option_id: optionId, voter_id: deviceId }, { onConflict: 'poll_id,voter_id' });
-    if (error) {
-      setVotingOptionId(null);
-      return Alert.alert('Vote failed', error.message);
-    }
-    await refreshPollData(poll.id, deviceId);
-    setVotingOptionId(null);
-  };
-
-  const addOption = async () => {
-    if (!supabase || !poll || addingOption) return;
-    const name = newOption.trim();
-    if (!name) return;
-
-    setAddingOption(true);
-    const { error } = await supabase.from('poll_options').insert({ poll_id: poll.id, name });
-    if (error) {
-      setAddingOption(false);
-      return Alert.alert('Could not add option', error.message);
-    }
-
-    setNewOption('');
-    await refreshPollData(poll.id, deviceId);
-    setAddingOption(false);
+  const completeOnboarding = async () => {
+    await AsyncStorage.setItem(ONBOARDING_SEEN_KEY, '1');
+    setOnboardingDone(true);
   };
 
   const shareInvite = async () => {
@@ -205,20 +82,8 @@ export default function App() {
   };
 
   const retryLoad = async () => {
-    setLoadError(null);
-    if (!workspace) return createWorkspace();
-    if (workspace && deviceId) {
-      const todayPoll = await ensureTodayPoll(workspace.id);
-      if (todayPoll) {
-        setPoll(todayPoll);
-        await refreshPollData(todayPoll.id, deviceId);
-      }
-    }
-  };
-
-  const completeOnboarding = async () => {
-    await AsyncStorage.setItem(ONBOARDING_SEEN_KEY, '1');
-    setOnboardingDone(true);
+    if (!workspace) return retryWorkspaceLoad();
+    return retryPollLoad();
   };
 
   useEffect(() => {
@@ -231,48 +96,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!onboardingReady || !onboardingDone || initialized.current) return;
-    initialized.current = true;
-
-    if (!isConfigured || !supabase) {
+    if (onboardingReady && onboardingDone && !isConfigured) {
       Alert.alert('Supabase missing', 'Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env');
-      return;
     }
-
-    const boot = async () => {
-      try {
-        await loadDeviceId();
-        const initialUrl = await Promise.race<string | null>([
-          Linking.getInitialURL(),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
-        ]);
-        const initialCode = extractInviteCode(initialUrl || '');
-        if (initialUrl && initialCode) await joinByDeepLink(initialUrl);
-        else await createWorkspace();
-      } catch {
-        await createWorkspace();
-      }
-    };
-
-    void boot();
-    const sub = Linking.addEventListener('url', (event) => {
-      if (extractInviteCode(event.url)) void joinByDeepLink(event.url);
-    });
-    return () => sub.remove();
   }, [onboardingReady, onboardingDone]);
-
-  useEffect(() => {
-    if (!workspace || !deviceId) return;
-    const load = async () => {
-      const todayPoll = await ensureTodayPoll(workspace.id);
-      if (!todayPoll) return;
-      setPoll(todayPoll);
-      await refreshPollData(todayPoll.id, deviceId);
-    };
-    void load();
-  }, [workspace, deviceId]);
-
-  const topChoice = useMemo(() => options.slice().sort((a, b) => b.votes - a.votes)[0]?.name, [options]);
 
   if (!onboardingReady) {
     return (
