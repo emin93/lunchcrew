@@ -79,7 +79,7 @@ export function OnboardingScreen({
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#030712' },
+  safeArea: { flex: 1, minHeight: '100%', backgroundColor: '#030712' },
   screen: { flex: 1, padding: 0, justifyContent: 'space-between' },
   top: { flex: 1, justifyContent: 'center' },
   content: { paddingHorizontal: 22, paddingVertical: 8, justifyContent: 'center' },

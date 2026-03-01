@@ -201,7 +201,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#030712' },
+  safeArea: { flex: 1, minHeight: '100%', backgroundColor: '#030712' },
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, padding: 16, gap: 14 },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
