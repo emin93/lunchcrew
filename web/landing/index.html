@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LunchCrew — Lunch planning for teams</title>
+    <meta name="description" content="LunchCrew helps teams decide where to eat in seconds." />
+    <meta property="og:title" content="LunchCrew" />
+    <meta property="og:description" content="Lunch planning for teams. Vote fast, decide faster." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://lunchcrew.app" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <nav class="nav container">
+        <div class="brand">🍽️ LunchCrew</div>
+        <a class="btn ghost" href="#waitlist">Get early access</a>
+      </nav>
+
+      <section class="container hero-content">
+        <p class="badge">Now in private MVP</p>
+        <h1>Lunch planning for teams, without the chaos.</h1>
+        <p class="lead">
+          Create a workspace, share one invite link, and let everyone vote in seconds.
+          LunchCrew removes the daily “where should we eat?” noise.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="#waitlist">Join waitlist</a>
+          <a class="btn ghost" href="#features">See features</a>
+        </div>
+      </section>
+    </header>
+
+    <main>
+      <section id="features" class="container features">
+        <article class="card">
+          <h3>1-tap setup</h3>
+          <p>Open app, create workspace instantly. No complex onboarding.</p>
+        </article>
+        <article class="card">
+          <h3>Invite by link</h3>
+          <p>Share one link. Coworkers join immediately.</p>
+        </article>
+        <article class="card">
+          <h3>Fast daily voting</h3>
+          <p>Today’s lunch options, one-tap votes, quick consensus.</p>
+        </article>
+      </section>
+
+      <section id="waitlist" class="container waitlist">
+        <div class="wait-card">
+          <h2>Get early access</h2>
+          <p>Drop your email and we’ll invite you when public beta opens.</p>
+          <form id="waitlist-form" class="wait-form">
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="you@company.com"
+              required
+            />
+            <button type="submit" class="btn primary">Notify me</button>
+          </form>
+          <p id="form-msg" class="msg"></p>
+          <p class="note">Temporary demo form (stores nothing yet).</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="container footer">
+      <span>© <span id="year"></span> LunchCrew</span>
+      <span>Built for teams that like lunch and speed.</span>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
