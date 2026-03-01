@@ -315,7 +315,7 @@ export default function App() {
 
   if (!onboardingReady) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <StatusBar style="light" />
         <View style={styles.centered}>
           <ActivityIndicator color="#22d3ee" />
@@ -328,7 +328,7 @@ export default function App() {
   if (!onboardingDone) {
     const isLast = onboardingIndex === ONBOARDING_SLIDES.length - 1;
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <StatusBar style="light" />
         <KeyboardAvoidingView
           style={styles.flex}
@@ -404,7 +404,7 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar style="light" />
       <KeyboardAvoidingView
         style={styles.flex}
