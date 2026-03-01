@@ -77,7 +77,7 @@ export default function App() {
     if (!workspace) return;
     await Share.share({
       title: 'LunchCrew Invite',
-      message: `Join my LunchCrew workspace: https://lunchcrew.app/join?code=${workspace.invite_code}`,
+      message: `Join my LunchCrew workspace: https://join.lunchcrew.app?code=${workspace.invite_code}`,
     });
   };
 
