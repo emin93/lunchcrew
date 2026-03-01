@@ -78,6 +78,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [votingOptionId, setVotingOptionId] = useState<string | null>(null);
   const [addingOption, setAddingOption] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [onboardingIndex, setOnboardingIndex] = useState(0);
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
@@ -101,6 +102,7 @@ export default function App() {
   const createWorkspace = async () => {
     if (!supabase) return;
     setLoading(true);
+    setLoadError(null);
 
     const { data, error } = await supabase
       .from('workspaces')
@@ -110,7 +112,7 @@ export default function App() {
 
     setLoading(false);
     if (error || !data) {
-      Alert.alert('Could not create workspace', error?.message ?? 'Unknown error');
+      setLoadError('Could not create workspace. Check internet and retry.');
       return;
     }
     setWorkspace(data as Workspace);
@@ -122,11 +124,12 @@ export default function App() {
     if (!code) return;
 
     setLoading(true);
+    setLoadError(null);
     const { data, error } = await supabase.from('workspaces').select('*').eq('invite_code', code).single();
     setLoading(false);
 
     if (error || !data) {
-      Alert.alert('Join failed', 'Workspace not found for this invite link.');
+      setLoadError('Join failed. Invite link invalid or network issue.');
       return;
     }
     setWorkspace(data as Workspace);
@@ -152,7 +155,7 @@ export default function App() {
       .single();
 
     if (created.error || !created.data) {
-      Alert.alert('Poll error', created.error?.message ?? 'Could not create today poll');
+      setLoadError('Could not create today poll. Please retry.');
       return null;
     }
 
@@ -172,7 +175,7 @@ export default function App() {
     ]);
 
     if (optionsRes.error) {
-      Alert.alert('Load options failed', optionsRes.error.message);
+      setLoadError('Could not load poll options. Check internet and retry.');
       return;
     }
 
@@ -292,6 +295,21 @@ export default function App() {
     await Share.share({ title: 'LunchCrew Invite', message: `Join my LunchCrew workspace: ${link}` });
   };
 
+  const retryLoad = async () => {
+    setLoadError(null);
+    if (!workspace) {
+      await createWorkspace();
+      return;
+    }
+    if (workspace && deviceId) {
+      const todayPoll = await ensureTodayPoll(workspace.id);
+      if (todayPoll) {
+        setPoll(todayPoll);
+        await refreshPollData(todayPoll.id, deviceId);
+      }
+    }
+  };
+
   const top = options.slice().sort((a, b) => b.votes - a.votes)[0];
   const snapInterval = width;
 
@@ -408,6 +426,16 @@ export default function App() {
           </View>
         )}
 
+        {loadError && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorTitle}>Connection problem</Text>
+            <Text style={styles.errorText}>{loadError}</Text>
+            <Pressable style={styles.retryBtn} onPress={() => void retryLoad()}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </Pressable>
+          </View>
+        )}
+
         {workspace ? (
           <View style={styles.panel}>
             <View style={styles.rowBetween}>
@@ -520,6 +548,24 @@ const styles = StyleSheet.create({
 
   loadingWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
   loadingText: { color: '#67e8f9', fontSize: 13 },
+  errorBox: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#7f1d1d',
+    backgroundColor: '#2b1014',
+    padding: 12,
+    gap: 8,
+  },
+  errorTitle: { color: '#fecaca', fontWeight: '800' },
+  errorText: { color: '#fca5a5', fontSize: 13 },
+  retryBtn: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  retryBtnText: { color: '#fff', fontWeight: '700' },
 
   panel: {
     borderRadius: 18,
