@@ -34,16 +34,16 @@ export function useWorkspaceData({ enabled }: Params) {
       const { data, error } = await withTimeout(
         supabase
           .from('workspaces')
-          .insert({ name: 'LunchCrew Workspace', invite_code: generateInviteCode() })
+          .insert({ name: 'LunchCrew Crew', invite_code: generateInviteCode() })
           .select('*')
           .single(),
       );
       setLoading(false);
-      if (error || !data) return setLoadError('Could not create workspace. Check internet and retry.');
+      if (error || !data) return setLoadError('Could not create crew. Check internet and retry.');
       setWorkspace(data as Workspace);
     } catch {
       setLoading(false);
-      setLoadError('Network timeout while creating workspace. Please retry.');
+      setLoadError('Network timeout while creating crew. Please retry.');
     }
   };
 

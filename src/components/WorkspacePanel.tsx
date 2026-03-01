@@ -11,7 +11,7 @@ export function WorkspacePanel({ workspace, onShare }: Props) {
     <View style={styles.panel}>
       <View style={styles.rowBetween}>
         <View>
-          <Text style={styles.panelLabel}>Workspace</Text>
+          <Text style={styles.panelLabel}>Crew</Text>
           <Text style={styles.workspaceTitle}>{workspace.name}</Text>
         </View>
         <Pressable style={styles.sharePill} onPress={onShare}>
