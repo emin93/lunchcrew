@@ -6,10 +6,11 @@ type Props = {
   workspace: Workspace;
   onShare: () => void;
   onRename: (name: string) => void;
+  onCreateNewCrew: () => void;
   renaming: boolean;
 };
 
-export function WorkspacePanel({ workspace, onShare, onRename, renaming }: Props) {
+export function WorkspacePanel({ workspace, onShare, onRename, onCreateNewCrew, renaming }: Props) {
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState(workspace.name);
 
@@ -69,7 +70,12 @@ export function WorkspacePanel({ workspace, onShare, onRename, renaming }: Props
           <Text style={styles.sharePillText}>Share invite</Text>
         </Pressable>
       </View>
-      <Text style={styles.codeText}>Code: {workspace.invite_code}</Text>
+      <View style={styles.rowBetween}>
+        <Text style={styles.codeText}>Code: {workspace.invite_code}</Text>
+        <Pressable onPress={onCreateNewCrew}>
+          <Text style={styles.linkText}>+ New crew</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -121,4 +127,5 @@ const styles = StyleSheet.create({
   sharePill: { backgroundColor: '#0e7490', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999 },
   sharePillText: { color: '#ecfeff', fontWeight: '700', fontSize: 12 },
   codeText: { color: '#67e8f9', fontSize: 13, fontWeight: '600' },
+  linkText: { color: '#94a3b8', fontSize: 12, fontWeight: '700' },
 });

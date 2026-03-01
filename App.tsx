@@ -42,6 +42,7 @@ export default function App() {
     renaming,
     loadError,
     setLoadError,
+    createWorkspace,
     retryWorkspaceLoad,
     renameCrew,
   } = useWorkspaceData({ enabled: onboardingReady && onboardingDone && !initialized.current });
@@ -86,6 +87,11 @@ export default function App() {
   const retryLoad = async () => {
     if (!workspace) return retryWorkspaceLoad();
     return retryPollLoad();
+  };
+
+  const createNewCrew = async () => {
+    setLoadError(null);
+    await createWorkspace();
   };
 
   useEffect(() => {
@@ -193,7 +199,13 @@ export default function App() {
             )}
 
             {workspace ? (
-              <WorkspacePanel workspace={workspace} onShare={shareInvite} onRename={renameCrew} renaming={renaming} />
+              <WorkspacePanel
+              workspace={workspace}
+              onShare={shareInvite}
+              onRename={renameCrew}
+              onCreateNewCrew={() => void createNewCrew()}
+              renaming={renaming}
+            />
             ) : !configError && !loadError ? (
               <Text style={styles.helper}>Setting things up…</Text>
             ) : null}
