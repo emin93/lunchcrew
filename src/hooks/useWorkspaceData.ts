@@ -34,7 +34,7 @@ export function useWorkspaceData({ enabled }: Params) {
       const { data, error } = await withTimeout(
         supabase
           .from('workspaces')
-          .insert({ name: 'LunchCrew Crew', invite_code: generateInviteCode() })
+          .insert({ name: 'LunchCrew', invite_code: generateInviteCode() })
           .select('*')
           .single(),
       );

@@ -77,7 +77,7 @@ export default function App() {
     if (!workspace) return;
     await Share.share({
       title: 'LunchCrew Invite',
-      message: `Join my LunchCrew crew: https://join.lunchcrew.app?code=${workspace.invite_code}`,
+      message: `Join my LunchCrew: https://join.lunchcrew.app?code=${workspace.invite_code}`,
     });
   };
 
@@ -150,7 +150,7 @@ export default function App() {
           {loading && (
             <View style={styles.loadingWrap}>
               <ActivityIndicator color="#22d3ee" />
-              <Text style={styles.loadingText}>Syncing crew…</Text>
+              <Text style={styles.loadingText}>Syncing crew...</Text>
             </View>
           )}
 
