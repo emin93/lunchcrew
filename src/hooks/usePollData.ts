@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { DEFAULT_OPTIONS, todayDateUTC, withTimeout } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
@@ -17,6 +17,7 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
   const [newOption, setNewOption] = useState('');
   const [votingOptionId, setVotingOptionId] = useState<string | null>(null);
   const [addingOption, setAddingOption] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const ensureTodayPoll = async (workspaceId: string) => {
     if (!supabase) return null;
@@ -122,6 +123,20 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     };
     void load();
   }, [workspace, deviceId]);
+
+  // Live-ish sync across tabs/devices via lightweight polling fallback.
+  useEffect(() => {
+    if (!poll || !deviceId) return;
+
+    pollingRef.current = setInterval(() => {
+      void refreshPollData(poll.id, deviceId);
+    }, 4000);
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    };
+  }, [poll?.id, deviceId]);
 
   const topChoice = useMemo(() => options.slice().sort((a, b) => b.votes - a.votes)[0]?.name, [options]);
 
