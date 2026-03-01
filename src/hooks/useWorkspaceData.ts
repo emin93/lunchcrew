@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { DEVICE_ID_KEY, extractInviteCode, generateInviteCode, makeDeviceId, withTimeout } from '../lib/helpers';
 import { isConfigured, supabase } from '../lib/supabase';
 import { Workspace } from '../types';
@@ -71,6 +71,26 @@ export function useWorkspaceData({ enabled }: Params) {
     setLoadError(null);
     if (!workspace) await createWorkspace();
   };
+
+  const syncWebUrlWithWorkspace = (inviteCode: string) => {
+    if (Platform.OS !== 'web') return;
+    try {
+      const url = new URL(window.location.href);
+      const current = (url.searchParams.get('code') || '').toUpperCase();
+      const target = inviteCode.toUpperCase();
+      if (current === target) return;
+      url.searchParams.set('code', target);
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      // no-op
+    }
+  };
+
+  useEffect(() => {
+    if (workspace?.invite_code) {
+      syncWebUrlWithWorkspace(workspace.invite_code);
+    }
+  }, [workspace?.invite_code]);
 
   useEffect(() => {
     if (!enabled) return;
