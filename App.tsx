@@ -139,6 +139,7 @@ export default function App() {
       <StatusBar style="light" />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={14}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.maxWidthWrap}>
           <View style={styles.hero}>
             <Text style={styles.kicker}>Lunch planning, simplified</Text>
             <Text style={styles.title}>LunchCrew</Text>
@@ -186,6 +187,7 @@ export default function App() {
               onAddOption={addOption}
             />
           )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -196,6 +198,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#030712' },
   flex: { flex: 1 },
   container: { padding: 16, gap: 14 },
+  maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
   hero: {
     borderRadius: 20,
     padding: 18,
