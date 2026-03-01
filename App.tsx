@@ -39,9 +39,11 @@ export default function App() {
     workspace,
     deviceId,
     loading,
+    renaming,
     loadError,
     setLoadError,
     retryWorkspaceLoad,
+    renameCrew,
   } = useWorkspaceData({ enabled: onboardingReady && onboardingDone && !initialized.current });
 
   useEffect(() => {
@@ -171,7 +173,11 @@ export default function App() {
             </View>
           )}
 
-          {workspace ? <WorkspacePanel workspace={workspace} onShare={shareInvite} /> : !configError && !loadError ? <Text style={styles.helper}>Setting things up…</Text> : null}
+          {workspace ? (
+            <WorkspacePanel workspace={workspace} onShare={shareInvite} onRename={renameCrew} renaming={renaming} />
+          ) : !configError && !loadError ? (
+            <Text style={styles.helper}>Setting things up…</Text>
+          ) : null}
 
           {poll && (
             <PollPanel

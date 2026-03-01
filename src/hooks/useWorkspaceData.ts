@@ -11,6 +11,7 @@ export function useWorkspaceData({ enabled }: Params) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [deviceId, setDeviceId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [renaming, setRenaming] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadDeviceId = async () => {
@@ -72,6 +73,26 @@ export function useWorkspaceData({ enabled }: Params) {
     if (!workspace) await createWorkspace();
   };
 
+  const renameCrew = async (name: string) => {
+    if (!supabase || !workspace) return;
+    const nextName = name.trim();
+    if (!nextName || nextName === workspace.name) return;
+
+    setRenaming(true);
+    setLoadError(null);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.from('workspaces').update({ name: nextName }).eq('id', workspace.id).select('*').single(),
+      );
+      setRenaming(false);
+      if (error || !data) return setLoadError('Could not rename crew. Please retry.');
+      setWorkspace(data as Workspace);
+    } catch {
+      setRenaming(false);
+      setLoadError('Network timeout while renaming crew. Please retry.');
+    }
+  };
+
   const syncWebUrlWithWorkspace = (inviteCode: string) => {
     if (Platform.OS !== 'web') return;
     try {
@@ -121,9 +142,11 @@ export function useWorkspaceData({ enabled }: Params) {
     workspace,
     deviceId,
     loading,
+    renaming,
     loadError,
     setLoadError,
     createWorkspace,
     retryWorkspaceLoad,
+    renameCrew,
   };
 }
