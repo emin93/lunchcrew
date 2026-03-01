@@ -26,6 +26,17 @@ export function WorkspacePanel({ workspace, onShare, onRename, renaming }: Props
                 onChangeText={setNameDraft}
                 placeholder="Crew name"
                 placeholderTextColor="#64748b"
+                autoFocus
+                onSubmitEditing={() => {
+                  onRename(nameDraft);
+                  setEditing(false);
+                }}
+                onKeyPress={(e) => {
+                  if (e.nativeEvent.key === 'Escape') {
+                    setNameDraft(workspace.name);
+                    setEditing(false);
+                  }
+                }}
               />
               <Pressable
                 style={[styles.smallBtn, renaming && styles.btnDisabled]}
@@ -37,9 +48,18 @@ export function WorkspacePanel({ workspace, onShare, onRename, renaming }: Props
               >
                 {renaming ? <ActivityIndicator size="small" color="#ecfeff" /> : <Text style={styles.smallBtnText}>Save</Text>}
               </Pressable>
+              <Pressable
+                style={styles.cancelBtn}
+                onPress={() => {
+                  setNameDraft(workspace.name);
+                  setEditing(false);
+                }}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </Pressable>
             </View>
           ) : (
-            <Pressable onPress={() => setEditing(true)}>
+            <Pressable onPress={() => { setNameDraft(workspace.name); setEditing(true); }}>
               <Text style={styles.workspaceTitle}>{workspace.name} ✏️</Text>
             </Pressable>
           )}
@@ -67,7 +87,7 @@ const styles = StyleSheet.create({
   titleWrap: { flex: 1, gap: 6 },
   panelLabel: { color: '#64748b', fontSize: 12 },
   workspaceTitle: { color: '#f8fafc', fontWeight: '700', fontSize: 17 },
-  editRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  editRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
   nameInput: {
     flex: 1,
     borderWidth: 1,
@@ -88,6 +108,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   smallBtnText: { color: '#ecfeff', fontWeight: '700', fontSize: 12 },
+  cancelBtn: {
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  cancelBtnText: { color: '#cbd5e1', fontWeight: '700', fontSize: 12 },
   btnDisabled: { opacity: 0.7 },
   sharePill: { backgroundColor: '#0e7490', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999 },
   sharePillText: { color: '#ecfeff', fontWeight: '700', fontSize: 12 },
