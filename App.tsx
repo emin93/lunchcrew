@@ -68,6 +68,13 @@ function extractInviteCode(input: string) {
   }
 }
 
+async function withTimeout<T>(promise: Promise<T>, ms = 12000): Promise<T> {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
+
 export default function App() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [poll, setPoll] = useState<Poll | null>(null);
@@ -105,18 +112,24 @@ export default function App() {
     setLoading(true);
     setLoadError(null);
 
-    const { data, error } = await supabase
-      .from('workspaces')
-      .insert({ name: 'LunchCrew Workspace', invite_code: generateInviteCode() })
-      .select('*')
-      .single();
-
-    setLoading(false);
-    if (error || !data) {
-      setLoadError('Could not create workspace. Check internet and retry.');
-      return;
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('workspaces')
+          .insert({ name: 'LunchCrew Workspace', invite_code: generateInviteCode() })
+          .select('*')
+          .single(),
+      );
+      setLoading(false);
+      if (error || !data) {
+        setLoadError('Could not create workspace. Check internet and retry.');
+        return;
+      }
+      setWorkspace(data as Workspace);
+    } catch {
+      setLoading(false);
+      setLoadError('Network timeout while creating workspace. Please retry.');
     }
-    setWorkspace(data as Workspace);
   };
 
   const joinByDeepLink = async (url: string) => {
@@ -126,45 +139,63 @@ export default function App() {
 
     setLoading(true);
     setLoadError(null);
-    const { data, error } = await supabase.from('workspaces').select('*').eq('invite_code', code).single();
-    setLoading(false);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.from('workspaces').select('*').eq('invite_code', code).single(),
+      );
+      setLoading(false);
 
-    if (error || !data) {
-      setLoadError('Join failed. Invite link invalid or network issue.');
-      return;
+      if (error || !data) {
+        setLoadError('Join failed. Invite link invalid or network issue.');
+        return;
+      }
+      setWorkspace(data as Workspace);
+    } catch {
+      setLoading(false);
+      setLoadError('Network timeout while joining workspace. Please retry.');
     }
-    setWorkspace(data as Workspace);
   };
 
   const ensureTodayPoll = async (workspaceId: string) => {
     if (!supabase) return null;
     const date = todayDateUTC();
 
-    const existing = await supabase
-      .from('polls')
-      .select('*')
-      .eq('workspace_id', workspaceId)
-      .eq('poll_date', date)
-      .maybeSingle();
+    try {
+      const existing = await withTimeout(
+        supabase
+          .from('polls')
+          .select('*')
+          .eq('workspace_id', workspaceId)
+          .eq('poll_date', date)
+          .maybeSingle(),
+      );
 
-    if (existing.data) return existing.data as Poll;
+      if (existing.data) return existing.data as Poll;
 
-    const created = await supabase
-      .from('polls')
-      .insert({ workspace_id: workspaceId, poll_date: date, title: "Today's Lunch" })
-      .select('*')
-      .single();
+      const created = await withTimeout(
+        supabase
+          .from('polls')
+          .insert({ workspace_id: workspaceId, poll_date: date, title: "Today's Lunch" })
+          .select('*')
+          .single(),
+      );
 
-    if (created.error || !created.data) {
-      setLoadError('Could not create today poll. Please retry.');
+      if (created.error || !created.data) {
+        setLoadError('Could not create today poll. Please retry.');
+        return null;
+      }
+
+      await withTimeout(
+        supabase.from('poll_options').insert(
+          DEFAULT_OPTIONS.map((name) => ({ poll_id: created.data.id, name })),
+        ),
+      );
+
+      return created.data as Poll;
+    } catch {
+      setLoadError('Network timeout while loading today poll. Please retry.');
       return null;
     }
-
-    await supabase.from('poll_options').insert(
-      DEFAULT_OPTIONS.map((name) => ({ poll_id: created.data.id, name })),
-    );
-
-    return created.data as Poll;
   };
 
   const refreshPollData = async (pollId: string, voterId: string) => {
