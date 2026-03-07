@@ -9,6 +9,7 @@ type Params = {
   workspace: Workspace | null;
   deviceId: string;
   onLoadError: (msg: string | null) => void;
+  requestLocation: boolean;
 };
 
 type PlaceDetailsResponse = {
@@ -23,7 +24,7 @@ type PlaceDetailsResponse = {
   detectedMenuUrl?: string | null;
 };
 
-export function usePollData({ workspace, deviceId, onLoadError }: Params) {
+export function usePollData({ workspace, deviceId, onLoadError, requestLocation }: Params) {
   const [poll, setPoll] = useState<Poll | null>(null);
   const [options, setOptions] = useState<PollOption[]>([]);
   const [myOptionId, setMyOptionId] = useState<string | null>(null);
@@ -222,6 +223,8 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
   }, [workspace, deviceId]);
 
   useEffect(() => {
+    if (!requestLocation) return;
+
     let cancelled = false;
 
     const loadCoords = async () => {
@@ -253,7 +256,7 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [requestLocation]);
 
   useEffect(() => {
     if (!supabase) return;

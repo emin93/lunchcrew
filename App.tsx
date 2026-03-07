@@ -18,7 +18,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { PollPanel } from './src/components/PollPanel';
 import { WorkspacePanel } from './src/components/WorkspacePanel';
-import { BUILD_LABEL, DISPLAY_NAME_KEY, normalizeDisplayName, ONBOARDING_SEEN_KEY } from './src/lib/helpers';
+import {
+  BUILD_LABEL,
+  DISPLAY_NAME_KEY,
+  LOCATION_PROMPT_SEEN_KEY,
+  normalizeDisplayName,
+  ONBOARDING_SEEN_KEY,
+} from './src/lib/helpers';
 import { isConfigured } from './src/lib/supabase';
 import { useWorkspaceData } from './src/hooks/useWorkspaceData';
 import { usePollData } from './src/hooks/usePollData';
@@ -26,6 +32,7 @@ import { usePollData } from './src/hooks/usePollData';
 export default function App() {
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
+  const [requestLocation, setRequestLocation] = useState(false);
 
   const initialized = useRef(false);
 
@@ -66,7 +73,7 @@ export default function App() {
     loadingSuggestions,
     selectedSuggestion,
     setSelectedSuggestion,
-  } = usePollData({ workspace, deviceId, onLoadError: setLoadError });
+  } = usePollData({ workspace, deviceId, onLoadError: setLoadError, requestLocation });
 
   const configError = !isConfigured
     ? 'Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY in runtime.'
@@ -111,6 +118,41 @@ export default function App() {
     if (onboardingReady && onboardingDone && !isConfigured) {
       Alert.alert('Supabase missing', 'Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env');
     }
+  }, [onboardingReady, onboardingDone]);
+
+  useEffect(() => {
+    if (!onboardingReady || !onboardingDone) return;
+
+    const askLocationPermission = async () => {
+      const seen = await AsyncStorage.getItem(LOCATION_PROMPT_SEEN_KEY);
+      if (seen === '1') {
+        setRequestLocation(true);
+        return;
+      }
+
+      Alert.alert(
+        'Enable location for better suggestions?',
+        "LunchCrew uses your location only to improve nearby autocomplete suggestions. Your location isn't stored.",
+        [
+          {
+            text: 'Not now',
+            style: 'cancel',
+            onPress: async () => {
+              await AsyncStorage.setItem(LOCATION_PROMPT_SEEN_KEY, '1');
+            },
+          },
+          {
+            text: 'Continue',
+            onPress: async () => {
+              await AsyncStorage.setItem(LOCATION_PROMPT_SEEN_KEY, '1');
+              setRequestLocation(true);
+            },
+          },
+        ],
+      );
+    };
+
+    void askLocationPermission();
   }, [onboardingReady, onboardingDone]);
 
   useEffect(() => {

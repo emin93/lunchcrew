@@ -22,6 +22,9 @@ export function OnboardingScreen({ onSubmitName, onSkip, buildLabel }: Props) {
             <Text style={styles.kicker}>Welcome to LunchCrew</Text>
             <Text style={styles.title}>Let’s make lunch decisions easy.</Text>
             <Text style={styles.subtitle}>Add your name (optional) so teammates can see who voted. You can change this later.</Text>
+            <Text style={styles.privacyNote}>
+              After onboarding, we’ll ask for location access to improve nearby place suggestions. LunchCrew does not store your location.
+            </Text>
 
             <View style={styles.inputRow}>
               <View style={styles.initialsBubble}>
@@ -71,6 +74,7 @@ const styles = StyleSheet.create({
   kicker: { color: '#22d3ee', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   title: { color: '#f8fafc', fontSize: 34, fontWeight: '800' },
   subtitle: { color: '#94a3b8', fontSize: 14 },
+  privacyNote: { color: '#64748b', fontSize: 12, lineHeight: 18 },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   initialsBubble: {
     width: 36,
