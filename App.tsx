@@ -110,6 +110,23 @@ export default function App() {
     }
   }, [onboardingReady, onboardingDone]);
 
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const root = document.getElementById('root');
+
+    html.style.backgroundColor = '#030712';
+    body.style.backgroundColor = '#030712';
+    body.style.margin = '0';
+    body.style.overflowX = 'hidden';
+
+    if (root) {
+      root.style.backgroundColor = '#030712';
+    }
+  }, []);
+
   if (!onboardingReady) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
