@@ -18,11 +18,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { PollPanel } from './src/components/PollPanel';
 import { WorkspacePanel } from './src/components/WorkspacePanel';
-import { MonetizationCard } from './src/components/MonetizationCard';
+import { MonetizationModal } from './src/components/MonetizationModal';
 import {
   BUILD_LABEL,
   DISPLAY_NAME_KEY,
   LOCATION_PROMPT_SEEN_KEY,
+  MONETIZATION_LAST_PROMPT_AT_KEY,
+  MONETIZATION_WAITLIST_JOINED_KEY,
   normalizeDisplayName,
   ONBOARDING_SEEN_KEY,
 } from './src/lib/helpers';
@@ -35,6 +37,7 @@ export default function App() {
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
   const [requestLocation, setRequestLocation] = useState(false);
+  const [showMonetizationModal, setShowMonetizationModal] = useState(false);
 
   const initialized = useRef(false);
 
@@ -187,6 +190,35 @@ export default function App() {
   }, [onboardingReady, onboardingDone]);
 
   useEffect(() => {
+    if (!onboardingReady || !onboardingDone || !workspace?.id) return;
+
+    const maybeShowMonetizationModal = async () => {
+      const joined = await AsyncStorage.getItem(MONETIZATION_WAITLIST_JOINED_KEY);
+      if (joined === '1') return;
+
+      const now = Date.now();
+      const lastPromptRaw = await AsyncStorage.getItem(MONETIZATION_LAST_PROMPT_AT_KEY);
+      if (!lastPromptRaw) {
+        await AsyncStorage.setItem(MONETIZATION_LAST_PROMPT_AT_KEY, String(now));
+        return;
+      }
+
+      const lastPrompt = Number(lastPromptRaw);
+      if (!Number.isFinite(lastPrompt)) {
+        await AsyncStorage.setItem(MONETIZATION_LAST_PROMPT_AT_KEY, String(now));
+        return;
+      }
+
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      if (now - lastPrompt >= oneDayMs) {
+        setShowMonetizationModal(true);
+      }
+    };
+
+    void maybeShowMonetizationModal();
+  }, [onboardingReady, onboardingDone, workspace?.id]);
+
+  useEffect(() => {
     if (Platform.OS !== 'web') return;
 
     const html = document.documentElement;
@@ -266,8 +298,6 @@ export default function App() {
               </View>
             )}
 
-            <MonetizationCard workspaceId={workspace?.id} deviceId={deviceId} />
-
             {workspace ? (
               <WorkspacePanel
                 workspace={workspace}
@@ -318,6 +348,21 @@ export default function App() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <MonetizationModal
+        visible={showMonetizationModal}
+        workspaceId={workspace?.id}
+        deviceId={deviceId}
+        onClose={() => {
+          void AsyncStorage.setItem(MONETIZATION_LAST_PROMPT_AT_KEY, String(Date.now()));
+          setShowMonetizationModal(false);
+        }}
+        onJoined={() => {
+          void AsyncStorage.setItem(MONETIZATION_WAITLIST_JOINED_KEY, '1');
+          void AsyncStorage.setItem(MONETIZATION_LAST_PROMPT_AT_KEY, String(Date.now()));
+          setShowMonetizationModal(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
