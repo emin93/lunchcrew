@@ -3,6 +3,7 @@ export const DEVICE_ID_KEY = 'lunchcrew.device_id';
 export const ONBOARDING_SEEN_KEY = 'lunchcrew.onboarding_seen';
 export const DISPLAY_NAME_KEY = 'lunchcrew.display_name';
 export const BUILD_LABEL = 'Build qa-v1';
+export const MAX_DISPLAY_NAME_LENGTH = 32;
 
 export function generateInviteCode() {
   const part = () => Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -34,8 +35,12 @@ export function extractInviteCode(input: string) {
   }
 }
 
+export function normalizeDisplayName(name: string) {
+  return (name || '').replace(/\s+/g, ' ').trim().slice(0, MAX_DISPLAY_NAME_LENGTH);
+}
+
 export function initialsForName(name: string) {
-  const cleaned = (name || '').trim();
+  const cleaned = normalizeDisplayName(name);
   if (!cleaned) return '?';
   const parts = cleaned.split(/\s+/).filter(Boolean);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { initialsForName } from '../lib/helpers';
+import { initialsForName, MAX_DISPLAY_NAME_LENGTH, normalizeDisplayName } from '../lib/helpers';
 import { Workspace } from '../types';
 
 type Props = {
@@ -109,10 +109,11 @@ export function WorkspacePanel({
           <TextInput
             style={styles.identityInput}
             value={displayNameDraft}
-            onChangeText={setDisplayNameDraft}
+            onChangeText={(v) => setDisplayNameDraft(normalizeDisplayName(v))}
             placeholder="Add your display name"
             placeholderTextColor="#64748b"
             autoCapitalize="words"
+            maxLength={MAX_DISPLAY_NAME_LENGTH}
           />
           <Pressable
             style={[styles.smallBtn, savingName && styles.btnDisabled]}

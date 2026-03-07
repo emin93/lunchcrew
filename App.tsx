@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { PollPanel } from './src/components/PollPanel';
 import { WorkspacePanel } from './src/components/WorkspacePanel';
-import { BUILD_LABEL, DISPLAY_NAME_KEY, ONBOARDING_SEEN_KEY } from './src/lib/helpers';
+import { BUILD_LABEL, DISPLAY_NAME_KEY, normalizeDisplayName, ONBOARDING_SEEN_KEY } from './src/lib/helpers';
 import { isConfigured } from './src/lib/supabase';
 import { useWorkspaceData } from './src/hooks/useWorkspaceData';
 import { usePollData } from './src/hooks/usePollData';
@@ -69,7 +69,7 @@ export default function App() {
     : null;
 
   const completeOnboarding = async (name?: string) => {
-    const trimmed = (name || '').trim();
+    const trimmed = normalizeDisplayName(name || '');
     if (trimmed) await AsyncStorage.setItem(DISPLAY_NAME_KEY, trimmed);
     await AsyncStorage.setItem(ONBOARDING_SEEN_KEY, '1');
     setOnboardingDone(true);

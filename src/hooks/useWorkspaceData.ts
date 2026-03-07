@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from 'react-native';
-import { DEVICE_ID_KEY, DISPLAY_NAME_KEY, extractInviteCode, generateInviteCode, makeDeviceId, withTimeout } from '../lib/helpers';
+import { DEVICE_ID_KEY, DISPLAY_NAME_KEY, extractInviteCode, generateInviteCode, makeDeviceId, normalizeDisplayName, withTimeout } from '../lib/helpers';
 import { isConfigured, supabase } from '../lib/supabase';
 import { Workspace, WorkspaceMember } from '../types';
 
@@ -52,7 +52,7 @@ export function useWorkspaceData({ enabled }: Params) {
       return;
     }
 
-    const pendingName = (await AsyncStorage.getItem(DISPLAY_NAME_KEY))?.trim() || '';
+    const pendingName = normalizeDisplayName((await AsyncStorage.getItem(DISPLAY_NAME_KEY)) || '');
     if (!pendingName) {
       setMember(baseMember);
       return;
@@ -80,7 +80,7 @@ export function useWorkspaceData({ enabled }: Params) {
   const saveDisplayName = async (nextName: string) => {
     if (!supabase || !workspace || !deviceId) return;
 
-    const trimmed = nextName.trim();
+    const trimmed = normalizeDisplayName(nextName);
     setSavingName(true);
     setLoadError(null);
 

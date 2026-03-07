@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { initialsForName } from '../lib/helpers';
+import { initialsForName, MAX_DISPLAY_NAME_LENGTH, normalizeDisplayName } from '../lib/helpers';
 
 type Props = {
   onSubmitName: (name: string) => void;
@@ -21,7 +21,7 @@ export function OnboardingScreen({ onSubmitName, onSkip, buildLabel }: Props) {
           <View style={styles.content}>
             <Text style={styles.kicker}>Welcome to LunchCrew</Text>
             <Text style={styles.title}>Let’s make lunch decisions easy.</Text>
-            <Text style={styles.subtitle}>Add your name (optional) so teammates can see who voted.</Text>
+            <Text style={styles.subtitle}>Add your name (optional) so teammates can see who voted. You can change this later.</Text>
 
             <View style={styles.inputRow}>
               <View style={styles.initialsBubble}>
@@ -30,15 +30,18 @@ export function OnboardingScreen({ onSubmitName, onSkip, buildLabel }: Props) {
               <TextInput
                 style={styles.input}
                 value={name}
-                onChangeText={setName}
+                onChangeText={(v) => setName(normalizeDisplayName(v))}
                 placeholder="Your display name (optional)"
                 placeholderTextColor="#64748b"
                 autoCapitalize="words"
+                autoFocus={Platform.OS === 'web'}
+                maxLength={MAX_DISPLAY_NAME_LENGTH}
                 returnKeyType="done"
-                onSubmitEditing={() => onSubmitName(name)}
+                onSubmitEditing={() => onSubmitName(normalizeDisplayName(name))}
               />
             </View>
 
+            <Text style={styles.nameHint}>{name.length}/{MAX_DISPLAY_NAME_LENGTH}</Text>
             <Text style={styles.buildLabel}>{buildLabel}</Text>
           </View>
         </View>
@@ -49,7 +52,7 @@ export function OnboardingScreen({ onSubmitName, onSkip, buildLabel }: Props) {
               <Pressable style={styles.skipBtn} onPress={onSkip}>
                 <Text style={styles.skipText}>Skip for now</Text>
               </Pressable>
-              <Pressable style={styles.primaryBtn} onPress={() => onSubmitName(name)}>
+              <Pressable style={styles.primaryBtn} onPress={() => onSubmitName(normalizeDisplayName(name))}>
                 <Text style={styles.primaryText}>Continue</Text>
               </Pressable>
             </View>
@@ -91,6 +94,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
+  nameHint: { color: '#64748b', fontSize: 11 },
   buildLabel: { color: '#475569', fontSize: 11, marginTop: 4, fontWeight: '600' },
   bottom: { paddingHorizontal: 20, paddingBottom: 20 },
   bottomInner: { width: '100%', maxWidth: 760, alignSelf: 'center' },
