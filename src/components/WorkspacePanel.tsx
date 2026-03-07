@@ -28,6 +28,11 @@ export function WorkspacePanel({
   const [nameDraft, setNameDraft] = useState(workspace.name);
   const [displayNameDraft, setDisplayNameDraft] = useState(displayName);
 
+  const cleanWorkspaceName = nameDraft.trim();
+  const cleanDisplayName = normalizeDisplayName(displayNameDraft);
+  const canSaveWorkspaceName = !!cleanWorkspaceName && cleanWorkspaceName !== workspace.name;
+  const canSaveDisplayName = !savingName && cleanDisplayName !== normalizeDisplayName(displayName);
+
   useEffect(() => {
     setDisplayNameDraft(displayName);
   }, [displayName]);
@@ -47,7 +52,11 @@ export function WorkspacePanel({
                 placeholderTextColor="#64748b"
                 autoFocus
                 onSubmitEditing={() => {
-                  onRename(nameDraft);
+                  if (!canSaveWorkspaceName) {
+                    setEditing(false);
+                    return;
+                  }
+                  onRename(cleanWorkspaceName);
                   setEditing(false);
                 }}
                 onKeyPress={(e) => {
@@ -58,12 +67,16 @@ export function WorkspacePanel({
                 }}
               />
               <Pressable
-                style={[styles.smallBtn, renaming && styles.btnDisabled]}
+                style={[styles.smallBtn, (!canSaveWorkspaceName || renaming) && styles.btnDisabled]}
                 onPress={() => {
-                  onRename(nameDraft);
+                  if (!canSaveWorkspaceName) {
+                    setEditing(false);
+                    return;
+                  }
+                  onRename(cleanWorkspaceName);
                   setEditing(false);
                 }}
-                disabled={renaming}
+                disabled={renaming || !canSaveWorkspaceName}
               >
                 {renaming ? <ActivityIndicator size="small" color="#ecfeff" /> : <Text style={styles.smallBtnText}>Save</Text>}
               </Pressable>
@@ -114,11 +127,15 @@ export function WorkspacePanel({
             placeholderTextColor="#64748b"
             autoCapitalize="words"
             maxLength={MAX_DISPLAY_NAME_LENGTH}
+            returnKeyType="done"
+            onSubmitEditing={() => {
+              if (canSaveDisplayName) onSaveDisplayName(cleanDisplayName);
+            }}
           />
           <Pressable
-            style={[styles.smallBtn, savingName && styles.btnDisabled]}
-            onPress={() => onSaveDisplayName(displayNameDraft)}
-            disabled={savingName}
+            style={[styles.smallBtn, !canSaveDisplayName && styles.btnDisabled]}
+            onPress={() => onSaveDisplayName(cleanDisplayName)}
+            disabled={!canSaveDisplayName}
           >
             {savingName ? <ActivityIndicator size="small" color="#ecfeff" /> : <Text style={styles.smallBtnText}>Save</Text>}
           </Pressable>

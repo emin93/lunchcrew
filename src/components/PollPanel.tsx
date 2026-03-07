@@ -46,6 +46,11 @@ export function PollPanel({
   onChangeNewOption,
   onAddOption,
 }: Props) {
+  const trimmedOption = newOption.trim();
+  const canAddOption = !!selectedSuggestion || trimmedOption.length > 0;
+  const showSuggestionList = !selectedSuggestion && trimmedOption.length >= 2;
+  const showNoResults = showSuggestionList && !loadingSuggestions && suggestions.length === 0;
+
   return (
     <View style={styles.panel}>
       <View style={styles.rowBetween}>
@@ -77,6 +82,9 @@ export function PollPanel({
               style={[styles.optionCard, isActive && styles.optionCardActive, !!votingOptionId && styles.optionDisabled]}
               onPress={() => onVote(opt.id)}
               disabled={!!votingOptionId}
+              accessibilityRole="button"
+              accessibilityLabel={`Vote for ${opt.name}`}
+              accessibilityHint="Double tap to cast your vote"
             >
               <View style={styles.optionMain}>
                 <View style={styles.optionHeader}>
@@ -100,6 +108,8 @@ export function PollPanel({
                             onOpenMaps(opt.id, mapsUrl);
                             void Linking.openURL(mapsUrl);
                           }}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Open ${opt.name} in maps`}
                         >
                           <Text style={styles.linkBtnText}>Open Maps</Text>
                         </Pressable>
@@ -112,6 +122,8 @@ export function PollPanel({
                             onOpenMenu(opt.id, menuUrl);
                             void Linking.openURL(menuUrl);
                           }}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Open ${opt.name} menu`}
                         >
                           <Text style={styles.linkBtnText}>View Menu</Text>
                         </Pressable>
@@ -150,8 +162,18 @@ export function PollPanel({
           placeholderTextColor="#64748b"
           value={newOption}
           onChangeText={onChangeNewOption}
+          returnKeyType="done"
+          onSubmitEditing={() => {
+            if (canAddOption && !addingOption) onAddOption();
+          }}
         />
-        <Pressable style={[styles.addBtn, addingOption && styles.optionDisabled]} onPress={onAddOption} disabled={addingOption}>
+        <Pressable
+          style={[styles.addBtn, (!canAddOption || addingOption) && styles.optionDisabled]}
+          onPress={onAddOption}
+          disabled={!canAddOption || addingOption}
+          accessibilityRole="button"
+          accessibilityLabel="Add place option"
+        >
           {addingOption ? <ActivityIndicator size="small" color="#071018" /> : <Text style={styles.addBtnText}>Add</Text>}
         </Pressable>
       </View>
@@ -159,17 +181,18 @@ export function PollPanel({
       {selectedSuggestion ? (
         <View style={styles.selectedRow}>
           <Text style={styles.selectedText}>Selected: {selectedSuggestion.name}</Text>
-          <Pressable onPress={onClearSuggestion}>
+          <Pressable onPress={onClearSuggestion} accessibilityRole="button" accessibilityLabel="Clear selected suggestion">
             <Text style={styles.clearText}>Clear</Text>
           </Pressable>
         </View>
       ) : null}
 
-      {!selectedSuggestion && (loadingSuggestions || suggestions.length > 0) ? (
+      {showSuggestionList ? (
         <View style={styles.suggestionsWrap}>
           {loadingSuggestions ? <Text style={styles.suggestHint}>Searching places…</Text> : null}
+          {showNoResults ? <Text style={styles.suggestHint}>No places found. Try another name or add it manually.</Text> : null}
           {suggestions.map((s) => (
-            <Pressable key={s.id} style={styles.suggestionItem} onPress={() => onSelectSuggestion(s)}>
+            <Pressable key={s.id} style={styles.suggestionItem} onPress={() => onSelectSuggestion(s)} accessibilityRole="button">
               <Text style={styles.suggestionName}>{s.name}</Text>
               {s.secondaryText ? <Text style={styles.suggestionSub}>{s.secondaryText}</Text> : null}
             </Pressable>

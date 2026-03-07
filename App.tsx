@@ -90,10 +90,31 @@ export default function App() {
 
   const shareInvite = async () => {
     if (!workspace) return;
-    await Share.share({
-      title: 'LunchCrew Invite',
-      message: `Join my LunchCrew: https://join.lunchcrew.app?code=${workspace.invite_code}`,
-    });
+    const inviteLink = `https://join.lunchcrew.app?code=${workspace.invite_code}`;
+
+    try {
+      await Share.share({
+        title: 'LunchCrew Invite',
+        message: `Join my LunchCrew: ${inviteLink}`,
+      });
+      void trackEvent('invite_shared', { workspace_id: workspace.id, method: 'native_share' }, deviceId);
+      return;
+    } catch {
+      // Fallback to clipboard for web and environments without Share support.
+    }
+
+    if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(inviteLink);
+        Alert.alert('Invite link copied', 'Paste it in chat to invite your crew.');
+        void trackEvent('invite_shared', { workspace_id: workspace.id, method: 'clipboard_fallback' }, deviceId);
+      } catch {
+        Alert.alert('Could not share', 'Copy this invite code manually: ' + workspace.invite_code);
+      }
+      return;
+    }
+
+    Alert.alert('Could not share', 'Copy this invite code manually: ' + workspace.invite_code);
   };
 
   const retryLoad = async () => {
@@ -277,6 +298,7 @@ export default function App() {
                 onSelectSuggestion={(s) => {
                   setSelectedSuggestion(s);
                   setNewOption(s.name);
+                  void trackEvent('place_suggestion_selected', { poll_id: poll.id, workspace_id: workspace?.id, place_id: s.externalPlaceId }, deviceId);
                 }}
                 onClearSuggestion={() => setSelectedSuggestion(null)}
                 onVote={vote}

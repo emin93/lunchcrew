@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { trackEvent } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
@@ -16,10 +16,13 @@ export function MonetizationCard({ workspaceId, deviceId }: Props) {
   const [email, setEmail] = useState('');
   const [note, setNote] = useState('');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const trackedViewRef = useRef(false);
 
   const canSubmit = useMemo(() => isValidEmail(email.trim()), [email]);
 
   useEffect(() => {
+    if (trackedViewRef.current) return;
+    trackedViewRef.current = true;
     void trackEvent('pricing_viewed', { placement: 'app_card' }, deviceId);
   }, [deviceId]);
 
@@ -46,6 +49,14 @@ export function MonetizationCard({ workspaceId, deviceId }: Props) {
     });
 
     if (error) {
+      if (error.code === '23505') {
+        await trackEvent('waitlist_already_joined', { placement: 'app_card', workspace_id: workspaceId ?? null }, deviceId);
+        setStatus('saved');
+        setEmail('');
+        setNote('');
+        return;
+      }
+
       await trackEvent('waitlist_submit_failed', { message: error.message, placement: 'app_card' }, deviceId);
       setStatus('error');
       return;
@@ -87,6 +98,7 @@ export function MonetizationCard({ workspaceId, deviceId }: Props) {
         {status === 'saving' ? <ActivityIndicator size="small" color="#ecfeff" /> : <Text style={styles.buttonText}>Join Pro waitlist</Text>}
       </Pressable>
 
+      {email.trim().length > 0 && !canSubmit && <Text style={styles.helper}>Enter a valid email to join the waitlist.</Text>}
       {status === 'saved' && <Text style={styles.success}>Thanks — we will reach out before launch.</Text>}
       {status === 'error' && <Text style={styles.error}>Couldn’t save right now. Your interest was still noted.</Text>}
     </View>
@@ -137,6 +149,7 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#ecfeff', fontWeight: '700', fontSize: 13 },
+  helper: { color: '#94a3b8', fontSize: 12 },
   success: { color: '#86efac', fontSize: 12, fontWeight: '600' },
   error: { color: '#fca5a5', fontSize: 12, fontWeight: '600' },
 });

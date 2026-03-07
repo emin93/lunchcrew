@@ -156,7 +156,14 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
   const addOption = async () => {
     if (!supabase || !poll || !workspace || addingOption) return;
     const name = newOption.trim();
-    if (!name) return;
+    if (!name && !selectedSuggestion) return;
+
+    const candidateName = (selectedSuggestion?.name || name).trim().toLowerCase();
+    const alreadyExists = options.some((opt) => opt.name.trim().toLowerCase() === candidateName);
+    if (alreadyExists) {
+      Alert.alert('Already added', 'That place is already in today’s poll.');
+      return;
+    }
 
     setAddingOption(true);
     try {

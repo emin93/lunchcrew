@@ -20,7 +20,9 @@ No custom UI required. Use Supabase SQL editor + table/view charting.
 - `realtime_status` (`props.status=subscribed|fallback_polling`)
 - `pricing_viewed` (`props.placement=app_card`)
 - `upgrade_cta_clicked` (`props.placement=app_card`)
-- `waitlist_joined` / `waitlist_submit_failed`
+- `waitlist_joined` / `waitlist_already_joined` / `waitlist_submit_failed`
+- `invite_shared` (`props.method=native_share|clipboard_fallback`)
+- `place_suggestion_selected`
 
 ## Recommended dashboard charts (Supabase)
 1. Daily active devices + votes
