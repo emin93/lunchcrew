@@ -16,6 +16,8 @@ type Props = {
   onSelectSuggestion: (s: PlaceSuggestion) => void;
   onClearSuggestion: () => void;
   onVote: (id: string) => void;
+  onOpenMaps: (optionId: string, url: string) => void;
+  onOpenMenu: (optionId: string, url: string) => void;
   onChangeNewOption: (v: string) => void;
   onAddOption: () => void;
 };
@@ -39,6 +41,8 @@ export function PollPanel({
   onSelectSuggestion,
   onClearSuggestion,
   onVote,
+  onOpenMaps,
+  onOpenMenu,
   onChangeNewOption,
   onAddOption,
 }: Props) {
@@ -93,6 +97,7 @@ export function PollPanel({
                           style={styles.linkBtn}
                           onPress={(e) => {
                             e.stopPropagation();
+                            onOpenMaps(opt.id, mapsUrl);
                             void Linking.openURL(mapsUrl);
                           }}
                         >
@@ -104,6 +109,7 @@ export function PollPanel({
                           style={styles.linkBtn}
                           onPress={(e) => {
                             e.stopPropagation();
+                            onOpenMenu(opt.id, menuUrl);
                             void Linking.openURL(menuUrl);
                           }}
                         >

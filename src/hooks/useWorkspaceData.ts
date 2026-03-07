@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from 'react-native';
 import { DEVICE_ID_KEY, DISPLAY_NAME_KEY, extractInviteCode, generateInviteCode, makeDeviceId, normalizeDisplayName, withTimeout } from '../lib/helpers';
 import { isConfigured, supabase } from '../lib/supabase';
+import { trackEvent } from '../lib/analytics';
 import { Workspace, WorkspaceMember } from '../types';
 
 type Params = { enabled: boolean };
@@ -105,6 +106,7 @@ export function useWorkspaceData({ enabled }: Params) {
       setMember(data as WorkspaceMember);
       if (trimmed) await AsyncStorage.setItem(DISPLAY_NAME_KEY, trimmed);
       else await AsyncStorage.removeItem(DISPLAY_NAME_KEY);
+      void trackEvent('display_name_set', { has_name: !!trimmed, workspace_id: workspace.id }, deviceId);
     } catch {
       setSavingName(false);
       setLoadError('Network timeout while saving your name. Please retry.');
@@ -127,6 +129,7 @@ export function useWorkspaceData({ enabled }: Params) {
       setLoading(false);
       if (error || !data) return setLoadError('Could not create crew. Check internet and retry.');
       setWorkspace(data as Workspace);
+      void trackEvent('workspace_created', { workspace_id: data.id }, deviceId || undefined);
     } catch {
       setLoading(false);
       setLoadError('Network timeout while creating crew. Please retry.');
@@ -145,6 +148,7 @@ export function useWorkspaceData({ enabled }: Params) {
       setLoading(false);
       if (error || !data) return setLoadError('Join failed. Invite link invalid or network issue.');
       setWorkspace(data as Workspace);
+      void trackEvent('workspace_joined', { workspace_id: data.id }, deviceId || undefined);
     } catch {
       setLoading(false);
       setLoadError('Network timeout while joining workspace. Please retry.');

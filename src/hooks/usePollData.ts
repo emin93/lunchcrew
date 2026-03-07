@@ -3,6 +3,7 @@ import { Alert, Platform } from 'react-native';
 import * as Location from 'expo-location';
 import { todayDateUTC, withTimeout } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
+import { trackEvent } from '../lib/analytics';
 import { PlaceSuggestion, Poll, PollOption, Workspace } from '../types';
 
 type Params = {
@@ -149,6 +150,7 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
       return Alert.alert('Vote failed', error.message);
     }
     await refreshPollData(poll.id, workspace.id, deviceId);
+    void trackEvent('vote_cast', { poll_id: poll.id, option_id: optionId, workspace_id: workspace.id }, deviceId);
     setVotingOptionId(null);
   };
 
@@ -190,6 +192,15 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
       }
 
       setNewOption('');
+      void trackEvent(
+        'poll_option_added',
+        {
+          poll_id: poll.id,
+          workspace_id: workspace.id,
+          source: selectedSuggestion ? 'google_place' : 'manual',
+        },
+        deviceId,
+      );
       setSelectedSuggestion(null);
       setSuggestions([]);
       await refreshPollData(poll.id, workspace.id, deviceId);
@@ -233,9 +244,10 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
           navigator.geolocation.getCurrentPosition(
             (pos) => {
               if (!cancelled) setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+              void trackEvent('location_permission_result', { status: 'granted', platform: 'web' }, deviceId || undefined);
             },
             () => {
-              // ignore (user denied or unavailable)
+              void trackEvent('location_permission_result', { status: 'denied', platform: 'web' }, deviceId || undefined);
             },
             { enableHighAccuracy: true, timeout: 7000 },
           );
@@ -243,9 +255,13 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
         }
 
         const perm = await Location.requestForegroundPermissionsAsync();
-        if (perm.status !== 'granted') return;
+        if (perm.status !== 'granted') {
+          void trackEvent('location_permission_result', { status: 'denied', platform: Platform.OS }, deviceId || undefined);
+          return;
+        }
         const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (!cancelled) setCoords({ lat: current.coords.latitude, lng: current.coords.longitude });
+        void trackEvent('location_permission_result', { status: 'granted', platform: Platform.OS }, deviceId || undefined);
       } catch {
         // ignore geolocation failures
       }
@@ -325,6 +341,7 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
+          void trackEvent('realtime_status', { status: 'subscribed', poll_id: poll.id, workspace_id: workspace.id }, deviceId);
           if (pollingRef.current) {
             clearInterval(pollingRef.current);
             pollingRef.current = null;
@@ -334,6 +351,7 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
 
         // If websocket can't subscribe, use lightweight polling fallback.
         if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') && !pollingRef.current) {
+          void trackEvent('realtime_status', { status: 'fallback_polling', poll_id: poll.id, workspace_id: workspace.id }, deviceId);
           pollingRef.current = setInterval(() => {
             void refreshPollData(poll.id, workspace.id, deviceId);
           }, 10000);

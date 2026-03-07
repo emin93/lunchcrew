@@ -28,6 +28,7 @@ import {
 import { isConfigured } from './src/lib/supabase';
 import { useWorkspaceData } from './src/hooks/useWorkspaceData';
 import { usePollData } from './src/hooks/usePollData';
+import { trackEvent } from './src/lib/analytics';
 
 export default function App() {
   const [onboardingDone, setOnboardingDone] = useState(false);
@@ -276,6 +277,12 @@ export default function App() {
                 }}
                 onClearSuggestion={() => setSelectedSuggestion(null)}
                 onVote={vote}
+                onOpenMaps={(optionId, url) =>
+                  void trackEvent('maps_opened', { option_id: optionId, poll_id: poll.id, workspace_id: workspace?.id, url }, deviceId)
+                }
+                onOpenMenu={(optionId, url) =>
+                  void trackEvent('menu_opened', { option_id: optionId, poll_id: poll.id, workspace_id: workspace?.id, url }, deviceId)
+                }
                 onChangeNewOption={(v) => {
                   setSelectedSuggestion(null);
                   setNewOption(v);

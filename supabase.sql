@@ -115,3 +115,57 @@ drop policy if exists "places_cache_update_all" on public.places_cache;
 create policy "places_cache_select_all" on public.places_cache for select using (true);
 create policy "places_cache_insert_all" on public.places_cache for insert with check (true);
 create policy "places_cache_update_all" on public.places_cache for update using (true) with check (true);
+
+-- Analytics v1
+create table if not exists public.analytics_events (
+  id uuid primary key default gen_random_uuid(),
+  event_name text not null,
+  device_hash text,
+  props jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_analytics_events_created_at on public.analytics_events(created_at desc);
+create index if not exists idx_analytics_events_event_name on public.analytics_events(event_name);
+
+alter table public.analytics_events enable row level security;
+
+drop policy if exists "analytics_events_select_all" on public.analytics_events;
+drop policy if exists "analytics_events_insert_all" on public.analytics_events;
+create policy "analytics_events_select_all" on public.analytics_events for select using (true);
+create policy "analytics_events_insert_all" on public.analytics_events for insert with check (true);
+
+create or replace view public.analytics_daily_overview as
+select
+  date_trunc('day', created_at)::date as day,
+  count(*) as total_events,
+  count(distinct coalesce(device_hash, id::text)) as active_devices,
+  count(*) filter (where event_name = 'workspace_created') as workspaces_created,
+  count(*) filter (where event_name = 'vote_cast') as votes_cast,
+  count(*) filter (where event_name = 'poll_option_added') as options_added,
+  count(*) filter (where event_name = 'maps_opened') as maps_clicks,
+  count(*) filter (where event_name = 'menu_opened') as menu_clicks
+from public.analytics_events
+group by 1
+order by 1 desc;
+
+create or replace view public.analytics_feature_adoption as
+select
+  date_trunc('day', created_at)::date as day,
+  count(*) filter (where event_name = 'poll_option_added') as options_total,
+  count(*) filter (
+    where event_name = 'poll_option_added'
+      and coalesce(props->>'source', 'manual') = 'google_place'
+  ) as options_google_place,
+  round(
+    100.0 * count(*) filter (
+      where event_name = 'poll_option_added'
+        and coalesce(props->>'source', 'manual') = 'google_place'
+    ) / nullif(count(*) filter (where event_name = 'poll_option_added'), 0),
+    2
+  ) as pct_google_place,
+  count(*) filter (where event_name = 'location_permission_result' and props->>'status' = 'granted') as location_granted,
+  count(*) filter (where event_name = 'location_permission_result' and props->>'status' = 'denied') as location_denied
+from public.analytics_events
+group by 1
+order by 1 desc;
