@@ -56,6 +56,9 @@ export function PollPanel({
             <Text style={styles.emptyText}>
               Start by adding a place below. Places stay in your crew workspace, while votes reset daily so you can reuse the same workspace every day.
             </Text>
+            <Text style={styles.privacyText}>
+              Location is only used to improve nearby autocomplete results and is not stored by LunchCrew.
+            </Text>
           </View>
         ) : null}
 
@@ -206,6 +209,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { color: '#e2e8f0', fontSize: 14, fontWeight: '800' },
   emptyText: { color: '#94a3b8', fontSize: 12, lineHeight: 18 },
+  privacyText: { color: '#64748b', fontSize: 11, lineHeight: 16 },
   optionMain: { flex: 1, gap: 8 },
   optionHeader: { gap: 2 },
   optionCardActive: { borderColor: '#22c55e', backgroundColor: '#052e1d' },
