@@ -169,3 +169,23 @@ select
 from public.analytics_events
 group by 1
 order by 1 desc;
+
+-- Monetization waitlist v1
+create table if not exists public.monetization_waitlist (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  note text,
+  workspace_id uuid references public.workspaces(id) on delete set null,
+  source text not null default 'app_card',
+  created_at timestamptz not null default now(),
+  unique (email)
+);
+
+create index if not exists idx_monetization_waitlist_created_at on public.monetization_waitlist(created_at desc);
+
+alter table public.monetization_waitlist enable row level security;
+
+drop policy if exists "monetization_waitlist_select_all" on public.monetization_waitlist;
+drop policy if exists "monetization_waitlist_insert_all" on public.monetization_waitlist;
+create policy "monetization_waitlist_select_all" on public.monetization_waitlist for select using (true);
+create policy "monetization_waitlist_insert_all" on public.monetization_waitlist for insert with check (true);

@@ -18,6 +18,9 @@ No custom UI required. Use Supabase SQL editor + table/view charting.
 - `menu_opened`
 - `location_permission_result` (`props.status=granted|denied`)
 - `realtime_status` (`props.status=subscribed|fallback_polling`)
+- `pricing_viewed` (`props.placement=app_card`)
+- `upgrade_cta_clicked` (`props.placement=app_card`)
+- `waitlist_joined` / `waitlist_submit_failed`
 
 ## Recommended dashboard charts (Supabase)
 1. Daily active devices + votes

@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { PollPanel } from './src/components/PollPanel';
 import { WorkspacePanel } from './src/components/WorkspacePanel';
+import { MonetizationCard } from './src/components/MonetizationCard';
 import {
   BUILD_LABEL,
   DISPLAY_NAME_KEY,
@@ -243,6 +244,8 @@ export default function App() {
                 </Pressable>
               </View>
             )}
+
+            <MonetizationCard workspaceId={workspace?.id} deviceId={deviceId} />
 
             {workspace ? (
               <WorkspacePanel
