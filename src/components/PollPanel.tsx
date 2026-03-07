@@ -57,7 +57,6 @@ export function PollPanel({
         {options.length === 0 ? (
           <View style={styles.emptyInline}>
             <Text style={styles.emptyKicker}>Getting started</Text>
-            <Text style={styles.emptyTitle}>No places yet for today.</Text>
             <Text style={styles.emptyText}>
               Add your first place below. Places stay in your crew workspace, while votes reset daily so you can reuse the same workspace every day.
             </Text>
