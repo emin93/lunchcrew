@@ -56,6 +56,7 @@ export function PollPanel({
       <View style={styles.optionList}>
         {options.length === 0 ? (
           <View style={styles.emptyState}>
+            <Text style={styles.emptyKicker}>Getting started</Text>
             <Text style={styles.emptyTitle}>No places yet for today.</Text>
             <Text style={styles.emptyText}>
               Start by adding a place below. Places stay in your crew workspace, while votes reset daily so you can reuse the same workspace every day.
@@ -208,13 +209,14 @@ const styles = StyleSheet.create({
   emptyState: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#334155',
-    backgroundColor: '#0f172a',
-    padding: 12,
+    borderColor: '#1f3b52',
+    backgroundColor: '#0b1a2a',
+    padding: 14,
     gap: 6,
   },
-  emptyTitle: { color: '#e2e8f0', fontSize: 14, fontWeight: '800' },
-  emptyText: { color: '#94a3b8', fontSize: 12, lineHeight: 18 },
+  emptyKicker: { color: '#22d3ee', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
+  emptyTitle: { color: '#67e8f9', fontSize: 14, fontWeight: '800' },
+  emptyText: { color: '#cbd5e1', fontSize: 12, lineHeight: 18 },
   privacyText: { color: '#64748b', fontSize: 11, lineHeight: 16 },
   optionMain: { flex: 1, gap: 8 },
   optionHeader: { gap: 2 },
