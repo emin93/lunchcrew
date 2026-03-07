@@ -130,6 +130,14 @@ export default function App() {
         return;
       }
 
+      // On web, go straight to browser geolocation prompt after onboarding.
+      // RN Alert can be inconsistent on web and block this flow.
+      if (Platform.OS === 'web') {
+        await AsyncStorage.setItem(LOCATION_PROMPT_SEEN_KEY, '1');
+        setRequestLocation(true);
+        return;
+      }
+
       Alert.alert(
         'Enable location for better suggestions?',
         "LunchCrew uses your location only to improve nearby autocomplete suggestions. Your location isn't stored.",
