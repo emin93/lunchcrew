@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import * as Location from 'expo-location';
-import { DEFAULT_OPTIONS, todayDateUTC, withTimeout } from '../lib/helpers';
+import { todayDateUTC, withTimeout } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
 import { PlaceSuggestion, Poll, PollOption, Workspace } from '../types';
 
@@ -59,7 +59,6 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
         return null;
       }
 
-      await withTimeout(supabase.from('poll_options').insert(DEFAULT_OPTIONS.map((name) => ({ poll_id: created.data.id, name }))));
       return created.data as Poll;
     } catch {
       onLoadError('Network timeout while loading today poll. Please retry.');

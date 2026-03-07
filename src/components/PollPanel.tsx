@@ -50,6 +50,15 @@ export function PollPanel({
       </View>
 
       <View style={styles.optionList}>
+        {options.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>No places yet for today.</Text>
+            <Text style={styles.emptyText}>
+              Start by adding a place below. Places stay in your crew workspace, while votes reset daily so you can reuse the same workspace every day.
+            </Text>
+          </View>
+        ) : null}
+
         {options.map((opt) => {
           const isActive = myOptionId === opt.id;
           const isVotingThis = votingOptionId === opt.id;
@@ -187,6 +196,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
   },
+  emptyState: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#334155',
+    backgroundColor: '#0f172a',
+    padding: 12,
+    gap: 6,
+  },
+  emptyTitle: { color: '#e2e8f0', fontSize: 14, fontWeight: '800' },
+  emptyText: { color: '#94a3b8', fontSize: 12, lineHeight: 18 },
   optionMain: { flex: 1, gap: 8 },
   optionHeader: { gap: 2 },
   optionCardActive: { borderColor: '#22c55e', backgroundColor: '#052e1d' },
