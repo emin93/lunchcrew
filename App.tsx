@@ -103,24 +103,6 @@ export default function App() {
     void loadOnboarding();
   }, []);
 
-  useEffect(() => {
-    if (Platform.OS !== 'web') return;
-
-    const html = document.documentElement;
-    const body = document.body;
-    const root = document.getElementById('root');
-
-    html.style.backgroundColor = '#030712';
-    body.style.backgroundColor = '#030712';
-    body.style.margin = '0';
-    body.style.minHeight = '100vh';
-    body.style.overflowX = 'hidden';
-
-    if (root) {
-      root.style.backgroundColor = '#030712';
-      root.style.minHeight = '100vh';
-    }
-  }, []);
 
   useEffect(() => {
     if (onboardingReady && onboardingDone && !isConfigured) {
@@ -162,10 +144,14 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeArea, Platform.OS === 'web' && styles.safeAreaWeb]} edges={['top', 'left', 'right']}>
       <StatusBar style="light" />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={[styles.scrollContent, Platform.OS === 'web' && styles.scrollContentWeb]}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.maxWidthWrap}>
             <View style={styles.hero}>
               <Text style={styles.kicker}>Lunch planning, simplified</Text>
@@ -232,9 +218,11 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, minHeight: '100%', backgroundColor: '#030712' },
+  safeArea: { flex: 1, backgroundColor: '#030712' },
+  safeAreaWeb: { minHeight: '100dvh' },
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, padding: 16, gap: 14 },
+  scrollContentWeb: { minHeight: '100dvh' },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
   hero: {
     borderRadius: 20,
