@@ -1,0 +1,2 @@
+[functions.places-proxy]
+verify_jwt = false
