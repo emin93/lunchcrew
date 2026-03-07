@@ -47,18 +47,21 @@ export function OnboardingScreen({
           >
             {ONBOARDING_SLIDES.map((item) => (
               <View key={item.title} style={{ width }}>
-                <View style={styles.content}>
+                <View style={styles.contentWrap}>
+                  <View style={styles.content}>
                   <Text style={styles.kicker}>Welcome to LunchCrew</Text>
                   <Text style={styles.title}>{item.title}</Text>
                   <Text style={styles.subtitle}>{item.body}</Text>
                   <Text style={styles.buildLabel}>{buildLabel}</Text>
+                  </View>
                 </View>
               </View>
             ))}
           </ScrollView>
         </View>
 
-        <View style={[styles.bottom, { paddingBottom: Math.max(insetsBottom + 10, 20) }]}>
+        <View style={[styles.bottom, { paddingBottom: Math.max(insetsBottom + 10, 20) }]}> 
+          <View style={styles.bottomInner}>
           <View style={styles.dotsWrap}>
             {ONBOARDING_SLIDES.map((_, idx) => (
               <View key={idx} style={[styles.dot, idx === index && styles.dotActive]} />
@@ -72,6 +75,7 @@ export function OnboardingScreen({
               <Text style={styles.primaryText}>{index === ONBOARDING_SLIDES.length - 1 ? 'Get started' : 'Next'}</Text>
             </Pressable>
           </View>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -82,12 +86,14 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#030712' },
   screen: { flex: 1, padding: 0, justifyContent: 'space-between' },
   top: { flex: 1, justifyContent: 'center' },
-  content: { paddingHorizontal: 22, paddingVertical: 8, justifyContent: 'center' },
+  contentWrap: { width: '100%', alignItems: 'center' },
+  content: { width: '100%', maxWidth: 760, paddingHorizontal: 22, paddingVertical: 8, justifyContent: 'center' },
   kicker: { color: '#22d3ee', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   title: { color: '#f8fafc', fontSize: 34, fontWeight: '800', marginTop: 2 },
   subtitle: { color: '#94a3b8', fontSize: 14, marginTop: 2 },
   buildLabel: { color: '#475569', fontSize: 11, marginTop: 8, fontWeight: '600' },
   bottom: { paddingHorizontal: 20, gap: 18 },
+  bottomInner: { width: '100%', maxWidth: 760, alignSelf: 'center', gap: 18 },
   dotsWrap: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 6 },
   dot: { width: 8, height: 8, borderRadius: 999, backgroundColor: '#334155' },
   dotActive: { backgroundColor: '#22d3ee', width: 20 },
