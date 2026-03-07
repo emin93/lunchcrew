@@ -141,17 +141,50 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     void load();
   }, [workspace, deviceId]);
 
-  // Live-ish sync across tabs/devices via lightweight polling fallback.
+  // Realtime websocket subscriptions for live sync.
+  // Fallback: start a slower poll loop only if realtime fails.
   useEffect(() => {
-    if (!poll || !workspace || !deviceId) return;
+    if (!supabase || !poll || !workspace || !deviceId) return;
 
-    pollingRef.current = setInterval(() => {
-      void refreshPollData(poll.id, workspace.id, deviceId);
-    }, 4000);
+    const client = supabase;
+    const refresh = () => void refreshPollData(poll.id, workspace.id, deviceId);
+
+    const channel = client
+      .channel(`poll-live:${poll.id}:${workspace.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes', filter: `poll_id=eq.${poll.id}` }, refresh)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'poll_options', filter: `poll_id=eq.${poll.id}` },
+        refresh,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'workspace_members', filter: `workspace_id=eq.${workspace.id}` },
+        refresh,
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          return;
+        }
+
+        // If websocket can't subscribe, use lightweight polling fallback.
+        if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') && !pollingRef.current) {
+          pollingRef.current = setInterval(() => {
+            void refreshPollData(poll.id, workspace.id, deviceId);
+          }, 10000);
+        }
+      });
 
     return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-      pollingRef.current = null;
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      void client.removeChannel(channel);
     };
   }, [poll?.id, workspace?.id, deviceId]);
 
