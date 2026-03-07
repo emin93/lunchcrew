@@ -79,3 +79,39 @@ drop policy if exists "workspace_members_update_all" on public.workspace_members
 create policy "workspace_members_select_all" on public.workspace_members for select using (true);
 create policy "workspace_members_insert_all" on public.workspace_members for insert with check (true);
 create policy "workspace_members_update_all" on public.workspace_members for update using (true) with check (true);
+
+-- Smart options v1
+create table if not exists public.places_cache (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null default 'google',
+  external_place_id text not null,
+  name text not null,
+  formatted_address text,
+  lat double precision,
+  lng double precision,
+  rating numeric,
+  user_ratings_total int,
+  price_level int,
+  business_status text,
+  google_maps_url text,
+  website_url text,
+  detected_menu_url text,
+  phone text,
+  raw jsonb,
+  fetched_at timestamptz not null default now(),
+  unique (provider, external_place_id)
+);
+
+alter table public.poll_options
+  add column if not exists place_cache_id uuid references public.places_cache(id) on delete set null,
+  add column if not exists menu_url text,
+  add column if not exists source text not null default 'manual';
+
+alter table public.places_cache enable row level security;
+
+drop policy if exists "places_cache_select_all" on public.places_cache;
+drop policy if exists "places_cache_insert_all" on public.places_cache;
+drop policy if exists "places_cache_update_all" on public.places_cache;
+create policy "places_cache_select_all" on public.places_cache for select using (true);
+create policy "places_cache_insert_all" on public.places_cache for insert with check (true);
+create policy "places_cache_update_all" on public.places_cache for update using (true) with check (true);
