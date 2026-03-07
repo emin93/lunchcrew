@@ -42,4 +42,4 @@ npx expo start --tunnel -c
 - Tighten auth/policies before production rollout.
 
 ## Repo
-- https://github.com/emin93/lunch-crew-app
+- https://github.com/emin93/lunchcrew
