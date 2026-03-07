@@ -4,7 +4,7 @@ Smart Options v1 backend proxy for Google Places.
 
 ## Endpoints
 
-- `GET /places-proxy/autocomplete?q=<query>&regionCode=MX&languageCode=en`
+- `GET /places-proxy/autocomplete?q=<query>&regionCode=MX&languageCode=en&lat=<number>&lng=<number>&radiusMeters=8000`
 - `GET /places-proxy/details?placeId=<google_place_id>`
 
 ## Required secrets

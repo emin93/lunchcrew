@@ -77,6 +77,26 @@ Deno.serve(async (req) => {
 
       const regionCode = (url.searchParams.get('regionCode') || 'MX').toUpperCase();
       const languageCode = url.searchParams.get('languageCode') || 'en';
+      const lat = Number(url.searchParams.get('lat'));
+      const lng = Number(url.searchParams.get('lng'));
+      const radiusMetersRaw = Number(url.searchParams.get('radiusMeters'));
+      const radiusMeters = Number.isFinite(radiusMetersRaw) && radiusMetersRaw > 0 ? Math.min(radiusMetersRaw, 50000) : 8000;
+
+      const body: any = {
+        input: q,
+        languageCode,
+        regionCode,
+        includedPrimaryTypes: ['restaurant'],
+      };
+
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        body.locationBias = {
+          circle: {
+            center: { latitude: lat, longitude: lng },
+            radius: radiusMeters,
+          },
+        };
+      }
 
       const resp = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
         method: 'POST',
@@ -86,11 +106,7 @@ Deno.serve(async (req) => {
           'X-Goog-FieldMask':
             'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
         },
-        body: JSON.stringify({
-          input: q,
-          languageCode,
-          regionCode,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!resp.ok) {

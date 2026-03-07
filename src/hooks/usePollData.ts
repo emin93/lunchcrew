@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
+import * as Location from 'expo-location';
 import { DEFAULT_OPTIONS, todayDateUTC, withTimeout } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
 import { PlaceSuggestion, Poll, PollOption, Workspace } from '../types';
@@ -34,6 +35,7 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
   const [selectedSuggestion, setSelectedSuggestion] = useState<PlaceSuggestion | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const ensureTodayPoll = async (workspaceId: string) => {
     if (!supabase) return null;
@@ -221,6 +223,40 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
   }, [workspace, deviceId]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadCoords = async () => {
+      try {
+        if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              if (!cancelled) setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+            },
+            () => {
+              // ignore (user denied or unavailable)
+            },
+            { enableHighAccuracy: true, timeout: 7000 },
+          );
+          return;
+        }
+
+        const perm = await Location.requestForegroundPermissionsAsync();
+        if (perm.status !== 'granted') return;
+        const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (!cancelled) setCoords({ lat: current.coords.latitude, lng: current.coords.longitude });
+      } catch {
+        // ignore geolocation failures
+      }
+    };
+
+    void loadCoords();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!supabase) return;
 
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
@@ -237,7 +273,8 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
         setLoadingSuggestions(true);
         const supabaseUrl = (supabase as any).supabaseUrl as string;
         const anonKey = (supabase as any).supabaseKey as string;
-        const url = `${supabaseUrl}/functions/v1/places-proxy/autocomplete?q=${encodeURIComponent(query)}&regionCode=MX&languageCode=en`;
+        const geoQuery = coords ? `&lat=${coords.lat}&lng=${coords.lng}&radiusMeters=8000` : '';
+        const url = `${supabaseUrl}/functions/v1/places-proxy/autocomplete?q=${encodeURIComponent(query)}&regionCode=MX&languageCode=en${geoQuery}`;
         const resp = await withTimeout(
           fetch(url, {
             headers: {
@@ -261,7 +298,7 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
-  }, [newOption, selectedSuggestion]);
+  }, [newOption, selectedSuggestion, coords?.lat, coords?.lng]);
 
   // Realtime websocket subscriptions for live sync.
   // Fallback: start a slower poll loop only if realtime fails.
