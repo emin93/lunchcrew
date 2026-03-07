@@ -62,6 +62,10 @@ export default function App() {
     vote,
     addOption,
     retryPollLoad,
+    suggestions,
+    loadingSuggestions,
+    selectedSuggestion,
+    setSelectedSuggestion,
   } = usePollData({ workspace, deviceId, onLoadError: setLoadError });
 
   const configError = !isConfigured
@@ -213,8 +217,19 @@ export default function App() {
                 addingOption={addingOption}
                 newOption={newOption}
                 topChoice={topChoice}
+                suggestions={suggestions}
+                loadingSuggestions={loadingSuggestions}
+                selectedSuggestion={selectedSuggestion}
+                onSelectSuggestion={(s) => {
+                  setSelectedSuggestion(s);
+                  setNewOption(s.name);
+                }}
+                onClearSuggestion={() => setSelectedSuggestion(null)}
                 onVote={vote}
-                onChangeNewOption={setNewOption}
+                onChangeNewOption={(v) => {
+                  setSelectedSuggestion(null);
+                  setNewOption(v);
+                }}
                 onAddOption={addOption}
               />
             )}

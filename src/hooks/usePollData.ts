@@ -2,12 +2,24 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { DEFAULT_OPTIONS, todayDateUTC, withTimeout } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
-import { Poll, PollOption, Workspace } from '../types';
+import { PlaceSuggestion, Poll, PollOption, Workspace } from '../types';
 
 type Params = {
   workspace: Workspace | null;
   deviceId: string;
   onLoadError: (msg: string | null) => void;
+};
+
+type PlaceDetailsResponse = {
+  provider: string;
+  externalPlaceId: string;
+  name: string;
+  formattedAddress?: string | null;
+  rating?: number | null;
+  priceLevel?: number | null;
+  googleMapsUrl?: string | null;
+  websiteUrl?: string | null;
+  detectedMenuUrl?: string | null;
 };
 
 export function usePollData({ workspace, deviceId, onLoadError }: Params) {
@@ -17,7 +29,11 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
   const [newOption, setNewOption] = useState('');
   const [votingOptionId, setVotingOptionId] = useState<string | null>(null);
   const [addingOption, setAddingOption] = useState(false);
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<PlaceSuggestion | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ensureTodayPoll = async (workspaceId: string) => {
     if (!supabase) return null;
@@ -49,10 +65,40 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     }
   };
 
+  const fetchPlaceDetails = async (suggestion: PlaceSuggestion): Promise<PlaceDetailsResponse | null> => {
+    if (!supabase) return null;
+    const supabaseUrl = (supabase as any).supabaseUrl as string;
+    const anonKey = (supabase as any).supabaseKey as string;
+
+    const url = `${supabaseUrl}/functions/v1/places-proxy/details?placeId=${encodeURIComponent(suggestion.externalPlaceId)}`;
+    const resp = await withTimeout(
+      fetch(url, {
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+      }),
+    );
+
+    if (!resp.ok) {
+      throw new Error(`Place details failed (${resp.status})`);
+    }
+
+    return (await resp.json()) as PlaceDetailsResponse;
+  };
+
   const refreshPollData = async (pollId: string, workspaceId: string, voterId: string) => {
     if (!supabase) return;
     const [optionsRes, myVoteRes, votesRes, membersRes] = await Promise.all([
-      withTimeout(supabase.from('poll_options').select('id,poll_id,name,votes(count)').eq('poll_id', pollId).order('created_at')),
+      withTimeout(
+        supabase
+          .from('poll_options')
+          .select(
+            'id,poll_id,name,menu_url,place_cache_id,votes(count),place:places_cache_id(id,provider,external_place_id,name,formatted_address,rating,price_level,google_maps_url,website_url,detected_menu_url)',
+          )
+          .eq('poll_id', pollId)
+          .order('created_at'),
+      ),
       withTimeout(supabase.from('votes').select('option_id').eq('poll_id', pollId).eq('voter_id', voterId).maybeSingle()),
       withTimeout(supabase.from('votes').select('option_id,voter_id').eq('poll_id', pollId)),
       withTimeout(supabase.from('workspace_members').select('device_id,display_name').eq('workspace_id', workspaceId)),
@@ -82,6 +128,8 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
       name: r.name,
       votes: r.votes?.[0]?.count ?? 0,
       voters: votersByOption.get(r.id) || [],
+      menu_url: r.menu_url,
+      place: r.place || null,
     }));
 
     setOptions(mapped);
@@ -108,15 +156,46 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     if (!name) return;
 
     setAddingOption(true);
-    const { error } = await supabase.from('poll_options').insert({ poll_id: poll.id, name });
-    if (error) {
-      setAddingOption(false);
-      return Alert.alert('Could not add option', error.message);
-    }
+    try {
+      if (selectedSuggestion) {
+        const details = await fetchPlaceDetails(selectedSuggestion);
+        let placeCacheId: string | null = null;
 
-    setNewOption('');
-    await refreshPollData(poll.id, workspace.id, deviceId);
-    setAddingOption(false);
+        if (details) {
+          const placeRes = await withTimeout(
+            supabase
+              .from('places_cache')
+              .select('id')
+              .eq('provider', details.provider)
+              .eq('external_place_id', details.externalPlaceId)
+              .maybeSingle(),
+          );
+          placeCacheId = (placeRes.data as any)?.id || null;
+        }
+
+        const { error } = await supabase.from('poll_options').insert({
+          poll_id: poll.id,
+          name: selectedSuggestion.name,
+          source: 'google_place',
+          place_cache_id: placeCacheId,
+          menu_url: details?.detectedMenuUrl || null,
+        });
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('poll_options').insert({ poll_id: poll.id, name, source: 'manual' });
+        if (error) throw error;
+      }
+
+      setNewOption('');
+      setSelectedSuggestion(null);
+      setSuggestions([]);
+      await refreshPollData(poll.id, workspace.id, deviceId);
+    } catch (error: any) {
+      Alert.alert('Could not add option', error?.message || 'Unknown error');
+    } finally {
+      setAddingOption(false);
+    }
   };
 
   const retryPollLoad = async () => {
@@ -140,6 +219,49 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     };
     void load();
   }, [workspace, deviceId]);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    const query = newOption.trim();
+    if (query.length < 2 || selectedSuggestion) {
+      setSuggestions([]);
+      setLoadingSuggestions(false);
+      return;
+    }
+
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        setLoadingSuggestions(true);
+        const supabaseUrl = (supabase as any).supabaseUrl as string;
+        const anonKey = (supabase as any).supabaseKey as string;
+        const url = `${supabaseUrl}/functions/v1/places-proxy/autocomplete?q=${encodeURIComponent(query)}&regionCode=MX&languageCode=en`;
+        const resp = await withTimeout(
+          fetch(url, {
+            headers: {
+              apikey: anonKey,
+              Authorization: `Bearer ${anonKey}`,
+            },
+          }),
+        );
+
+        if (!resp.ok) throw new Error(`Autocomplete failed (${resp.status})`);
+
+        const payload = await resp.json();
+        setSuggestions((payload.items || []) as PlaceSuggestion[]);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 350);
+
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [newOption, selectedSuggestion]);
 
   // Realtime websocket subscriptions for live sync.
   // Fallback: start a slower poll loop only if realtime fails.
@@ -202,5 +324,9 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     vote,
     addOption,
     retryPollLoad,
+    suggestions,
+    loadingSuggestions,
+    selectedSuggestion,
+    setSelectedSuggestion,
   };
 }

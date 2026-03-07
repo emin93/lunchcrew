@@ -13,12 +13,35 @@ export type Poll = {
   created_at: string;
 };
 
+export type PlaceLite = {
+  id?: string;
+  provider: string;
+  external_place_id: string;
+  name: string;
+  formatted_address?: string | null;
+  rating?: number | null;
+  price_level?: number | null;
+  google_maps_url?: string | null;
+  website_url?: string | null;
+  detected_menu_url?: string | null;
+};
+
 export type PollOption = {
   id: string;
   poll_id: string;
   name: string;
   votes: number;
   voters: string[];
+  menu_url?: string | null;
+  place?: PlaceLite | null;
+};
+
+export type PlaceSuggestion = {
+  id: string;
+  provider: string;
+  externalPlaceId: string;
+  name: string;
+  secondaryText?: string;
 };
 
 export type WorkspaceMember = {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Supabase Edge Function: places-proxy
 // Endpoints:
 //   GET /places-proxy/autocomplete?q=<query>
