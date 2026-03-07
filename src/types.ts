@@ -18,6 +18,16 @@ export type PollOption = {
   poll_id: string;
   name: string;
   votes: number;
+  voters: string[];
+};
+
+export type WorkspaceMember = {
+  id: string;
+  workspace_id: string;
+  device_id: string;
+  display_name: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export const ONBOARDING_SLIDES = [

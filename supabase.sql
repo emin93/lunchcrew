@@ -32,10 +32,21 @@ create table if not exists public.votes (
   unique (poll_id, voter_id)
 );
 
+create table if not exists public.workspace_members (
+  id uuid primary key default gen_random_uuid(),
+  workspace_id uuid not null references public.workspaces(id) on delete cascade,
+  device_id text not null,
+  display_name text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (workspace_id, device_id)
+);
+
 alter table public.workspaces enable row level security;
 alter table public.polls enable row level security;
 alter table public.poll_options enable row level security;
 alter table public.votes enable row level security;
+alter table public.workspace_members enable row level security;
 
 -- Open MVP policies (tighten before production)
 drop policy if exists "workspaces_select_all" on public.workspaces;
@@ -61,3 +72,10 @@ drop policy if exists "votes_update_all" on public.votes;
 create policy "votes_select_all" on public.votes for select using (true);
 create policy "votes_insert_all" on public.votes for insert with check (true);
 create policy "votes_update_all" on public.votes for update using (true) with check (true);
+
+drop policy if exists "workspace_members_select_all" on public.workspace_members;
+drop policy if exists "workspace_members_insert_all" on public.workspace_members;
+drop policy if exists "workspace_members_update_all" on public.workspace_members;
+create policy "workspace_members_select_all" on public.workspace_members for select using (true);
+create policy "workspace_members_insert_all" on public.workspace_members for insert with check (true);
+create policy "workspace_members_update_all" on public.workspace_members for update using (true) with check (true);

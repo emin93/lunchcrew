@@ -3,15 +3,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from 'react-native';
 import { DEVICE_ID_KEY, extractInviteCode, generateInviteCode, makeDeviceId, withTimeout } from '../lib/helpers';
 import { isConfigured, supabase } from '../lib/supabase';
-import { Workspace } from '../types';
+import { Workspace, WorkspaceMember } from '../types';
 
 type Params = { enabled: boolean };
 
 export function useWorkspaceData({ enabled }: Params) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [deviceId, setDeviceId] = useState('');
+  const [member, setMember] = useState<WorkspaceMember | null>(null);
   const [loading, setLoading] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  const [savingName, setSavingName] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadDeviceId = async () => {
@@ -24,6 +26,57 @@ export function useWorkspaceData({ enabled }: Params) {
     await AsyncStorage.setItem(DEVICE_ID_KEY, created);
     setDeviceId(created);
     return created;
+  };
+
+  const ensureMember = async (workspaceId: string, currentDeviceId: string) => {
+    if (!supabase) return;
+
+    const inserted = await withTimeout(
+      supabase
+        .from('workspace_members')
+        .upsert({ workspace_id: workspaceId, device_id: currentDeviceId }, { onConflict: 'workspace_id,device_id' })
+        .select('*')
+        .maybeSingle(),
+    );
+
+    if (inserted.error) {
+      setLoadError('Could not initialize member profile. Please retry.');
+      return;
+    }
+
+    if (inserted.data) setMember(inserted.data as WorkspaceMember);
+  };
+
+  const saveDisplayName = async (nextName: string) => {
+    if (!supabase || !workspace || !deviceId) return;
+
+    const trimmed = nextName.trim();
+    setSavingName(true);
+    setLoadError(null);
+
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('workspace_members')
+          .upsert(
+            { workspace_id: workspace.id, device_id: deviceId, display_name: trimmed || null },
+            { onConflict: 'workspace_id,device_id' },
+          )
+          .select('*')
+          .maybeSingle(),
+      );
+
+      setSavingName(false);
+      if (error || !data) {
+        const extra = error?.message ? ` (${error.message})` : '';
+        return setLoadError(`Could not save your name. Please retry${extra}`);
+      }
+
+      setMember(data as WorkspaceMember);
+    } catch {
+      setSavingName(false);
+      setLoadError('Network timeout while saving your name. Please retry.');
+    }
   };
 
   const createWorkspace = async () => {
@@ -56,9 +109,7 @@ export function useWorkspaceData({ enabled }: Params) {
     setLoading(true);
     setLoadError(null);
     try {
-      const { data, error } = await withTimeout(
-        supabase.from('workspaces').select('*').eq('invite_code', code).single(),
-      );
+      const { data, error } = await withTimeout(supabase.from('workspaces').select('*').eq('invite_code', code).single());
       setLoading(false);
       if (error || !data) return setLoadError('Join failed. Invite link invalid or network issue.');
       setWorkspace(data as Workspace);
@@ -71,6 +122,7 @@ export function useWorkspaceData({ enabled }: Params) {
   const retryWorkspaceLoad = async () => {
     setLoadError(null);
     if (!workspace) await createWorkspace();
+    if (workspace && deviceId) await ensureMember(workspace.id, deviceId);
   };
 
   const renameCrew = async (name: string) => {
@@ -141,15 +193,23 @@ export function useWorkspaceData({ enabled }: Params) {
     // enabled gates one-time boot from App.
   }, [enabled]);
 
+  useEffect(() => {
+    if (!workspace || !deviceId || !supabase) return;
+    void ensureMember(workspace.id, deviceId);
+  }, [workspace?.id, deviceId]);
+
   return {
     workspace,
     deviceId,
+    member,
     loading,
     renaming,
+    savingName,
     loadError,
     setLoadError,
     createWorkspace,
     retryWorkspaceLoad,
     renameCrew,
+    saveDisplayName,
   };
 }

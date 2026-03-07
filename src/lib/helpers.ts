@@ -33,6 +33,14 @@ export function extractInviteCode(input: string) {
   }
 }
 
+export function initialsForName(name: string) {
+  const cleaned = (name || '').trim();
+  if (!cleaned) return '?';
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+}
+
 export async function withTimeout<T>(promise: PromiseLike<T>, ms = 12000): Promise<T> {
   return (await Promise.race([
     Promise.resolve(promise),

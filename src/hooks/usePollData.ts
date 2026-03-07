@@ -41,9 +41,7 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
         return null;
       }
 
-      await withTimeout(
-        supabase.from('poll_options').insert(DEFAULT_OPTIONS.map((name) => ({ poll_id: created.data.id, name }))),
-      );
+      await withTimeout(supabase.from('poll_options').insert(DEFAULT_OPTIONS.map((name) => ({ poll_id: created.data.id, name }))));
       return created.data as Poll;
     } catch {
       onLoadError('Network timeout while loading today poll. Please retry.');
@@ -51,20 +49,39 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     }
   };
 
-  const refreshPollData = async (pollId: string, voterId: string) => {
+  const refreshPollData = async (pollId: string, workspaceId: string, voterId: string) => {
     if (!supabase) return;
-    const [optionsRes, myVoteRes] = await Promise.all([
+    const [optionsRes, myVoteRes, votesRes, membersRes] = await Promise.all([
       withTimeout(supabase.from('poll_options').select('id,poll_id,name,votes(count)').eq('poll_id', pollId).order('created_at')),
       withTimeout(supabase.from('votes').select('option_id').eq('poll_id', pollId).eq('voter_id', voterId).maybeSingle()),
+      withTimeout(supabase.from('votes').select('option_id,voter_id').eq('poll_id', pollId)),
+      withTimeout(supabase.from('workspace_members').select('device_id,display_name').eq('workspace_id', workspaceId)),
     ]);
 
     if (optionsRes.error) return onLoadError('Could not load poll options. Check internet and retry.');
+
+    const memberNameByDevice = new Map<string, string>();
+    ((membersRes.data as any[]) || []).forEach((m) => {
+      const name = (m.display_name || '').trim();
+      if (name) memberNameByDevice.set(m.device_id, name);
+    });
+
+    const votersByOption = new Map<string, string[]>();
+    ((votesRes.data as any[]) || []).forEach((v) => {
+      const optionId = v.option_id as string;
+      const voterIdForVote = v.voter_id as string;
+      const label = memberNameByDevice.get(voterIdForVote) || 'Guest';
+      const current = votersByOption.get(optionId) || [];
+      current.push(label);
+      votersByOption.set(optionId, current);
+    });
 
     const mapped: PollOption[] = ((optionsRes.data as any[]) || []).map((r) => ({
       id: r.id,
       poll_id: r.poll_id,
       name: r.name,
       votes: r.votes?.[0]?.count ?? 0,
+      voters: votersByOption.get(r.id) || [],
     }));
 
     setOptions(mapped);
@@ -72,7 +89,7 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
   };
 
   const vote = async (optionId: string) => {
-    if (!supabase || !poll || !deviceId || votingOptionId) return;
+    if (!supabase || !poll || !workspace || !deviceId || votingOptionId) return;
     setVotingOptionId(optionId);
     const { error } = await supabase
       .from('votes')
@@ -81,12 +98,12 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
       setVotingOptionId(null);
       return Alert.alert('Vote failed', error.message);
     }
-    await refreshPollData(poll.id, deviceId);
+    await refreshPollData(poll.id, workspace.id, deviceId);
     setVotingOptionId(null);
   };
 
   const addOption = async () => {
-    if (!supabase || !poll || addingOption) return;
+    if (!supabase || !poll || !workspace || addingOption) return;
     const name = newOption.trim();
     if (!name) return;
 
@@ -98,7 +115,7 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
     }
 
     setNewOption('');
-    await refreshPollData(poll.id, deviceId);
+    await refreshPollData(poll.id, workspace.id, deviceId);
     setAddingOption(false);
   };
 
@@ -108,7 +125,7 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
       const todayPoll = await ensureTodayPoll(workspace.id);
       if (todayPoll) {
         setPoll(todayPoll);
-        await refreshPollData(todayPoll.id, deviceId);
+        await refreshPollData(todayPoll.id, workspace.id, deviceId);
       }
     }
   };
@@ -119,24 +136,24 @@ export function usePollData({ workspace, deviceId, onLoadError }: Params) {
       const todayPoll = await ensureTodayPoll(workspace.id);
       if (!todayPoll) return;
       setPoll(todayPoll);
-      await refreshPollData(todayPoll.id, deviceId);
+      await refreshPollData(todayPoll.id, workspace.id, deviceId);
     };
     void load();
   }, [workspace, deviceId]);
 
   // Live-ish sync across tabs/devices via lightweight polling fallback.
   useEffect(() => {
-    if (!poll || !deviceId) return;
+    if (!poll || !workspace || !deviceId) return;
 
     pollingRef.current = setInterval(() => {
-      void refreshPollData(poll.id, deviceId);
+      void refreshPollData(poll.id, workspace.id, deviceId);
     }, 4000);
 
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
       pollingRef.current = null;
     };
-  }, [poll?.id, deviceId]);
+  }, [poll?.id, workspace?.id, deviceId]);
 
   const topChoice = useMemo(() => options.slice().sort((a, b) => b.votes - a.votes)[0]?.name, [options]);
 

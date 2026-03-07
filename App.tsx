@@ -38,13 +38,16 @@ export default function App() {
   const {
     workspace,
     deviceId,
+    member,
     loading,
     renaming,
+    savingName,
     loadError,
     setLoadError,
     createWorkspace,
     retryWorkspaceLoad,
     renameCrew,
+    saveDisplayName,
   } = useWorkspaceData({ enabled: onboardingReady && onboardingDone && !initialized.current });
 
   useEffect(() => {
@@ -203,12 +206,15 @@ export default function App() {
 
             {workspace ? (
               <WorkspacePanel
-              workspace={workspace}
-              onShare={shareInvite}
-              onRename={renameCrew}
-              onCreateNewCrew={() => void createNewCrew()}
-              renaming={renaming}
-            />
+                workspace={workspace}
+                displayName={member?.display_name || ''}
+                onSaveDisplayName={(name) => void saveDisplayName(name)}
+                savingName={savingName}
+                onShare={shareInvite}
+                onRename={renameCrew}
+                onCreateNewCrew={() => void createNewCrew()}
+                renaming={renaming}
+              />
             ) : !configError && !loadError ? (
               <Text style={styles.helper}>Setting things up…</Text>
             ) : null}
@@ -236,10 +242,10 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#030712' },
-  safeAreaWeb: { minHeight: '100dvh' },
+  safeAreaWeb: { minHeight: '100dvh' as any },
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, padding: 16, gap: 14 },
-  scrollContentWeb: { minHeight: '100dvh' },
+  scrollContentWeb: { minHeight: '100dvh' as any },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
   hero: {
     borderRadius: 20,

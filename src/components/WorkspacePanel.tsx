@@ -1,18 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { initialsForName } from '../lib/helpers';
 import { Workspace } from '../types';
 
 type Props = {
   workspace: Workspace;
+  displayName: string;
+  onSaveDisplayName: (name: string) => void;
+  savingName: boolean;
   onShare: () => void;
   onRename: (name: string) => void;
   onCreateNewCrew: () => void;
   renaming: boolean;
 };
 
-export function WorkspacePanel({ workspace, onShare, onRename, onCreateNewCrew, renaming }: Props) {
+export function WorkspacePanel({
+  workspace,
+  displayName,
+  onSaveDisplayName,
+  savingName,
+  onShare,
+  onRename,
+  onCreateNewCrew,
+  renaming,
+}: Props) {
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState(workspace.name);
+  const [displayNameDraft, setDisplayNameDraft] = useState(displayName);
+
+  useEffect(() => {
+    setDisplayNameDraft(displayName);
+  }, [displayName]);
 
   return (
     <View style={styles.panel}>
@@ -60,7 +78,12 @@ export function WorkspacePanel({ workspace, onShare, onRename, onCreateNewCrew, 
               </Pressable>
             </View>
           ) : (
-            <Pressable onPress={() => { setNameDraft(workspace.name); setEditing(true); }}>
+            <Pressable
+              onPress={() => {
+                setNameDraft(workspace.name);
+                setEditing(true);
+              }}
+            >
               <Text style={styles.workspaceTitle}>{workspace.name} ✏️</Text>
             </Pressable>
           )}
@@ -75,6 +98,30 @@ export function WorkspacePanel({ workspace, onShare, onRename, onCreateNewCrew, 
         <Pressable onPress={onCreateNewCrew}>
           <Text style={styles.linkText}>+ New crew</Text>
         </Pressable>
+      </View>
+
+      <View style={styles.identityWrap}>
+        <Text style={styles.panelLabel}>Your name (optional, no login)</Text>
+        <View style={styles.identityRow}>
+          <View style={styles.initialsBubble}>
+            <Text style={styles.initialsText}>{initialsForName(displayNameDraft)}</Text>
+          </View>
+          <TextInput
+            style={styles.identityInput}
+            value={displayNameDraft}
+            onChangeText={setDisplayNameDraft}
+            placeholder="Add your display name"
+            placeholderTextColor="#64748b"
+            autoCapitalize="words"
+          />
+          <Pressable
+            style={[styles.smallBtn, savingName && styles.btnDisabled]}
+            onPress={() => onSaveDisplayName(displayNameDraft)}
+            disabled={savingName}
+          >
+            {savingName ? <ActivityIndicator size="small" color="#ecfeff" /> : <Text style={styles.smallBtnText}>Save</Text>}
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -128,4 +175,28 @@ const styles = StyleSheet.create({
   sharePillText: { color: '#ecfeff', fontWeight: '700', fontSize: 12 },
   codeText: { color: '#67e8f9', fontSize: 13, fontWeight: '600' },
   linkText: { color: '#94a3b8', fontSize: 12, fontWeight: '700' },
+  identityWrap: { gap: 8, marginTop: 2 },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  initialsBubble: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initialsText: { color: '#e2e8f0', fontWeight: '800', fontSize: 12 },
+  identityInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 10,
+    backgroundColor: '#111827',
+    color: '#f8fafc',
+    fontSize: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
 });

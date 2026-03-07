@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { initialsForName } from '../lib/helpers';
 import { Poll, PollOption } from '../types';
 
 type Props = {
@@ -44,10 +45,26 @@ export function PollPanel({
               onPress={() => onVote(opt.id)}
               disabled={!!votingOptionId}
             >
-              <View>
-                <Text style={styles.optionName}>{opt.name}</Text>
-                {isActive ? <Text style={styles.myVoteTag}>Your vote</Text> : null}
+              <View style={styles.optionMain}>
+                <View style={styles.optionHeader}>
+                  <Text style={styles.optionName}>{opt.name}</Text>
+                  {isActive ? <Text style={styles.myVoteTag}>Your vote</Text> : null}
+                </View>
+
+                {opt.voters.length > 0 ? (
+                  <View style={styles.votersWrap}>
+                    {opt.voters.map((voter, idx) => (
+                      <View key={`${opt.id}-${voter}-${idx}`} style={styles.voterChip}>
+                        <View style={styles.voterAvatar}>
+                          <Text style={styles.voterAvatarText}>{initialsForName(voter)}</Text>
+                        </View>
+                        <Text style={styles.voterName}>{voter}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
               </View>
+
               <View style={styles.voteMeta}>
                 {isVotingThis ? <ActivityIndicator size="small" color="#22d3ee" /> : null}
                 <Text style={styles.voteCount}>{opt.votes}</Text>
@@ -95,13 +112,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: 12,
   },
+  optionMain: { flex: 1, gap: 8 },
+  optionHeader: { gap: 2 },
   optionCardActive: { borderColor: '#22c55e', backgroundColor: '#052e1d' },
   optionDisabled: { opacity: 0.65 },
   optionName: { color: '#e2e8f0', fontWeight: '700', fontSize: 15 },
   myVoteTag: { color: '#86efac', fontSize: 11, marginTop: 2, fontWeight: '700' },
-  voteMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  votersWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  voterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#334155',
+    backgroundColor: '#0b1220',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  voterAvatar: {
+    width: 18,
+    height: 18,
+    borderRadius: 999,
+    backgroundColor: '#1e293b',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  voterAvatarText: { color: '#e2e8f0', fontSize: 9, fontWeight: '800' },
+  voterName: { color: '#cbd5e1', fontSize: 11, fontWeight: '600' },
+  voteMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 2 },
   voteCount: { color: '#cbd5e1', fontWeight: '700', minWidth: 18, textAlign: 'right' },
   addWrap: { flexDirection: 'row', gap: 8, marginTop: 2 },
   input: {
