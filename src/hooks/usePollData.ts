@@ -78,7 +78,6 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
       fetch(url, {
         headers: {
           apikey: anonKey,
-          Authorization: `Bearer ${anonKey}`,
         },
       }),
     );
@@ -297,7 +296,6 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
           fetch(url, {
             headers: {
               apikey: anonKey,
-              Authorization: `Bearer ${anonKey}`,
             },
           }),
         );
