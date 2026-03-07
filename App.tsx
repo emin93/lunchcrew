@@ -11,29 +11,23 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { PollPanel } from './src/components/PollPanel';
 import { WorkspacePanel } from './src/components/WorkspacePanel';
-import { BUILD_LABEL, ONBOARDING_SEEN_KEY } from './src/lib/helpers';
+import { BUILD_LABEL, DISPLAY_NAME_KEY, ONBOARDING_SEEN_KEY } from './src/lib/helpers';
 import { isConfigured } from './src/lib/supabase';
-import { ONBOARDING_SLIDES } from './src/types';
 import { useWorkspaceData } from './src/hooks/useWorkspaceData';
 import { usePollData } from './src/hooks/usePollData';
 
 export default function App() {
-  const [onboardingIndex, setOnboardingIndex] = useState(0);
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
 
-  const onboardingScrollRef = useRef<ScrollView | null>(null);
   const initialized = useRef(false);
-  const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
 
   const {
     workspace,
@@ -74,7 +68,9 @@ export default function App() {
     ? 'Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY in runtime.'
     : null;
 
-  const completeOnboarding = async () => {
+  const completeOnboarding = async (name?: string) => {
+    const trimmed = (name || '').trim();
+    if (trimmed) await AsyncStorage.setItem(DISPLAY_NAME_KEY, trimmed);
     await AsyncStorage.setItem(ONBOARDING_SEEN_KEY, '1');
     setOnboardingDone(true);
   };
@@ -145,19 +141,8 @@ export default function App() {
   if (!onboardingDone) {
     return (
       <OnboardingScreen
-        width={width}
-        insetsTop={insets.top}
-        insetsBottom={insets.bottom}
-        index={onboardingIndex}
-        onIndexChange={setOnboardingIndex}
+        onSubmitName={(name) => void completeOnboarding(name)}
         onSkip={() => void completeOnboarding()}
-        onNext={() => {
-          if (onboardingIndex === ONBOARDING_SLIDES.length - 1) return void completeOnboarding();
-          const next = onboardingIndex + 1;
-          onboardingScrollRef.current?.scrollTo({ x: width * next, animated: true });
-          setOnboardingIndex(next);
-        }}
-        scrollRef={onboardingScrollRef}
         buildLabel={BUILD_LABEL}
       />
     );

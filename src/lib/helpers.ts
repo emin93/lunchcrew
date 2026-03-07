@@ -1,6 +1,7 @@
 export const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 export const DEVICE_ID_KEY = 'lunchcrew.device_id';
 export const ONBOARDING_SEEN_KEY = 'lunchcrew.onboarding_seen';
+export const DISPLAY_NAME_KEY = 'lunchcrew.display_name';
 export const BUILD_LABEL = 'Build qa-v1';
 
 export function generateInviteCode() {

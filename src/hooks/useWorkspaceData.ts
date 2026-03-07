@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from 'react-native';
-import { DEVICE_ID_KEY, extractInviteCode, generateInviteCode, makeDeviceId, withTimeout } from '../lib/helpers';
+import { DEVICE_ID_KEY, DISPLAY_NAME_KEY, extractInviteCode, generateInviteCode, makeDeviceId, withTimeout } from '../lib/helpers';
 import { isConfigured, supabase } from '../lib/supabase';
 import { Workspace, WorkspaceMember } from '../types';
 
@@ -44,7 +44,37 @@ export function useWorkspaceData({ enabled }: Params) {
       return;
     }
 
-    if (inserted.data) setMember(inserted.data as WorkspaceMember);
+    const baseMember = inserted.data as WorkspaceMember | null;
+    if (!baseMember) return;
+
+    if (baseMember.display_name && baseMember.display_name.trim()) {
+      setMember(baseMember);
+      return;
+    }
+
+    const pendingName = (await AsyncStorage.getItem(DISPLAY_NAME_KEY))?.trim() || '';
+    if (!pendingName) {
+      setMember(baseMember);
+      return;
+    }
+
+    const hydrated = await withTimeout(
+      supabase
+        .from('workspace_members')
+        .upsert(
+          { workspace_id: workspaceId, device_id: currentDeviceId, display_name: pendingName },
+          { onConflict: 'workspace_id,device_id' },
+        )
+        .select('*')
+        .maybeSingle(),
+    );
+
+    if (!hydrated.error && hydrated.data) {
+      setMember(hydrated.data as WorkspaceMember);
+      return;
+    }
+
+    setMember(baseMember);
   };
 
   const saveDisplayName = async (nextName: string) => {
@@ -73,6 +103,8 @@ export function useWorkspaceData({ enabled }: Params) {
       }
 
       setMember(data as WorkspaceMember);
+      if (trimmed) await AsyncStorage.setItem(DISPLAY_NAME_KEY, trimmed);
+      else await AsyncStorage.removeItem(DISPLAY_NAME_KEY);
     } catch {
       setSavingName(false);
       setLoadError('Network timeout while saving your name. Please retry.');
