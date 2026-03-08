@@ -1,14 +1,34 @@
 import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabsLayout() {
   return (
     <Tabs
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#0b1220', borderTopColor: '#1e293b' },
+        sceneStyle: { backgroundColor: '#030712' },
+        tabBarStyle: {
+          backgroundColor: '#0b1220',
+          borderTopColor: '#1e293b',
+        },
         tabBarActiveTintColor: '#22d3ee',
         tabBarInactiveTintColor: '#94a3b8',
-      }}
+        tabBarIcon: ({ color, size, focused }) => {
+          const iconName =
+            route.name === 'index'
+              ? focused
+                ? 'checkmark-circle'
+                : 'checkmark-circle-outline'
+              : route.name === 'history'
+                ? focused
+                  ? 'time'
+                  : 'time-outline'
+                : focused
+                  ? 'people'
+                  : 'people-outline';
+          return <Ionicons name={iconName as any} size={size} color={color} />;
+        },
+      })}
     >
       <Tabs.Screen name="index" options={{ title: 'Vote' }} />
       <Tabs.Screen name="history" options={{ title: 'History' }} />
