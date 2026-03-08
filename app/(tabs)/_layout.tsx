@@ -12,7 +12,6 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: '#030712' },
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          position: 'absolute',
           backgroundColor: '#0b1220',
           borderTopColor: '#1e293b',
           paddingBottom: Math.max(6, insets.bottom),

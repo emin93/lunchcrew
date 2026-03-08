@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { PollPanel } from '../../src/components/PollPanel';
 import { useAppStateContext } from '../../src/state/AppStateContext';
 import { trackEvent } from '../../src/lib/analytics';
@@ -7,13 +7,14 @@ export default function VoteScreen() {
   const state = useAppStateContext();
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <View style={styles.flex}>
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         alwaysBounceVertical={false}
         bounces={false}
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       >
         <View style={styles.maxWidthWrap}>
           <View style={styles.hero}>
@@ -78,7 +79,7 @@ export default function VoteScreen() {
           )}
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { WorkspacePanel } from '../../src/components/WorkspacePanel';
 import { useAppStateContext } from '../../src/state/AppStateContext';
 
@@ -6,7 +6,14 @@ export default function CrewScreen() {
   const state = useAppStateContext();
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} alwaysBounceVertical={false} bounces={false}>
+    <ScrollView
+      style={styles.flex}
+      contentContainerStyle={styles.scrollContent}
+      alwaysBounceVertical={false}
+      bounces={false}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+    >
       <View style={styles.maxWidthWrap}>
         <View style={styles.header}>
           <Text style={styles.title}>Crew</Text>
