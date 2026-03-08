@@ -7,7 +7,9 @@ export default function Root({ children }: PropsWithChildren) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#030712" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#030712" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#030712" />
+        <meta name="color-scheme" content="dark" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <style>{`
