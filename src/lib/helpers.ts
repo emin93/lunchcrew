@@ -2,6 +2,7 @@ export const DEFAULT_OPTIONS = ['Tacos', 'Sushi', 'Burgers'];
 export const DEVICE_ID_KEY = 'lunchcrew.device_id';
 export const ONBOARDING_SEEN_KEY = 'lunchcrew.onboarding_seen';
 export const DISPLAY_NAME_KEY = 'lunchcrew.display_name';
+export const LAST_WORKSPACE_ID_KEY = 'lunchcrew.last_workspace_id';
 export const LOCATION_PROMPT_SEEN_KEY = 'lunchcrew.location_prompt_seen';
 export const MONETIZATION_LAST_PROMPT_AT_KEY = 'lunchcrew.monetization_last_prompt_at';
 export const MONETIZATION_WAITLIST_JOINED_KEY = 'lunchcrew.monetization_waitlist_joined';

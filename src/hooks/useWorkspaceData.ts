@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from 'react-native';
-import { DEVICE_ID_KEY, DISPLAY_NAME_KEY, extractInviteCode, generateInviteCode, makeDeviceId, normalizeDisplayName, withTimeout } from '../lib/helpers';
+import { DEVICE_ID_KEY, DISPLAY_NAME_KEY, extractInviteCode, generateInviteCode, LAST_WORKSPACE_ID_KEY, makeDeviceId, normalizeDisplayName, withTimeout } from '../lib/helpers';
 import { isConfigured, supabase } from '../lib/supabase';
 import { trackEvent } from '../lib/analytics';
 import { Workspace, WorkspaceMember } from '../types';
@@ -27,6 +27,18 @@ export function useWorkspaceData({ enabled }: Params) {
     await AsyncStorage.setItem(DEVICE_ID_KEY, created);
     setDeviceId(created);
     return created;
+  };
+
+  const setCurrentWorkspace = async (next: Workspace) => {
+    setWorkspace(next);
+    await AsyncStorage.setItem(LAST_WORKSPACE_ID_KEY, next.id);
+  };
+
+  const loadWorkspaceById = async (workspaceId: string) => {
+    if (!supabase) return null;
+    const { data, error } = await withTimeout(supabase.from('workspaces').select('*').eq('id', workspaceId).maybeSingle());
+    if (error || !data) return null;
+    return data as Workspace;
   };
 
   const ensureMember = async (workspaceId: string, currentDeviceId: string) => {
@@ -128,7 +140,7 @@ export function useWorkspaceData({ enabled }: Params) {
       );
       setLoading(false);
       if (error || !data) return setLoadError('Could not create crew. Check internet and retry.');
-      setWorkspace(data as Workspace);
+      await setCurrentWorkspace(data as Workspace);
       void trackEvent('workspace_created', { workspace_id: data.id }, deviceId || undefined);
     } catch {
       setLoading(false);
@@ -147,7 +159,7 @@ export function useWorkspaceData({ enabled }: Params) {
       const { data, error } = await withTimeout(supabase.from('workspaces').select('*').eq('invite_code', code).single());
       setLoading(false);
       if (error || !data) return setLoadError('Join failed. Invite link invalid or network issue.');
-      setWorkspace(data as Workspace);
+      await setCurrentWorkspace(data as Workspace);
       void trackEvent('workspace_joined', { workspace_id: data.id }, deviceId || undefined);
     } catch {
       setLoading(false);
@@ -157,8 +169,22 @@ export function useWorkspaceData({ enabled }: Params) {
 
   const retryWorkspaceLoad = async () => {
     setLoadError(null);
-    if (!workspace) await createWorkspace();
-    if (workspace && deviceId) await ensureMember(workspace.id, deviceId);
+
+    if (!workspace) {
+      const lastWorkspaceId = await AsyncStorage.getItem(LAST_WORKSPACE_ID_KEY);
+      if (lastWorkspaceId) {
+        const restored = await loadWorkspaceById(lastWorkspaceId);
+        if (restored) {
+          await setCurrentWorkspace(restored);
+          if (deviceId) await ensureMember(restored.id, deviceId);
+          return;
+        }
+      }
+      await createWorkspace();
+      return;
+    }
+
+    if (deviceId) await ensureMember(workspace.id, deviceId);
   };
 
   const renameCrew = async (name: string) => {
@@ -177,7 +203,7 @@ export function useWorkspaceData({ enabled }: Params) {
         const extra = error?.message ? ` (${error.message})` : '';
         return setLoadError(`Could not rename crew. Please retry${extra}`);
       }
-      setWorkspace(data as Workspace);
+      await setCurrentWorkspace(data as Workspace);
     } catch {
       setRenaming(false);
       setLoadError('Network timeout while renaming crew. Please retry.');
@@ -209,14 +235,32 @@ export function useWorkspaceData({ enabled }: Params) {
     if (!isConfigured || !supabase) return;
 
     const boot = async () => {
-      await loadDeviceId();
+      const currentDeviceId = await loadDeviceId();
       const initialUrl = await Promise.race<string | null>([
         Linking.getInitialURL(),
         new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
       ]);
       const initialCode = extractInviteCode(initialUrl || '');
-      if (initialUrl && initialCode) await joinByDeepLink(initialUrl);
-      else await createWorkspace();
+
+      // Deep link join always wins and becomes the new current crew.
+      if (initialUrl && initialCode) {
+        await joinByDeepLink(initialUrl);
+        return;
+      }
+
+      // Otherwise restore the most recently used crew if still available.
+      const lastWorkspaceId = await AsyncStorage.getItem(LAST_WORKSPACE_ID_KEY);
+      if (lastWorkspaceId) {
+        const restored = await loadWorkspaceById(lastWorkspaceId);
+        if (restored) {
+          await setCurrentWorkspace(restored);
+          await ensureMember(restored.id, currentDeviceId);
+          return;
+        }
+      }
+
+      // First-time users (or deleted prior crew) get a new crew.
+      await createWorkspace();
     };
 
     void boot();
