@@ -6,7 +6,7 @@ export default function CrewScreen() {
   const state = useAppStateContext();
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={[styles.scrollContent, styles.scrollContentWeb]}>
+    <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} alwaysBounceVertical={false} bounces={false}>
       <View style={styles.maxWidthWrap}>
         <View style={styles.header}>
           <Text style={styles.title}>Crew</Text>
@@ -34,8 +34,7 @@ export default function CrewScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 16, gap: 14 },
-  scrollContentWeb: { minHeight: '100dvh' as any },
+  scrollContent: { flexGrow: 1, padding: 16, paddingBottom: 8, gap: 14 },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
   header: { borderRadius: 18, borderWidth: 1, borderColor: '#1e293b', backgroundColor: '#0b1220', padding: 14, gap: 4 },
   title: { color: '#f8fafc', fontSize: 24, fontWeight: '800' },

@@ -8,7 +8,13 @@ export default function VoteScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView style={styles.flex} contentContainerStyle={[styles.scrollContent, Platform.OS === 'web' && styles.scrollContentWeb]} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        alwaysBounceVertical={false}
+        bounces={false}
+      >
         <View style={styles.maxWidthWrap}>
           <View style={styles.hero}>
             <Text style={styles.kicker}>Lunch planning, simplified</Text>
@@ -78,8 +84,7 @@ export default function VoteScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 16, gap: 14 },
-  scrollContentWeb: { minHeight: '100dvh' as any },
+  scrollContent: { flexGrow: 1, padding: 16, paddingBottom: 8, gap: 14 },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
   hero: { borderRadius: 20, padding: 18, backgroundColor: '#0b1220', borderWidth: 1, borderColor: '#1e293b' },
   kicker: { color: '#22d3ee', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
