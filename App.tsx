@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { OnboardingScreen } from './src/components/OnboardingScreen';
 import { PollPanel } from './src/components/PollPanel';
+import { HistoryPanel } from './src/components/HistoryPanel';
 import { WorkspacePanel } from './src/components/WorkspacePanel';
 import { MonetizationModal } from './src/components/MonetizationModal';
 import {
@@ -38,6 +39,7 @@ export default function App() {
   const [onboardingReady, setOnboardingReady] = useState(false);
   const [requestLocation, setRequestLocation] = useState(false);
   const [showMonetizationModal, setShowMonetizationModal] = useState(false);
+  const [show30DayHistory, setShow30DayHistory] = useState(false);
 
   const initialized = useRef(false);
 
@@ -78,6 +80,9 @@ export default function App() {
     loadingSuggestions,
     selectedSuggestion,
     setSelectedSuggestion,
+    history7Days,
+    history30Days,
+    leaderboard,
   } = usePollData({ workspace, deviceId, onLoadError: setLoadError, requestLocation });
 
   const configError = !isConfigured
@@ -343,6 +348,16 @@ export default function App() {
                   setNewOption(v);
                 }}
                 onAddOption={addOption}
+              />
+            )}
+
+            {workspace && (
+              <HistoryPanel
+                days7={history7Days}
+                days30={history30Days}
+                leaderboard={leaderboard}
+                show30Days={show30DayHistory}
+                onToggleRange={setShow30DayHistory}
               />
             )}
           </View>

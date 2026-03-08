@@ -53,6 +53,17 @@ export type WorkspaceMember = {
   updated_at: string;
 };
 
+export type HistoryDaySummary = {
+  poll_date: string;
+  winner_name: string;
+  winner_votes: number;
+};
+
+export type LeaderboardPlace = {
+  name: string;
+  wins: number;
+};
+
 export const ONBOARDING_SLIDES = [
   {
     title: 'Create or Join Instantly',

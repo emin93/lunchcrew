@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import { todayDateUTC, withTimeout } from '../lib/helpers';
 import { supabase } from '../lib/supabase';
 import { trackEvent } from '../lib/analytics';
-import { PlaceSuggestion, Poll, PollOption, Workspace } from '../types';
+import { HistoryDaySummary, LeaderboardPlace, PlaceSuggestion, Poll, PollOption, Workspace } from '../types';
 
 type Params = {
   workspace: Workspace | null;
@@ -35,6 +35,9 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<PlaceSuggestion | null>(null);
+  const [history7Days, setHistory7Days] = useState<HistoryDaySummary[]>([]);
+  const [history30Days, setHistory30Days] = useState<HistoryDaySummary[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardPlace[]>([]);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -149,6 +152,7 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
       return Alert.alert('Vote failed', error.message);
     }
     await refreshPollData(poll.id, workspace.id, deviceId);
+    await refreshHistory(workspace.id);
     void trackEvent('vote_cast', { poll_id: poll.id, option_id: optionId, workspace_id: workspace.id }, deviceId);
     setVotingOptionId(null);
   };
@@ -210,11 +214,77 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
       setSelectedSuggestion(null);
       setSuggestions([]);
       await refreshPollData(poll.id, workspace.id, deviceId);
+      await refreshHistory(workspace.id);
     } catch (error: any) {
       Alert.alert('Could not add option', error?.message || 'Unknown error');
     } finally {
       setAddingOption(false);
     }
+  };
+
+  const refreshHistory = async (workspaceId: string) => {
+    if (!supabase) return;
+
+    const pollsRes = await withTimeout(
+      supabase
+        .from('polls')
+        .select('id,poll_date')
+        .eq('workspace_id', workspaceId)
+        .order('poll_date', { ascending: false })
+        .limit(30),
+    );
+
+    const polls = (pollsRes.data as any[]) || [];
+    if (!polls.length) {
+      setHistory7Days([]);
+      setHistory30Days([]);
+      setLeaderboard([]);
+      return;
+    }
+
+    const pollIds = polls.map((p) => p.id);
+    const optionsRes = await withTimeout(
+      supabase
+        .from('poll_options')
+        .select('poll_id,name,votes(count)')
+        .in('poll_id', pollIds),
+    );
+
+    const options = (optionsRes.data as any[]) || [];
+    const byPoll = new Map<string, Array<{ name: string; votes: number }>>();
+
+    options.forEach((o) => {
+      const row = { name: o.name as string, votes: o.votes?.[0]?.count ?? 0 };
+      const cur = byPoll.get(o.poll_id) || [];
+      cur.push(row);
+      byPoll.set(o.poll_id, cur);
+    });
+
+    const summaries: HistoryDaySummary[] = polls.map((p) => {
+      const rows = byPoll.get(p.id) || [];
+      if (!rows.length) return { poll_date: p.poll_date, winner_name: '', winner_votes: 0 };
+      const sorted = rows.slice().sort((a, b) => b.votes - a.votes);
+      const top = sorted[0];
+      return {
+        poll_date: p.poll_date,
+        winner_name: top.votes > 0 ? top.name : '',
+        winner_votes: top.votes,
+      };
+    });
+
+    const wins = new Map<string, number>();
+    summaries.forEach((s) => {
+      if (!s.winner_name) return;
+      wins.set(s.winner_name, (wins.get(s.winner_name) || 0) + 1);
+    });
+
+    const leaderboardRows: LeaderboardPlace[] = Array.from(wins.entries())
+      .map(([name, count]) => ({ name, wins: count }))
+      .sort((a, b) => b.wins - a.wins);
+
+    setHistory30Days(summaries);
+    setHistory7Days(summaries.slice(0, 7));
+    setLeaderboard(leaderboardRows);
   };
 
   const retryPollLoad = async () => {
@@ -224,6 +294,7 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
       if (todayPoll) {
         setPoll(todayPoll);
         await refreshPollData(todayPoll.id, workspace.id, deviceId);
+        await refreshHistory(workspace.id);
       }
     }
   };
@@ -235,6 +306,7 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
       if (!todayPoll) return;
       setPoll(todayPoll);
       await refreshPollData(todayPoll.id, workspace.id, deviceId);
+      await refreshHistory(workspace.id);
     };
     void load();
   }, [workspace, deviceId]);
@@ -390,5 +462,8 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
     loadingSuggestions,
     selectedSuggestion,
     setSelectedSuggestion,
+    history7Days,
+    history30Days,
+    leaderboard,
   };
 }
