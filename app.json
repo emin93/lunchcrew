@@ -35,7 +35,8 @@
     "plugins": ["expo-router"],
     "web": {
       "favicon": "./assets/favicon.png",
-      "themeColor": "#030712"
+      "themeColor": "#030712",
+      "backgroundColor": "#030712"
     }
   }
 }
