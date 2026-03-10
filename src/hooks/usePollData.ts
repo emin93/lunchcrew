@@ -64,6 +64,42 @@ export function usePollData({ workspace, deviceId, onLoadError, requestLocation 
         return null;
       }
 
+      // Keep place options persistent across days: new daily poll starts
+      // with the previous poll's options, while votes reset.
+      const prevPollRes = await withTimeout(
+        supabase
+          .from('polls')
+          .select('id')
+          .eq('workspace_id', workspaceId)
+          .neq('id', created.data.id)
+          .order('poll_date', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      );
+
+      const prevPollId = (prevPollRes.data as any)?.id as string | undefined;
+      if (prevPollId) {
+        const prevOptionsRes = await withTimeout(
+          supabase
+            .from('poll_options')
+            .select('name,source,place_cache_id,menu_url')
+            .eq('poll_id', prevPollId)
+            .order('created_at'),
+        );
+
+        const prevOptions = (prevOptionsRes.data as any[]) || [];
+        if (prevOptions.length > 0) {
+          const cloned = prevOptions.map((o) => ({
+            poll_id: created.data.id,
+            name: o.name,
+            source: o.source || 'manual',
+            place_cache_id: o.place_cache_id || null,
+            menu_url: o.menu_url || null,
+          }));
+          await withTimeout(supabase.from('poll_options').insert(cloned));
+        }
+      }
+
       return created.data as Poll;
     } catch {
       onLoadError('Network timeout while loading today poll. Please retry.');
