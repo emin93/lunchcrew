@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -40,6 +41,7 @@ export default function App() {
   const [requestLocation, setRequestLocation] = useState(false);
   const [showMonetizationModal, setShowMonetizationModal] = useState(false);
   const [show30DayHistory, setShow30DayHistory] = useState(false);
+  const [screen, setScreen] = useState<'vote' | 'history' | 'crew'>('vote');
 
   const initialized = useRef(false);
 
@@ -84,6 +86,9 @@ export default function App() {
     history30Days,
     leaderboard,
   } = usePollData({ workspace, deviceId, onLoadError: setLoadError, requestLocation });
+
+  const { width } = useWindowDimensions();
+  const desktopNav = Platform.OS === 'web' && width >= 980;
 
   const configError = !isConfigured
     ? 'Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY in runtime.'
@@ -305,62 +310,150 @@ export default function App() {
               </View>
             )}
 
-            {workspace ? (
-              <WorkspacePanel
-                workspace={workspace}
-                displayName={member?.display_name || ''}
-                onSaveDisplayName={(name) => void saveDisplayName(name)}
-                savingName={savingName}
-                onShare={shareInvite}
-                onRename={renameCrew}
-                onCreateNewCrew={() => void createNewCrew()}
-                renaming={renaming}
-              />
-            ) : !configError && !loadError ? (
-              <Text style={styles.helper}>Setting things up…</Text>
+            {!desktopNav ? (
+              <View style={styles.mobileTabRow}>
+                {['vote', 'history', 'crew'].map((s) => (
+                  <Pressable key={s} style={[styles.mobileTab, screen === s && styles.mobileTabActive]} onPress={() => setScreen(s as any)}>
+                    <Text style={[styles.mobileTabText, screen === s && styles.mobileTabTextActive]}>
+                      {s === 'vote' ? 'Vote' : s === 'history' ? 'History' : 'Crew'}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             ) : null}
 
-            {poll && (
-              <PollPanel
-                poll={poll}
-                options={options}
-                myOptionId={myOptionId}
-                votingOptionId={votingOptionId}
-                addingOption={addingOption}
-                newOption={newOption}
-                topChoice={topChoice}
-                suggestions={suggestions}
-                loadingSuggestions={loadingSuggestions}
-                selectedSuggestion={selectedSuggestion}
-                onSelectSuggestion={(s) => {
-                  setSelectedSuggestion(s);
-                  setNewOption(s.name);
-                  void trackEvent('place_suggestion_selected', { poll_id: poll.id, workspace_id: workspace?.id, place_id: s.externalPlaceId }, deviceId);
-                }}
-                onClearSuggestion={() => setSelectedSuggestion(null)}
-                onVote={vote}
-                onOpenMaps={(optionId, url) =>
-                  void trackEvent('maps_opened', { option_id: optionId, poll_id: poll.id, workspace_id: workspace?.id, url }, deviceId)
-                }
-                onOpenMenu={(optionId, url) =>
-                  void trackEvent('menu_opened', { option_id: optionId, poll_id: poll.id, workspace_id: workspace?.id, url }, deviceId)
-                }
-                onChangeNewOption={(v) => {
-                  setSelectedSuggestion(null);
-                  setNewOption(v);
-                }}
-                onAddOption={addOption}
-              />
-            )}
+            {desktopNav ? (
+              <View style={styles.desktopLayout}>
+                <View style={styles.desktopSidebar}>
+                  <Text style={styles.sidebarTitle}>Navigation</Text>
+                  {[
+                    { key: 'vote', label: 'Vote' },
+                    { key: 'history', label: 'History' },
+                    { key: 'crew', label: 'Crew' },
+                  ].map((item) => (
+                    <Pressable
+                      key={item.key}
+                      style={[styles.sidebarItem, screen === item.key && styles.sidebarItemActive]}
+                      onPress={() => setScreen(item.key as any)}
+                    >
+                      <Text style={[styles.sidebarItemText, screen === item.key && styles.sidebarItemTextActive]}>{item.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <View style={styles.desktopContent}>
+                  {screen === 'vote' && poll ? (
+                    <PollPanel
+                      poll={poll}
+                      options={options}
+                      myOptionId={myOptionId}
+                      votingOptionId={votingOptionId}
+                      addingOption={addingOption}
+                      newOption={newOption}
+                      topChoice={topChoice}
+                      suggestions={suggestions}
+                      loadingSuggestions={loadingSuggestions}
+                      selectedSuggestion={selectedSuggestion}
+                      onSelectSuggestion={(s) => {
+                        setSelectedSuggestion(s);
+                        setNewOption(s.name);
+                        void trackEvent('place_suggestion_selected', { poll_id: poll.id, workspace_id: workspace?.id, place_id: s.externalPlaceId }, deviceId);
+                      }}
+                      onClearSuggestion={() => setSelectedSuggestion(null)}
+                      onVote={vote}
+                      onOpenMaps={(optionId, url) =>
+                        void trackEvent('maps_opened', { option_id: optionId, poll_id: poll.id, workspace_id: workspace?.id, url }, deviceId)
+                      }
+                      onOpenMenu={(optionId, url) =>
+                        void trackEvent('menu_opened', { option_id: optionId, poll_id: poll.id, workspace_id: workspace?.id, url }, deviceId)
+                      }
+                      onChangeNewOption={(v) => {
+                        setSelectedSuggestion(null);
+                        setNewOption(v);
+                      }}
+                      onAddOption={addOption}
+                    />
+                  ) : null}
+                  {screen === 'history' && workspace ? (
+                    <HistoryPanel
+                      days7={history7Days}
+                      days30={history30Days}
+                      leaderboard={leaderboard}
+                      show30Days={show30DayHistory}
+                      onToggleRange={setShow30DayHistory}
+                    />
+                  ) : null}
+                  {screen === 'crew' && workspace ? (
+                    <WorkspacePanel
+                      workspace={workspace}
+                      displayName={member?.display_name || ''}
+                      onSaveDisplayName={(name) => void saveDisplayName(name)}
+                      savingName={savingName}
+                      onShare={shareInvite}
+                      onRename={renameCrew}
+                      onCreateNewCrew={() => void createNewCrew()}
+                      renaming={renaming}
+                    />
+                  ) : null}
+                </View>
+              </View>
+            ) : (
+              <>
+                {screen === 'crew' && workspace ? (
+                  <WorkspacePanel
+                    workspace={workspace}
+                    displayName={member?.display_name || ''}
+                    onSaveDisplayName={(name) => void saveDisplayName(name)}
+                    savingName={savingName}
+                    onShare={shareInvite}
+                    onRename={renameCrew}
+                    onCreateNewCrew={() => void createNewCrew()}
+                    renaming={renaming}
+                  />
+                ) : null}
 
-            {workspace && (
-              <HistoryPanel
-                days7={history7Days}
-                days30={history30Days}
-                leaderboard={leaderboard}
-                show30Days={show30DayHistory}
-                onToggleRange={setShow30DayHistory}
-              />
+                {screen === 'vote' && poll ? (
+                  <PollPanel
+                    poll={poll}
+                    options={options}
+                    myOptionId={myOptionId}
+                    votingOptionId={votingOptionId}
+                    addingOption={addingOption}
+                    newOption={newOption}
+                    topChoice={topChoice}
+                    suggestions={suggestions}
+                    loadingSuggestions={loadingSuggestions}
+                    selectedSuggestion={selectedSuggestion}
+                    onSelectSuggestion={(s) => {
+                      setSelectedSuggestion(s);
+                      setNewOption(s.name);
+                      void trackEvent('place_suggestion_selected', { poll_id: poll.id, workspace_id: workspace?.id, place_id: s.externalPlaceId }, deviceId);
+                    }}
+                    onClearSuggestion={() => setSelectedSuggestion(null)}
+                    onVote={vote}
+                    onOpenMaps={(optionId, url) =>
+                      void trackEvent('maps_opened', { option_id: optionId, poll_id: poll.id, workspace_id: workspace?.id, url }, deviceId)
+                    }
+                    onOpenMenu={(optionId, url) =>
+                      void trackEvent('menu_opened', { option_id: optionId, poll_id: poll.id, workspace_id: workspace?.id, url }, deviceId)
+                    }
+                    onChangeNewOption={(v) => {
+                      setSelectedSuggestion(null);
+                      setNewOption(v);
+                    }}
+                    onAddOption={addOption}
+                  />
+                ) : null}
+
+                {screen === 'history' && workspace ? (
+                  <HistoryPanel
+                    days7={history7Days}
+                    days30={history30Days}
+                    leaderboard={leaderboard}
+                    show30Days={show30DayHistory}
+                    onToggleRange={setShow30DayHistory}
+                  />
+                ) : null}
+              </>
             )}
           </View>
         </ScrollView>
@@ -447,4 +540,39 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(139,92,246,0.14)',
   },
+  mobileTabRow: {
+    flexDirection: 'row',
+    gap: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#34376f',
+    backgroundColor: '#10122a',
+    padding: 6,
+  },
+  mobileTab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  mobileTabActive: { backgroundColor: '#1f2450' },
+  mobileTabText: { color: '#9fb0ce', fontWeight: '700', fontSize: 13 },
+  mobileTabTextActive: { color: '#e5ecff' },
+  desktopLayout: { flexDirection: 'row', gap: 14, alignItems: 'flex-start' },
+  desktopSidebar: {
+    width: 180,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#34376f',
+    backgroundColor: '#10122a',
+    padding: 10,
+    gap: 8,
+  },
+  sidebarTitle: { color: '#95a7cb', fontSize: 12, fontWeight: '700', marginBottom: 2, paddingHorizontal: 4 },
+  sidebarItem: { borderRadius: 10, paddingVertical: 10, paddingHorizontal: 10 },
+  sidebarItemActive: { backgroundColor: '#1f2450' },
+  sidebarItemText: { color: '#9fb0ce', fontSize: 13, fontWeight: '700' },
+  sidebarItemTextActive: { color: '#e5ecff' },
+  desktopContent: { flex: 1, gap: 12 },
 });
