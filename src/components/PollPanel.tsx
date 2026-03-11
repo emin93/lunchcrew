@@ -79,7 +79,12 @@ export function PollPanel({
           return (
             <Pressable
               key={opt.id}
-              style={[styles.optionCard, isActive && styles.optionCardActive, !!votingOptionId && styles.optionDisabled]}
+              style={({ pressed }) => [
+                styles.optionCard,
+                isActive && styles.optionCardActive,
+                !!votingOptionId && styles.optionDisabled,
+                pressed && !votingOptionId && styles.optionCardPressed,
+              ]}
               onPress={() => onVote(opt.id)}
               disabled={!!votingOptionId}
               accessibilityRole="button"
@@ -168,7 +173,11 @@ export function PollPanel({
           }}
         />
         <Pressable
-          style={[styles.addBtn, (!canAddOption || addingOption) && styles.optionDisabled]}
+          style={({ pressed }) => [
+            styles.addBtn,
+            (!canAddOption || addingOption) && styles.optionDisabled,
+            pressed && canAddOption && !addingOption && styles.addBtnPressed,
+          ]}
           onPress={onAddOption}
           disabled={!canAddOption || addingOption}
           accessibilityRole="button"
@@ -241,6 +250,7 @@ const styles = StyleSheet.create({
   optionMain: { flex: 1, gap: 8 },
   optionHeader: { gap: 2 },
   optionCardActive: { borderColor: '#34d399', backgroundColor: '#0b2a26' },
+  optionCardPressed: { transform: [{ scale: 0.985 }], opacity: 0.92 },
   optionDisabled: { opacity: 0.65 },
   optionName: { color: '#e2e8f0', fontWeight: '700', fontSize: 15 },
   myVoteTag: { color: '#86efac', fontSize: 11, marginTop: 2, fontWeight: '700' },
@@ -311,6 +321,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#22d3ee',
     paddingHorizontal: 12,
   },
+  addBtnPressed: { transform: [{ scale: 0.97 }], opacity: 0.9 },
   addBtnText: { color: '#0f172a', fontWeight: '800' },
   suggestionsWrap: {
     borderRadius: 12,

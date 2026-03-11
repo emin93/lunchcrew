@@ -102,7 +102,7 @@ export function WorkspacePanel({
           )}
         </View>
 
-        <Pressable style={styles.sharePill} onPress={onShare}>
+        <Pressable style={({ pressed }) => [styles.sharePill, pressed && styles.sharePillPressed]} onPress={onShare}>
           <Text style={styles.sharePillText}>Share invite</Text>
         </Pressable>
       </View>
@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
   cancelBtnText: { color: '#cbd5e1', fontWeight: '700', fontSize: 12 },
   btnDisabled: { opacity: 0.7 },
   sharePill: { backgroundColor: '#0e7490', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999 },
+  sharePillPressed: { transform: [{ scale: 0.97 }], opacity: 0.9 },
   sharePillText: { color: '#ecfeff', fontWeight: '700', fontSize: 12 },
   codeText: { color: '#67e8f9', fontSize: 13, fontWeight: '600' },
   linkText: { color: '#94a3b8', fontSize: 12, fontWeight: '700' },
