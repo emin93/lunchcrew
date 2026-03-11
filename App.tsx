@@ -310,18 +310,6 @@ export default function App() {
               </View>
             )}
 
-            {!desktopNav ? (
-              <View style={styles.mobileTabRow}>
-                {['vote', 'history', 'crew'].map((s) => (
-                  <Pressable key={s} style={[styles.mobileTab, screen === s && styles.mobileTabActive]} onPress={() => setScreen(s as any)}>
-                    <Text style={[styles.mobileTabText, screen === s && styles.mobileTabTextActive]}>
-                      {s === 'vote' ? 'Vote' : s === 'history' ? 'History' : 'Crew'}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
-
             {desktopNav ? (
               <View style={styles.desktopLayout}>
                 <View style={styles.desktopSidebar}>
@@ -459,6 +447,20 @@ export default function App() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {!desktopNav ? (
+        <View style={styles.mobileTabBarWrap}>
+          <View style={styles.mobileTabRow}>
+            {['vote', 'history', 'crew'].map((s) => (
+              <Pressable key={s} style={[styles.mobileTab, screen === s && styles.mobileTabActive]} onPress={() => setScreen(s as any)}>
+                <Text style={[styles.mobileTabText, screen === s && styles.mobileTabTextActive]}>
+                  {s === 'vote' ? 'Vote' : s === 'history' ? 'History' : 'Crew'}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       <MonetizationModal
         visible={showMonetizationModal}
         workspaceId={workspace?.id}
@@ -481,7 +483,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#03030b' },
   safeAreaWeb: { minHeight: '100dvh' as any },
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 18, paddingBottom: 26, gap: 14 },
+  scrollContent: { flexGrow: 1, padding: 18, paddingBottom: 96, gap: 14 },
   scrollContentWeb: { minHeight: '100dvh' as any },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
   hero: {
@@ -540,23 +542,37 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(139,92,246,0.14)',
   },
+  mobileTabBarWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 14,
+    paddingBottom: 10,
+    backgroundColor: 'rgba(3,3,11,0.5)',
+  },
   mobileTabRow: {
     flexDirection: 'row',
     gap: 8,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#34376f',
-    backgroundColor: '#10122a',
-    padding: 6,
+    borderColor: '#3b3f84',
+    backgroundColor: '#121633',
+    padding: 7,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   mobileTab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingVertical: 11,
   },
-  mobileTabActive: { backgroundColor: '#1f2450' },
+  mobileTabActive: { backgroundColor: '#2a3270' },
   mobileTabText: { color: '#9fb0ce', fontWeight: '700', fontSize: 13 },
   mobileTabTextActive: { color: '#e5ecff' },
   desktopLayout: { flexDirection: 'row', gap: 14, alignItems: 'flex-start' },
