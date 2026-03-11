@@ -10,13 +10,20 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: '#030712' },
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          backgroundColor: '#0b1220',
-          borderTopColor: '#1e293b',
+          position: 'absolute',
+          left: 12,
+          right: 12,
+          bottom: 10,
+          borderRadius: 18,
+          backgroundColor: 'rgba(15,20,44,0.92)',
+          borderTopColor: 'transparent',
+          borderWidth: 1,
+          borderColor: '#3a4279',
           paddingBottom: 6,
-          height: 56,
+          height: 62,
         },
-        tabBarActiveTintColor: '#22d3ee',
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarActiveTintColor: '#8be9ff',
+        tabBarInactiveTintColor: '#8a96b8',
         tabBarIcon: ({ color, size, focused }) => {
           const iconName =
             route.name === 'index'

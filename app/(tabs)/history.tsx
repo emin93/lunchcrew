@@ -1,4 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { HistoryPanel } from '../../src/components/HistoryPanel';
 import { useAppStateContext } from '../../src/state/AppStateContext';
 
@@ -6,30 +7,39 @@ export default function HistoryScreen() {
   const state = useAppStateContext();
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} alwaysBounceVertical={false} bounces={false}>
-      <View style={styles.maxWidthWrap}>
-        <View style={styles.header}>
-          <Text style={styles.title}>History</Text>
-          <Text style={styles.subtitle}>Track winners and trends to keep your crew coming back daily.</Text>
-        </View>
+    <View style={styles.flex}>
+      <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} alwaysBounceVertical={false} bounces={false}>
+        <View style={styles.maxWidthWrap}>
+          <LinearGradient colors={['#131b3f', '#10152f']} style={styles.hero}>
+            <Text style={styles.kicker}>Crew intelligence</Text>
+            <Text style={styles.title}>History & trends</Text>
+            <Text style={styles.subtitle}>Track what wins and turn lunch into a reliable daily ritual.</Text>
+          </LinearGradient>
 
-        <HistoryPanel
-          days7={state.history7Days}
-          days30={state.history30Days}
-          leaderboard={state.leaderboard}
-          show30Days={state.show30DayHistory}
-          onToggleRange={state.setShow30DayHistory}
-        />
-      </View>
-    </ScrollView>
+          <HistoryPanel
+            days7={state.history7Days}
+            days30={state.history30Days}
+            leaderboard={state.leaderboard}
+            show30Days={state.show30DayHistory}
+            onToggleRange={state.setShow30DayHistory}
+          />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 16, paddingBottom: 8, gap: 14 },
+  scrollContent: { flexGrow: 1, padding: 16, paddingBottom: 12, gap: 14 },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
-  header: { borderRadius: 18, borderWidth: 1, borderColor: '#1e293b', backgroundColor: '#0b1220', padding: 14, gap: 4 },
-  title: { color: '#f8fafc', fontSize: 24, fontWeight: '800' },
-  subtitle: { color: '#94a3b8', fontSize: 13 },
+  hero: {
+    borderRadius: 24,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(129,149,255,0.35)',
+  },
+  kicker: { color: '#9ce5ff', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
+  title: { color: '#f8fafc', fontSize: 30, fontWeight: '900', marginTop: 3, letterSpacing: -0.6 },
+  subtitle: { color: '#b7c3e4', fontSize: 13, marginTop: 3 },
 });
