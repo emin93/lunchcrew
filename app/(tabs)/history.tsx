@@ -12,7 +12,7 @@ export default function HistoryScreen() {
     <View style={styles.flex}>
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top, 8), paddingBottom: Math.max(insets.bottom + 16, 24) }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top, 8), paddingBottom: Math.max(insets.bottom + 120, 132) }]}
         alwaysBounceVertical={false}
         bounces={false}
       >

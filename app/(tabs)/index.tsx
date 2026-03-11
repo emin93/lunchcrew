@@ -15,7 +15,7 @@ export default function VoteScreen() {
       <View style={styles.bgGlowTwo} pointerEvents="none" />
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + 4, 12), paddingBottom: Math.max(insets.bottom + 24, 32) }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + 4, 12), paddingBottom: Math.max(insets.bottom + 132, 148) }]}
         keyboardShouldPersistTaps="handled"
         alwaysBounceVertical={false}
         bounces={false}
