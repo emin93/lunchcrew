@@ -90,7 +90,7 @@ export default function App() {
 
   const { width } = useWindowDimensions();
   const desktopNav = Platform.OS === 'web' && width >= 980;
-  const compactHeader = scrollY > 32;
+  const compactHeader = scrollY > 8;
 
   const screenMeta = {
     vote: {
@@ -301,7 +301,7 @@ export default function App() {
           scrollEventThrottle={16}
         >
           <View style={styles.maxWidthWrap}>
-            <View style={[styles.hero, compactHeader && styles.heroCompact]}>
+            <View style={[styles.hero, Platform.OS === 'web' && ({ backdropFilter: 'blur(8px)' } as any), compactHeader && styles.heroCompact]}>
               <View style={styles.heroGlow} pointerEvents="none" />
               <View style={styles.heroTopRow}>
                 <View style={styles.heroRibbon}>
@@ -311,11 +311,13 @@ export default function App() {
               </View>
               <Text style={[styles.title, compactHeader && styles.titleCompact]}>{screenMeta[screen].title}</Text>
               {!compactHeader ? <Text style={styles.subtitle}>{screenMeta[screen].subtitle}</Text> : null}
-              <View style={styles.heroStatsRow}>
-                <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Crew</Text><Text style={styles.heroStatValue}>{workspace?.invite_code || '—'}</Text></View>
-                <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Options</Text><Text style={styles.heroStatValue}>{options.length}</Text></View>
-                <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Leader</Text><Text style={styles.heroStatValue} numberOfLines={1}>{topChoice || '—'}</Text></View>
-              </View>
+              {!compactHeader ? (
+                <View style={styles.heroStatsRow}>
+                  <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Crew</Text><Text style={styles.heroStatValue}>{workspace?.invite_code || '—'}</Text></View>
+                  <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Options</Text><Text style={styles.heroStatValue}>{options.length}</Text></View>
+                  <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Leader</Text><Text style={styles.heroStatValue} numberOfLines={1}>{topChoice || '—'}</Text></View>
+                </View>
+              ) : null}
             </View>
 
             {loading && (
@@ -519,19 +521,14 @@ const styles = StyleSheet.create({
   scrollContentWeb: { minHeight: '100dvh' as any },
   maxWidthWrap: { width: '100%', maxWidth: 1080, alignSelf: 'center', gap: 16 },
   hero: {
-    borderRadius: 30,
-    paddingHorizontal: 22,
-    paddingVertical: 20,
-    backgroundColor: 'rgba(15,19,43,0.88)',
-    borderWidth: 1,
-    borderColor: 'rgba(112,137,255,0.35)',
-    shadowColor: '#020617',
-    shadowOpacity: 0.45,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 10,
-    gap: 10,
-    overflow: 'hidden',
+    borderRadius: 0,
+    paddingHorizontal: 2,
+    paddingVertical: 8,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    shadowOpacity: 0,
+    gap: 8,
+    overflow: 'visible',
   },
   heroCompact: {
     paddingVertical: 14,
