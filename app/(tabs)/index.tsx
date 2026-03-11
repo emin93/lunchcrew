@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   buildLabel: { color: ds.colors.textSoft, fontSize: 11, marginTop: 4, fontWeight: '700' },
   loadingWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
   loadingText: { color: ds.colors.textMuted, fontSize: 13 },
-  errorBox: { borderRadius: ds.radius.md, borderWidth: 1, borderColor: '#ddb9b9', backgroundColor: ds.colors.dangerSoft, padding: 12, gap: 8 },
+  errorBox: { borderRadius: ds.radius.md, borderWidth: 1, borderColor: '#7f1d1d', backgroundColor: ds.colors.dangerSoft, padding: 12, gap: 8 },
   errorTitle: { color: ds.colors.danger, fontWeight: '800' },
   errorText: { color: ds.colors.danger, fontSize: 13 },
   retryBtn: { alignSelf: 'flex-start', backgroundColor: ds.colors.danger, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
