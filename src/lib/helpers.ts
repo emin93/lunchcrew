@@ -6,7 +6,7 @@ export const LAST_WORKSPACE_ID_KEY = 'lunchcrew.last_workspace_id';
 export const LOCATION_PROMPT_SEEN_KEY = 'lunchcrew.location_prompt_seen';
 export const MONETIZATION_LAST_PROMPT_AT_KEY = 'lunchcrew.monetization_last_prompt_at';
 export const MONETIZATION_WAITLIST_JOINED_KEY = 'lunchcrew.monetization_waitlist_joined';
-export const BUILD_LABEL = 'Build qa-v6';
+export const BUILD_LABEL = 'Build qa-v7';
 export const MAX_DISPLAY_NAME_LENGTH = 32;
 
 export function generateInviteCode() {
