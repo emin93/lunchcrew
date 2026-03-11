@@ -1,16 +1,18 @@
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WorkspacePanel } from '../../src/components/WorkspacePanel';
 import { useAppStateContext } from '../../src/state/AppStateContext';
 
 export default function CrewScreen() {
   const state = useAppStateContext();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.flex}>
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top, 8), paddingBottom: Math.max(insets.bottom + 16, 24) }]}
         alwaysBounceVertical={false}
         bounces={false}
         keyboardShouldPersistTaps="handled"

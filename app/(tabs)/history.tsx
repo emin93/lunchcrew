@@ -1,14 +1,21 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HistoryPanel } from '../../src/components/HistoryPanel';
 import { useAppStateContext } from '../../src/state/AppStateContext';
 
 export default function HistoryScreen() {
   const state = useAppStateContext();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.flex}>
-      <ScrollView style={styles.flex} contentContainerStyle={styles.scrollContent} alwaysBounceVertical={false} bounces={false}>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top, 8), paddingBottom: Math.max(insets.bottom + 16, 24) }]}
+        alwaysBounceVertical={false}
+        bounces={false}
+      >
         <View style={styles.maxWidthWrap}>
           <LinearGradient colors={['#131b3f', '#10152f']} style={styles.hero}>
             <Text style={styles.kicker}>Crew intelligence</Text>

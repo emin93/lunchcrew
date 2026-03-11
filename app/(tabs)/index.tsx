@@ -1,11 +1,13 @@
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PollPanel } from '../../src/components/PollPanel';
 import { useAppStateContext } from '../../src/state/AppStateContext';
 import { trackEvent } from '../../src/lib/analytics';
 
 export default function VoteScreen() {
   const state = useAppStateContext();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.flex}>
@@ -13,7 +15,7 @@ export default function VoteScreen() {
       <View style={styles.bgGlowTwo} pointerEvents="none" />
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + 4, 12), paddingBottom: Math.max(insets.bottom + 24, 32) }]}
         keyboardShouldPersistTaps="handled"
         alwaysBounceVertical={false}
         bounces={false}
