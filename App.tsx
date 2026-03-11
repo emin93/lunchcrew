@@ -42,6 +42,7 @@ export default function App() {
   const [showMonetizationModal, setShowMonetizationModal] = useState(false);
   const [show30DayHistory, setShow30DayHistory] = useState(false);
   const [screen, setScreen] = useState<'vote' | 'history' | 'crew'>('vote');
+  const [scrollY, setScrollY] = useState(0);
 
   const initialized = useRef(false);
 
@@ -89,6 +90,25 @@ export default function App() {
 
   const { width } = useWindowDimensions();
   const desktopNav = Platform.OS === 'web' && width >= 980;
+  const compactHeader = scrollY > 32;
+
+  const screenMeta = {
+    vote: {
+      ribbon: 'LIVE POLL',
+      title: 'Decide lunch in one clean sweep',
+      subtitle: 'Fast voting with momentum, clear winners, and less decision fatigue.',
+    },
+    history: {
+      ribbon: 'CREW INTEL',
+      title: 'Trends, streaks, and repeat winners',
+      subtitle: 'See what actually wins and keep the best picks in rotation.',
+    },
+    crew: {
+      ribbon: 'CREW CONTROL',
+      title: 'People, invites, and identity',
+      subtitle: 'Manage your LunchCrew with the same polished flow as voting.',
+    },
+  } as const;
 
   const configError = !isConfigured
     ? 'Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY in runtime.'
@@ -277,26 +297,25 @@ export default function App() {
           style={styles.flex}
           contentContainerStyle={[styles.scrollContent, Platform.OS === 'web' && styles.scrollContentWeb]}
           keyboardShouldPersistTaps="handled"
+          onScroll={(event) => setScrollY(event.nativeEvent.contentOffset.y)}
+          scrollEventThrottle={16}
         >
           <View style={styles.maxWidthWrap}>
-            <View style={styles.hero}>
-              <View style={styles.heroRibbon}>
-                <Text style={styles.heroRibbonText}>{screen === 'vote' ? 'LIVE POLL' : screen === 'history' ? 'CREW INTEL' : 'CREW CONTROL'}</Text>
+            <View style={[styles.hero, compactHeader && styles.heroCompact]}>
+              <View style={styles.heroGlow} pointerEvents="none" />
+              <View style={styles.heroTopRow}>
+                <View style={styles.heroRibbon}>
+                  <Text style={styles.heroRibbonText}>{screenMeta[screen].ribbon}</Text>
+                </View>
+                <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
               </View>
-              <Text style={styles.title}>{screen === 'vote' ? "Pick lunch now" : screen === 'history' ? 'Winners & trends' : 'Manage your crew'}</Text>
-              <Text style={styles.subtitle}>
-                {screen === 'vote'
-                  ? 'Fast voting with visible momentum.'
-                  : screen === 'history'
-                    ? 'Who wins, how often, and what to repeat.'
-                    : 'Invite, rename, and profile controls in one place.'}
-              </Text>
+              <Text style={[styles.title, compactHeader && styles.titleCompact]}>{screenMeta[screen].title}</Text>
+              {!compactHeader ? <Text style={styles.subtitle}>{screenMeta[screen].subtitle}</Text> : null}
               <View style={styles.heroStatsRow}>
                 <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Crew</Text><Text style={styles.heroStatValue}>{workspace?.invite_code || '—'}</Text></View>
                 <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Options</Text><Text style={styles.heroStatValue}>{options.length}</Text></View>
                 <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Leader</Text><Text style={styles.heroStatValue} numberOfLines={1}>{topChoice || '—'}</Text></View>
               </View>
-              <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
             </View>
 
             {loading && (
@@ -326,7 +345,7 @@ export default function App() {
             {desktopNav ? (
               <View style={styles.desktopLayout}>
                 <View style={styles.desktopSidebar}>
-                  <Text style={styles.sidebarTitle}>Navigation</Text>
+                  <Text style={styles.sidebarTitle}>Navigate</Text>
                   {[
                     { key: 'vote', label: 'Vote' },
                     { key: 'history', label: 'History' },
@@ -466,7 +485,7 @@ export default function App() {
             {['vote', 'history', 'crew'].map((s) => (
               <Pressable key={s} style={[styles.mobileTab, screen === s && styles.mobileTabActive]} onPress={() => setScreen(s as any)}>
                 <Text style={[styles.mobileTabText, screen === s && styles.mobileTabTextActive]}>
-                  {s === 'vote' ? '🍽 Vote' : s === 'history' ? '📈 History' : '👥 Crew'}
+                  {s === 'vote' ? 'Vote' : s === 'history' ? 'History' : 'Crew'}
                 </Text>
               </Pressable>
             ))}
@@ -493,60 +512,78 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#03030b' },
+  safeArea: { flex: 1, backgroundColor: '#050713' },
   safeAreaWeb: { minHeight: '100dvh' as any },
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 18, paddingBottom: 96, gap: 14 },
+  scrollContent: { flexGrow: 1, padding: 18, paddingBottom: 110, gap: 16 },
   scrollContentWeb: { minHeight: '100dvh' as any },
-  maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
+  maxWidthWrap: { width: '100%', maxWidth: 1080, alignSelf: 'center', gap: 16 },
   hero: {
-    borderRadius: 28,
-    padding: 22,
-    backgroundColor: '#0f1025',
+    borderRadius: 30,
+    paddingHorizontal: 22,
+    paddingVertical: 20,
+    backgroundColor: 'rgba(15,19,43,0.88)',
     borderWidth: 1,
-    borderColor: '#34376f',
-    shadowColor: '#000',
-    shadowOpacity: 0.34,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
-    gap: 8,
+    borderColor: 'rgba(112,137,255,0.35)',
+    shadowColor: '#020617',
+    shadowOpacity: 0.45,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 10,
+    gap: 10,
+    overflow: 'hidden',
   },
+  heroCompact: {
+    paddingVertical: 14,
+    gap: 6,
+    borderColor: 'rgba(126,211,255,0.45)',
+  },
+  heroGlow: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 999,
+    top: -170,
+    right: -70,
+    backgroundColor: 'rgba(96,165,250,0.24)',
+  },
+  heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   heroRibbon: {
     alignSelf: 'flex-start',
-    backgroundColor: '#2a3270',
+    backgroundColor: 'rgba(58,74,171,0.55)',
     borderWidth: 1,
-    borderColor: '#5f78ff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    borderColor: 'rgba(147,197,253,0.65)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 999,
   },
-  heroRibbonText: { color: '#dbe4ff', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  title: { color: '#f8fafc', fontSize: 38, fontWeight: '900', marginTop: 2, letterSpacing: -0.8 },
-  subtitle: { color: '#b8c2e2', fontSize: 14, marginTop: 2, lineHeight: 21 },
-  heroStatsRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  heroRibbonText: { color: '#e6eeff', fontSize: 10, fontWeight: '800', letterSpacing: 1.1 },
+  title: { color: '#f8fafc', fontSize: 34, fontWeight: '900', marginTop: 2, letterSpacing: -0.9, lineHeight: 40 },
+  titleCompact: { fontSize: 25, lineHeight: 30 },
+  subtitle: { color: '#bfd0f6', fontSize: 14, marginTop: 2, lineHeight: 21 },
+  heroStatsRow: { flexDirection: 'row', gap: 9, marginTop: 8 },
   heroStatCard: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#414a8b',
-    backgroundColor: '#171c3e',
+    borderColor: 'rgba(147,197,253,0.28)',
+    backgroundColor: 'rgba(15,23,42,0.58)',
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  heroStatLabel: { color: '#9eb0de', fontSize: 10, fontWeight: '700', marginBottom: 2 },
-  heroStatValue: { color: '#e8edff', fontSize: 12, fontWeight: '800' },
-  buildLabel: { color: '#64749a', fontSize: 11, marginTop: 10, fontWeight: '700' },
+  heroStatLabel: { color: '#94a7dc', fontSize: 10, fontWeight: '700', marginBottom: 2 },
+  heroStatValue: { color: '#edf2ff', fontSize: 12, fontWeight: '800' },
+  buildLabel: { color: '#8ea4dd', fontSize: 11, fontWeight: '700' },
   loadingWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
   loadingText: { color: '#67e8f9', fontSize: 13 },
   helper: { color: '#94a3b8', fontSize: 13 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
   errorBox: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#7f1d1d',
-    backgroundColor: '#2b1014',
-    padding: 12,
+    backgroundColor: 'rgba(43,16,20,0.9)',
+    padding: 13,
     gap: 8,
   },
   errorTitle: { color: '#fecaca', fontWeight: '800' },
@@ -562,20 +599,20 @@ const styles = StyleSheet.create({
   bgBlobOne: {
     position: 'absolute',
     top: -120,
-    left: -80,
-    width: 260,
-    height: 260,
+    left: -120,
+    width: 320,
+    height: 320,
     borderRadius: 999,
-    backgroundColor: 'rgba(56,189,248,0.14)',
+    backgroundColor: 'rgba(56,189,248,0.16)',
   },
   bgBlobTwo: {
     position: 'absolute',
-    top: 40,
-    right: -90,
-    width: 280,
-    height: 280,
+    top: 10,
+    right: -110,
+    width: 340,
+    height: 340,
     borderRadius: 999,
-    backgroundColor: 'rgba(139,92,246,0.14)',
+    backgroundColor: 'rgba(139,92,246,0.16)',
   },
   mobileTabBarWrap: {
     position: 'absolute',
@@ -584,21 +621,21 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: 14,
     paddingBottom: 10,
-    backgroundColor: 'rgba(3,3,11,0.5)',
+    backgroundColor: 'rgba(5,7,19,0.3)',
   },
   mobileTabRow: {
     flexDirection: 'row',
     gap: 8,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#3b3f84',
-    backgroundColor: '#121633',
+    borderColor: 'rgba(129,140,248,0.32)',
+    backgroundColor: 'rgba(15,23,42,0.84)',
     padding: 7,
     shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 9,
   },
   mobileTab: {
     flex: 1,
@@ -607,23 +644,23 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 11,
   },
-  mobileTabActive: { backgroundColor: '#2a3270' },
-  mobileTabText: { color: '#9fb0ce', fontWeight: '700', fontSize: 13 },
-  mobileTabTextActive: { color: '#e5ecff' },
+  mobileTabActive: { backgroundColor: 'rgba(79,70,229,0.42)' },
+  mobileTabText: { color: '#95a8d5', fontWeight: '700', fontSize: 13 },
+  mobileTabTextActive: { color: '#e7ecff' },
   desktopLayout: { flexDirection: 'row', gap: 14, alignItems: 'flex-start' },
   desktopSidebar: {
-    width: 180,
-    borderRadius: 18,
+    width: 190,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#34376f',
-    backgroundColor: '#10122a',
-    padding: 10,
+    borderColor: 'rgba(112,137,255,0.4)',
+    backgroundColor: 'rgba(15,19,43,0.78)',
+    padding: 11,
     gap: 8,
   },
-  sidebarTitle: { color: '#95a7cb', fontSize: 12, fontWeight: '700', marginBottom: 2, paddingHorizontal: 4 },
-  sidebarItem: { borderRadius: 10, paddingVertical: 10, paddingHorizontal: 10 },
-  sidebarItemActive: { backgroundColor: '#1f2450' },
+  sidebarTitle: { color: '#9cb2e6', fontSize: 12, fontWeight: '700', marginBottom: 2, paddingHorizontal: 6 },
+  sidebarItem: { borderRadius: 12, paddingVertical: 11, paddingHorizontal: 12 },
+  sidebarItemActive: { backgroundColor: 'rgba(79,70,229,0.38)' },
   sidebarItemText: { color: '#9fb0ce', fontSize: 13, fontWeight: '700' },
-  sidebarItemTextActive: { color: '#e5ecff' },
+  sidebarItemTextActive: { color: '#ecf2ff' },
   desktopContent: { flex: 1, gap: 12 },
 });

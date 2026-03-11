@@ -37,11 +37,11 @@ export function WorkspacePanel({
         <Text style={styles.blockTitle}>Workspace identity</Text>
         <View style={styles.row}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, styles.flex]}
             value={nameDraft}
             onChangeText={setNameDraft}
             placeholder="Crew name"
-            placeholderTextColor="#6a7a9f"
+            placeholderTextColor="#7c8fbf"
           />
           <Pressable style={[styles.actionBtn, renaming && styles.disabled]} onPress={() => onRename(nameDraft)} disabled={renaming}>
             {renaming ? <ActivityIndicator size="small" color="#eef3ff" /> : <Text style={styles.actionBtnText}>Save</Text>}
@@ -59,7 +59,7 @@ export function WorkspacePanel({
             value={displayNameDraft}
             onChangeText={(v) => setDisplayNameDraft(normalizeDisplayName(v))}
             placeholder="Your display name"
-            placeholderTextColor="#6a7a9f"
+            placeholderTextColor="#7c8fbf"
             maxLength={MAX_DISPLAY_NAME_LENGTH}
           />
           <Pressable style={[styles.actionBtn, savingName && styles.disabled]} onPress={() => onSaveDisplayName(displayNameDraft)} disabled={savingName}>
@@ -69,8 +69,8 @@ export function WorkspacePanel({
       </View>
 
       <View style={styles.footerRow}>
-        <Pressable style={[styles.secondaryBtn]} onPress={onShare}><Text style={styles.secondaryText}>Share invite</Text></Pressable>
-        <Pressable style={[styles.secondaryBtn]} onPress={onCreateNewCrew}><Text style={styles.secondaryText}>+ New crew</Text></Pressable>
+        <Pressable style={styles.secondaryBtn} onPress={onShare}><Text style={styles.secondaryText}>Share invite</Text></Pressable>
+        <Pressable style={styles.secondaryBtn} onPress={onCreateNewCrew}><Text style={styles.secondaryText}>+ New crew</Text></Pressable>
       </View>
     </View>
   );
@@ -78,19 +78,19 @@ export function WorkspacePanel({
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: 24,
+    borderRadius: 28,
     padding: 16,
-    backgroundColor: '#0f1227',
+    backgroundColor: 'rgba(14,19,44,0.88)',
     borderWidth: 1,
-    borderColor: '#343d77',
+    borderColor: 'rgba(129,140,248,0.34)',
     gap: 12,
   },
-  title: { color: '#f8fafc', fontSize: 20, fontWeight: '900' },
+  title: { color: '#f8fafc', fontSize: 22, fontWeight: '900' },
   block: {
-    borderRadius: 14,
+    borderRadius: 15,
     borderWidth: 1,
-    borderColor: '#3b4a7f',
-    backgroundColor: '#151d3b',
+    borderColor: 'rgba(129,140,248,0.38)',
+    backgroundColor: 'rgba(15,23,42,0.58)',
     padding: 12,
     gap: 8,
   },
@@ -98,9 +98,9 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   input: {
     borderWidth: 1,
-    borderColor: '#46548a',
+    borderColor: 'rgba(148,163,184,0.5)',
     borderRadius: 12,
-    backgroundColor: '#1a254d',
+    backgroundColor: 'rgba(30,41,59,0.6)',
     color: '#e8eeff',
     fontSize: 14,
     paddingHorizontal: 10,
@@ -109,9 +109,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   actionBtn: {
     borderRadius: 12,
-    backgroundColor: '#2f4fe3',
+    backgroundColor: '#4f46e5',
     borderWidth: 1,
-    borderColor: '#6b86ff',
+    borderColor: '#93c5fd',
     paddingHorizontal: 12,
     paddingVertical: 9,
     minWidth: 64,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 999,
-    backgroundColor: '#2b3768',
+    backgroundColor: '#334155',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4c5f9a',
-    backgroundColor: '#1a254d',
+    borderColor: 'rgba(148,163,184,0.5)',
+    backgroundColor: 'rgba(30,41,59,0.56)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,

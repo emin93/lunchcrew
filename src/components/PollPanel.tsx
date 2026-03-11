@@ -53,21 +53,23 @@ export function PollPanel({
 
   return (
     <View style={styles.panel}>
-      <View style={styles.rowBetween}>
-        <Text style={styles.pollTitle}>{poll.title}</Text>
-        {topChoice ? <Text style={styles.leaderTag}>Top: {topChoice}</Text> : null}
+      <View style={styles.headGlow} pointerEvents="none" />
+      <View style={styles.headerWrap}>
+        <View>
+          <Text style={styles.eyebrow}>Today&apos;s vote</Text>
+          <Text style={styles.pollTitle}>{poll.title}</Text>
+        </View>
+        {topChoice ? <Text style={styles.leaderTag}>Leading: {topChoice}</Text> : null}
       </View>
 
       <View style={styles.optionList}>
         {options.length === 0 ? (
           <View style={styles.emptyInline}>
-            <Text style={styles.emptyKicker}>Getting started</Text>
+            <Text style={styles.emptyKicker}>Start the board</Text>
             <Text style={styles.emptyText}>
-              Add your first place below. Places stay in your crew workspace, while votes reset daily so you can reuse the same workspace every day.
+              Add your first place below. Places stay in your crew workspace while votes reset daily.
             </Text>
-            <Text style={styles.privacyText}>
-              Location is only used to improve nearby autocomplete results and is not stored by LunchCrew.
-            </Text>
+            <Text style={styles.privacyText}>Location only improves nearby autocomplete and is never stored.</Text>
           </View>
         ) : null}
 
@@ -76,6 +78,7 @@ export function PollPanel({
           const isVotingThis = votingOptionId === opt.id;
           const mapsUrl = opt.place?.google_maps_url;
           const menuUrl = opt.menu_url || opt.place?.detected_menu_url || opt.place?.website_url;
+
           return (
             <Pressable
               key={opt.id}
@@ -91,11 +94,10 @@ export function PollPanel({
               accessibilityLabel={`Vote for ${opt.name}`}
               accessibilityHint="Double tap to cast your vote"
             >
-              <View style={[styles.accentBar, isActive && styles.accentBarActive]} />
               <View style={styles.optionMain}>
                 <View style={styles.optionHeader}>
                   <Text style={styles.optionName}>{opt.name}</Text>
-                  {isActive ? <Text style={styles.myVoteTag}>Your vote</Text> : null}
+                  {isActive ? <Text style={styles.myVoteTag}>YOUR PICK</Text> : null}
                 </View>
 
                 {opt.place ? (
@@ -117,7 +119,7 @@ export function PollPanel({
                           accessibilityRole="button"
                           accessibilityLabel={`Open ${opt.name} in maps`}
                         >
-                          <Text style={styles.linkBtnText}>Open Maps</Text>
+                          <Text style={styles.linkBtnText}>Maps</Text>
                         </Pressable>
                       ) : null}
                       {menuUrl ? (
@@ -131,7 +133,7 @@ export function PollPanel({
                           accessibilityRole="button"
                           accessibilityLabel={`Open ${opt.name} menu`}
                         >
-                          <Text style={styles.linkBtnText}>View Menu</Text>
+                          <Text style={styles.linkBtnText}>Menu</Text>
                         </Pressable>
                       ) : null}
                     </View>
@@ -153,19 +155,20 @@ export function PollPanel({
               </View>
 
               <View style={styles.voteMeta}>
-                {isVotingThis ? <ActivityIndicator size="small" color="#22d3ee" /> : null}
+                {isVotingThis ? <ActivityIndicator size="small" color="#67e8f9" /> : null}
                 <Text style={styles.voteCount}>{opt.votes}</Text>
+                <Text style={styles.voteCountLabel}>votes</Text>
               </View>
             </Pressable>
           );
         })}
       </View>
 
-      <View style={styles.addWrap}>
+      <View style={styles.composerWrap}>
         <TextInput
           style={styles.input}
           placeholder="Suggest a place"
-          placeholderTextColor="#64748b"
+          placeholderTextColor="#7f90bf"
           value={newOption}
           onChangeText={onChangeNewOption}
           returnKeyType="done"
@@ -184,7 +187,7 @@ export function PollPanel({
           accessibilityRole="button"
           accessibilityLabel="Add place option"
         >
-          {addingOption ? <ActivityIndicator size="small" color="#071018" /> : <Text style={styles.addBtnText}>Add</Text>}
+          {addingOption ? <ActivityIndicator size="small" color="#0b1028" /> : <Text style={styles.addBtnText}>Add place</Text>}
         </Pressable>
       </View>
 
@@ -192,7 +195,7 @@ export function PollPanel({
         <View style={styles.selectedRow}>
           <Text style={styles.selectedText}>Selected: {selectedSuggestion.name}</Text>
           <Pressable onPress={onClearSuggestion} accessibilityRole="button" accessibilityLabel="Clear selected suggestion">
-            <Text style={styles.clearText}>Clear</Text>
+            <Text style={styles.clearText}>Change</Text>
           </Pressable>
         </View>
       ) : null}
@@ -200,7 +203,7 @@ export function PollPanel({
       {showSuggestionList ? (
         <View style={styles.suggestionsWrap}>
           {loadingSuggestions ? <Text style={styles.suggestHint}>Searching places…</Text> : null}
-          {showNoResults ? <Text style={styles.suggestHint}>No places found. Try another name or add it manually.</Text> : null}
+          {showNoResults ? <Text style={styles.suggestHint}>No places found. Try another name or add manually.</Text> : null}
           {suggestions.map((s) => (
             <Pressable key={s.id} style={styles.suggestionItem} onPress={() => onSelectSuggestion(s)} accessibilityRole="button">
               <Text style={styles.suggestionName}>{s.name}</Text>
@@ -215,27 +218,48 @@ export function PollPanel({
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: 24,
+    borderRadius: 28,
     padding: 16,
-    backgroundColor: '#10122a',
+    backgroundColor: 'rgba(14,19,44,0.88)',
     borderWidth: 1,
-    borderColor: '#3a3f7a',
-    gap: 11,
+    borderColor: 'rgba(129,140,248,0.34)',
+    gap: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.26,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 9 },
-    elevation: 6,
+    shadowOpacity: 0.34,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+    overflow: 'hidden',
   },
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  pollTitle: { color: '#f8fafc', fontSize: 20, fontWeight: '900', letterSpacing: -0.4 },
-  leaderTag: { color: '#9ce2ff', fontSize: 12, fontWeight: '900', backgroundColor: '#1e3a8a', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
-  optionList: { gap: 8 },
-  optionCard: {
-    borderRadius: 20,
+  headGlow: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 999,
+    top: -160,
+    right: -100,
+    backgroundColor: 'rgba(34,211,238,0.16)',
+  },
+  headerWrap: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+  eyebrow: { color: '#99aee9', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
+  pollTitle: { color: '#f8fafc', fontSize: 24, fontWeight: '900', letterSpacing: -0.5, marginTop: 3 },
+  leaderTag: {
+    color: '#cffafe',
+    fontSize: 11,
+    fontWeight: '800',
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#43537b',
-    backgroundColor: '#162142',
+    borderColor: 'rgba(103,232,249,0.45)',
+    backgroundColor: 'rgba(14,116,144,0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  optionList: { gap: 10 },
+  optionCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(100,116,139,0.45)',
+    backgroundColor: 'rgba(15,23,42,0.6)',
     paddingVertical: 12,
     paddingHorizontal: 12,
     flexDirection: 'row',
@@ -243,49 +267,37 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     gap: 10,
   },
-  accentBar: {
-    width: 4,
-    borderRadius: 999,
-    backgroundColor: '#33446a',
-  },
-  accentBarActive: {
-    backgroundColor: '#34d399',
-  },
-  emptyInline: { paddingHorizontal: 2, paddingBottom: 2, gap: 4 },
-  emptyKicker: { color: '#22d3ee', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
-  emptyTitle: { color: '#67e8f9', fontSize: 14, fontWeight: '800' },
-  emptyText: { color: '#94a3b8', fontSize: 12, lineHeight: 18 },
-  privacyText: { color: '#64748b', fontSize: 11, lineHeight: 16 },
   optionMain: { flex: 1, gap: 8 },
-  optionHeader: { gap: 2 },
-  optionCardActive: { borderColor: '#3dddb0', backgroundColor: '#0d2f2c' },
-  optionCardPressed: { transform: [{ scale: 0.985 }], opacity: 0.92 },
+  optionHeader: { gap: 3 },
+  optionCardActive: { borderColor: 'rgba(94,234,212,0.7)', backgroundColor: 'rgba(15,50,62,0.66)' },
+  optionCardPressed: { transform: [{ scale: 0.987 }], opacity: 0.92 },
   optionDisabled: { opacity: 0.65 },
-  optionName: { color: '#e2e8f0', fontWeight: '700', fontSize: 15 },
-  myVoteTag: { color: '#86efac', fontSize: 11, marginTop: 2, fontWeight: '700' },
+  optionName: { color: '#e5edff', fontWeight: '800', fontSize: 16 },
+  myVoteTag: { color: '#99f6e4', fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
   placeMetaWrap: { gap: 6 },
-  placeMetaText: { color: '#94a3b8', fontSize: 11 },
+  placeMetaText: { color: '#9ca8c7', fontSize: 11 },
   placeBadgeRow: { flexDirection: 'row', gap: 6 },
   placeBadge: {
-    color: '#cbd5e1',
+    color: '#d6def4',
     fontSize: 10,
     fontWeight: '700',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(100,116,139,0.6)',
     borderRadius: 999,
     paddingHorizontal: 6,
     paddingVertical: 2,
+    backgroundColor: 'rgba(30,41,59,0.55)',
   },
   linkRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   linkBtn: {
     borderWidth: 1,
-    borderColor: '#4b5f90',
+    borderColor: 'rgba(148,163,184,0.45)',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#1d2d56',
+    backgroundColor: 'rgba(30,41,59,0.65)',
   },
-  linkBtnText: { color: '#d0dcff', fontSize: 11, fontWeight: '800' },
+  linkBtnText: { color: '#d9e4ff', fontSize: 11, fontWeight: '800' },
   votersWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   voterChip: {
     flexDirection: 'row',
@@ -293,8 +305,8 @@ const styles = StyleSheet.create({
     gap: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#44557f',
-    backgroundColor: '#1a2649',
+    borderColor: 'rgba(148,163,184,0.36)',
+    backgroundColor: 'rgba(30,41,59,0.45)',
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
@@ -302,59 +314,67 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 999,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#334155',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  voterAvatarText: { color: '#e2e8f0', fontSize: 9, fontWeight: '800' },
-  voterName: { color: '#cbd5e1', fontSize: 11, fontWeight: '600' },
+  voterAvatarText: { color: '#f8fafc', fontSize: 9, fontWeight: '800' },
+  voterName: { color: '#d2ddf8', fontSize: 11, fontWeight: '600' },
   voteMeta: {
-    minWidth: 46,
-    height: 46,
-    borderRadius: 999,
+    minWidth: 58,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#4a5d86',
-    backgroundColor: '#1a284d',
+    borderColor: 'rgba(125,211,252,0.45)',
+    backgroundColor: 'rgba(15,23,42,0.88)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 1,
     alignSelf: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 8,
   },
-  voteCount: { color: '#d6e2ff', fontWeight: '800', minWidth: 18, textAlign: 'center', fontSize: 14 },
-  addWrap: { flexDirection: 'row', gap: 8, marginTop: 2 },
+  voteCount: { color: '#f0f7ff', fontWeight: '900', minWidth: 18, textAlign: 'center', fontSize: 18 },
+  voteCountLabel: { color: '#8ea2d5', fontWeight: '700', fontSize: 10, textTransform: 'uppercase' },
+  composerWrap: { flexDirection: 'row', gap: 8, marginTop: 4 },
   input: {
     flex: 1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#3a4563',
-    backgroundColor: '#0f1830',
+    borderColor: 'rgba(148,163,184,0.45)',
+    backgroundColor: 'rgba(15,23,42,0.75)',
     color: '#f8fafc',
     fontSize: 16,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 11,
   },
   addBtn: {
-    minWidth: 64,
+    minWidth: 96,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#22d3ee',
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: 'rgba(103,232,249,0.7)',
+    backgroundColor: '#67e8f9',
     paddingHorizontal: 12,
   },
   addBtnPressed: { transform: [{ scale: 0.97 }], opacity: 0.9 },
-  addBtnText: { color: '#0f172a', fontWeight: '800' },
+  addBtnText: { color: '#0f172a', fontWeight: '900', fontSize: 13 },
   suggestionsWrap: {
-    borderRadius: 12,
+    borderRadius: 13,
     borderWidth: 1,
-    borderColor: '#334155',
-    backgroundColor: '#111827',
+    borderColor: 'rgba(100,116,139,0.5)',
+    backgroundColor: 'rgba(15,23,42,0.78)',
     overflow: 'hidden',
   },
-  suggestHint: { color: '#94a3b8', fontSize: 12, padding: 10 },
-  suggestionItem: { paddingHorizontal: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: '#1f2937' },
-  suggestionName: { color: '#e2e8f0', fontSize: 13, fontWeight: '700' },
-  suggestionSub: { color: '#94a3b8', fontSize: 11, marginTop: 2 },
+  suggestHint: { color: '#9eb0d8', fontSize: 12, padding: 10 },
+  suggestionItem: { paddingHorizontal: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: 'rgba(51,65,85,0.75)' },
+  suggestionName: { color: '#e5edff', fontSize: 13, fontWeight: '700' },
+  suggestionSub: { color: '#a3b2d3', fontSize: 11, marginTop: 2 },
   selectedRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  selectedText: { color: '#67e8f9', fontSize: 12, fontWeight: '700' },
-  clearText: { color: '#94a3b8', fontSize: 12, fontWeight: '700' },
+  selectedText: { color: '#8cf2ff', fontSize: 12, fontWeight: '700' },
+  clearText: { color: '#c3d4ff', fontSize: 12, fontWeight: '700' },
+  emptyInline: { paddingHorizontal: 2, paddingBottom: 2, gap: 4 },
+  emptyKicker: { color: '#67e8f9', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 },
+  emptyText: { color: '#a8b4d6', fontSize: 12, lineHeight: 18 },
+  privacyText: { color: '#7a8bb8', fontSize: 11, lineHeight: 16 },
 });
