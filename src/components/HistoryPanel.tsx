@@ -60,12 +60,17 @@ export function HistoryPanel({ days7, days30, leaderboard, show30Days, onToggleR
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: 18,
-    padding: 14,
-    backgroundColor: '#0b1220',
+    borderRadius: 22,
+    padding: 16,
+    backgroundColor: '#0b1223',
     borderWidth: 1,
-    borderColor: '#1e293b',
-    gap: 10,
+    borderColor: '#27334b',
+    gap: 11,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { color: '#f8fafc', fontSize: 17, fontWeight: '800' },

@@ -147,17 +147,22 @@ export function WorkspacePanel({
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: 18,
-    padding: 14,
-    backgroundColor: '#0b1220',
+    borderRadius: 22,
+    padding: 16,
+    backgroundColor: '#0b1223',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#27334b',
     gap: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
   titleWrap: { flex: 1, gap: 6 },
   panelLabel: { color: '#64748b', fontSize: 12 },
-  workspaceTitle: { color: '#f8fafc', fontWeight: '700', fontSize: 17 },
+  workspaceTitle: { color: '#f8fafc', fontWeight: '800', fontSize: 19, letterSpacing: -0.2 },
   editRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
   nameInput: {
     flex: 1,
