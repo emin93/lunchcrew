@@ -280,19 +280,21 @@ export default function App() {
         >
           <View style={styles.maxWidthWrap}>
             <View style={styles.hero}>
-              <Text style={styles.kicker}>{screen === 'vote' ? 'Today' : screen === 'history' ? 'Insights' : 'Workspace'}</Text>
-              <Text style={styles.title}>{screen === 'vote' ? "Let's pick lunch" : screen === 'history' ? 'History & trends' : 'Crew settings'}</Text>
+              <View style={styles.heroRibbon}>
+                <Text style={styles.heroRibbonText}>{screen === 'vote' ? 'LIVE POLL' : screen === 'history' ? 'CREW INTEL' : 'CREW CONTROL'}</Text>
+              </View>
+              <Text style={styles.title}>{screen === 'vote' ? "Pick lunch now" : screen === 'history' ? 'Winners & trends' : 'Manage your crew'}</Text>
               <Text style={styles.subtitle}>
                 {screen === 'vote'
-                  ? 'Vote fast. Decide faster.'
+                  ? 'Fast voting with visible momentum.'
                   : screen === 'history'
-                    ? 'See what your crew actually picks.'
-                    : 'Manage invite, name, and identity.'}
+                    ? 'Who wins, how often, and what to repeat.'
+                    : 'Invite, rename, and profile controls in one place.'}
               </Text>
-              <View style={styles.heroChips}>
-                <View style={styles.heroChip}><Text style={styles.heroChipText}>Crew {workspace?.invite_code || '—'}</Text></View>
-                <View style={styles.heroChip}><Text style={styles.heroChipText}>{options.length} options</Text></View>
-                <View style={styles.heroChip}><Text style={styles.heroChipText}>Top {topChoice || '—'}</Text></View>
+              <View style={styles.heroStatsRow}>
+                <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Crew</Text><Text style={styles.heroStatValue}>{workspace?.invite_code || '—'}</Text></View>
+                <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Options</Text><Text style={styles.heroStatValue}>{options.length}</Text></View>
+                <View style={styles.heroStatCard}><Text style={styles.heroStatLabel}>Leader</Text><Text style={styles.heroStatValue} numberOfLines={1}>{topChoice || '—'}</Text></View>
               </View>
               <Text style={styles.buildLabel}>{BUILD_LABEL}</Text>
             </View>
@@ -508,20 +510,32 @@ const styles = StyleSheet.create({
     shadowRadius: 22,
     shadowOffset: { width: 0, height: 10 },
     elevation: 8,
+    gap: 8,
   },
-  kicker: { color: '#8ff7ff', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2 },
-  title: { color: '#f8fafc', fontSize: 38, fontWeight: '900', marginTop: 4, letterSpacing: -0.8 },
-  subtitle: { color: '#b8c2e2', fontSize: 14, marginTop: 4, lineHeight: 21 },
-  heroChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
-  heroChip: {
-    borderRadius: 999,
+  heroRibbon: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#2a3270',
     borderWidth: 1,
-    borderColor: '#4a4f95',
-    backgroundColor: '#171c3e',
+    borderColor: '#5f78ff',
     paddingHorizontal: 10,
     paddingVertical: 5,
+    borderRadius: 999,
   },
-  heroChipText: { color: '#c8d4f2', fontSize: 11, fontWeight: '700' },
+  heroRibbonText: { color: '#dbe4ff', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+  title: { color: '#f8fafc', fontSize: 38, fontWeight: '900', marginTop: 2, letterSpacing: -0.8 },
+  subtitle: { color: '#b8c2e2', fontSize: 14, marginTop: 2, lineHeight: 21 },
+  heroStatsRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  heroStatCard: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#414a8b',
+    backgroundColor: '#171c3e',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  heroStatLabel: { color: '#9eb0de', fontSize: 10, fontWeight: '700', marginBottom: 2 },
+  heroStatValue: { color: '#e8edff', fontSize: 12, fontWeight: '800' },
   buildLabel: { color: '#64749a', fontSize: 11, marginTop: 10, fontWeight: '700' },
   loadingWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
   loadingText: { color: '#67e8f9', fontSize: 13 },
