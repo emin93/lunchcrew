@@ -67,7 +67,7 @@ export function OnboardingScreen({ onSubmitName, onSkip, buildLabel }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#030712' },
+  safeArea: { flex: 1, backgroundColor: '#040614' },
   screen: { flex: 1, justifyContent: 'space-between' },
   contentWrap: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' },
   content: { width: '100%', maxWidth: 760, paddingHorizontal: 22, gap: 12 },

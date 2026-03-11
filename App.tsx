@@ -265,6 +265,8 @@ export default function App() {
   return (
     <SafeAreaView style={[styles.safeArea, Platform.OS === 'web' && styles.safeAreaWeb]} edges={['top', 'left', 'right']}>
       <StatusBar style="light" />
+      <View style={styles.bgBlobOne} pointerEvents="none" />
+      <View style={styles.bgBlobTwo} pointerEvents="none" />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           style={styles.flex}
@@ -383,28 +385,28 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#040714' },
+  safeArea: { flex: 1, backgroundColor: '#03030b' },
   safeAreaWeb: { minHeight: '100dvh' as any },
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 18, gap: 14 },
+  scrollContent: { flexGrow: 1, padding: 18, paddingBottom: 26, gap: 14 },
   scrollContentWeb: { minHeight: '100dvh' as any },
   maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
   hero: {
-    borderRadius: 24,
-    padding: 20,
-    backgroundColor: '#0b1223',
+    borderRadius: 28,
+    padding: 22,
+    backgroundColor: '#0f1025',
     borderWidth: 1,
-    borderColor: '#27334b',
+    borderColor: '#34376f',
     shadowColor: '#000',
-    shadowOpacity: 0.28,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
+    shadowOpacity: 0.34,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
   },
-  kicker: { color: '#6ee7ff', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
-  title: { color: '#f8fafc', fontSize: 36, fontWeight: '800', marginTop: 3, letterSpacing: -0.5 },
-  subtitle: { color: '#9fb0ce', fontSize: 14, marginTop: 3, lineHeight: 20 },
-  buildLabel: { color: '#475569', fontSize: 11, marginTop: 8, fontWeight: '600' },
+  kicker: { color: '#8ff7ff', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2 },
+  title: { color: '#f8fafc', fontSize: 38, fontWeight: '900', marginTop: 4, letterSpacing: -0.8 },
+  subtitle: { color: '#b8c2e2', fontSize: 14, marginTop: 4, lineHeight: 21 },
+  buildLabel: { color: '#64749a', fontSize: 11, marginTop: 10, fontWeight: '700' },
   loadingWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
   loadingText: { color: '#67e8f9', fontSize: 13 },
   helper: { color: '#94a3b8', fontSize: 13 },
@@ -427,4 +429,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   retryBtnText: { color: '#fff', fontWeight: '700' },
+  bgBlobOne: {
+    position: 'absolute',
+    top: -120,
+    left: -80,
+    width: 260,
+    height: 260,
+    borderRadius: 999,
+    backgroundColor: 'rgba(56,189,248,0.14)',
+  },
+  bgBlobTwo: {
+    position: 'absolute',
+    top: 40,
+    right: -90,
+    width: 280,
+    height: 280,
+    borderRadius: 999,
+    backgroundColor: 'rgba(139,92,246,0.14)',
+  },
 });
