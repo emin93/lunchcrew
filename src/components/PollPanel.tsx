@@ -91,6 +91,7 @@ export function PollPanel({
               accessibilityLabel={`Vote for ${opt.name}`}
               accessibilityHint="Double tap to cast your vote"
             >
+              <View style={[styles.accentBar, isActive && styles.accentBarActive]} />
               <View style={styles.optionMain}>
                 <View style={styles.optionHeader}>
                   <Text style={styles.optionName}>{opt.name}</Text>
@@ -239,8 +240,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 12,
+    alignItems: 'stretch',
+    gap: 10,
+  },
+  accentBar: {
+    width: 4,
+    borderRadius: 999,
+    backgroundColor: '#33446a',
+  },
+  accentBarActive: {
+    backgroundColor: '#34d399',
   },
   emptyInline: { paddingHorizontal: 2, paddingBottom: 2, gap: 4 },
   emptyKicker: { color: '#22d3ee', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
@@ -299,8 +308,19 @@ const styles = StyleSheet.create({
   },
   voterAvatarText: { color: '#e2e8f0', fontSize: 9, fontWeight: '800' },
   voterName: { color: '#cbd5e1', fontSize: 11, fontWeight: '600' },
-  voteMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 2 },
-  voteCount: { color: '#cbd5e1', fontWeight: '700', minWidth: 18, textAlign: 'right' },
+  voteMeta: {
+    minWidth: 46,
+    height: 46,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#4a5d86',
+    backgroundColor: '#1a284d',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    alignSelf: 'center',
+  },
+  voteCount: { color: '#d6e2ff', fontWeight: '800', minWidth: 18, textAlign: 'center', fontSize: 14 },
   addWrap: { flexDirection: 'row', gap: 8, marginTop: 2 },
   input: {
     flex: 1,
