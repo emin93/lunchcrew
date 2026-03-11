@@ -1,6 +1,7 @@
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { initialsForName } from '../lib/helpers';
 import { PlaceSuggestion, Poll, PollOption } from '../types';
+import { ds } from './designSystem';
 
 type Props = {
   poll: Poll;
@@ -53,10 +54,9 @@ export function PollPanel({
 
   return (
     <View style={styles.panel}>
-      <View style={styles.headGlow} pointerEvents="none" />
       <View style={styles.headerWrap}>
         <View>
-          <Text style={styles.eyebrow}>Today&apos;s vote</Text>
+          <Text style={styles.eyebrow}>Today&apos;s poll</Text>
           <Text style={styles.pollTitle}>{poll.title}</Text>
         </View>
         {topChoice ? <Text style={styles.leaderTag}>Leading: {topChoice}</Text> : null}
@@ -66,9 +66,7 @@ export function PollPanel({
         {options.length === 0 ? (
           <View style={styles.emptyInline}>
             <Text style={styles.emptyKicker}>Start the board</Text>
-            <Text style={styles.emptyText}>
-              Add your first place below. Places stay in your crew workspace while votes reset daily.
-            </Text>
+            <Text style={styles.emptyText}>Add your first place below. Places stay in your crew workspace while votes reset daily.</Text>
             <Text style={styles.privacyText}>Location only improves nearby autocomplete and is never stored.</Text>
           </View>
         ) : null}
@@ -155,7 +153,7 @@ export function PollPanel({
               </View>
 
               <View style={styles.voteMeta}>
-                {isVotingThis ? <ActivityIndicator size="small" color="#67e8f9" /> : null}
+                {isVotingThis ? <ActivityIndicator size="small" color={ds.colors.accent} /> : null}
                 <Text style={styles.voteCount}>{opt.votes}</Text>
                 <Text style={styles.voteCountLabel}>votes</Text>
               </View>
@@ -168,7 +166,7 @@ export function PollPanel({
         <TextInput
           style={styles.input}
           placeholder="Suggest a place"
-          placeholderTextColor="#7f90bf"
+          placeholderTextColor={ds.colors.textSoft}
           value={newOption}
           onChangeText={onChangeNewOption}
           returnKeyType="done"
@@ -187,7 +185,7 @@ export function PollPanel({
           accessibilityRole="button"
           accessibilityLabel="Add place option"
         >
-          {addingOption ? <ActivityIndicator size="small" color="#0b1028" /> : <Text style={styles.addBtnText}>Add place</Text>}
+          {addingOption ? <ActivityIndicator size="small" color="#ffffff" /> : <Text style={styles.addBtnText}>Add place</Text>}
         </Pressable>
       </View>
 
@@ -218,48 +216,33 @@ export function PollPanel({
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: 28,
-    padding: 16,
-    backgroundColor: 'rgba(14,19,44,0.88)',
+    borderRadius: ds.radius.xl,
+    padding: ds.spacing.lg,
+    backgroundColor: ds.colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(129,140,248,0.34)',
-    gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.34,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  headGlow: {
-    position: 'absolute',
-    width: 280,
-    height: 280,
-    borderRadius: 999,
-    top: -160,
-    right: -100,
-    backgroundColor: 'rgba(34,211,238,0.16)',
+    borderColor: ds.colors.stroke,
+    gap: 14,
   },
   headerWrap: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  eyebrow: { color: '#99aee9', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
-  pollTitle: { color: '#f8fafc', fontSize: 24, fontWeight: '900', letterSpacing: -0.5, marginTop: 3 },
+  eyebrow: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
+  pollTitle: { color: ds.colors.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5, marginTop: 3 },
   leaderTag: {
-    color: '#cffafe',
+    color: ds.colors.accentStrong,
     fontSize: 11,
-    fontWeight: '800',
-    borderRadius: 999,
+    fontWeight: '700',
+    borderRadius: ds.radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(103,232,249,0.45)',
-    backgroundColor: 'rgba(14,116,144,0.35)',
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: ds.colors.accentSoft,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   optionList: { gap: 10 },
   optionCard: {
-    borderRadius: 18,
+    borderRadius: ds.radius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(100,116,139,0.45)',
-    backgroundColor: 'rgba(15,23,42,0.6)',
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.cardMuted,
     paddingVertical: 12,
     paddingHorizontal: 12,
     flexDirection: 'row',
@@ -269,63 +252,63 @@ const styles = StyleSheet.create({
   },
   optionMain: { flex: 1, gap: 8 },
   optionHeader: { gap: 3 },
-  optionCardActive: { borderColor: 'rgba(94,234,212,0.7)', backgroundColor: 'rgba(15,50,62,0.66)' },
+  optionCardActive: { borderColor: ds.colors.accent, backgroundColor: '#edf5f2' },
   optionCardPressed: { transform: [{ scale: 0.987 }], opacity: 0.92 },
   optionDisabled: { opacity: 0.65 },
-  optionName: { color: '#e5edff', fontWeight: '800', fontSize: 16 },
-  myVoteTag: { color: '#99f6e4', fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
+  optionName: { color: ds.colors.text, fontWeight: '800', fontSize: 16 },
+  myVoteTag: { color: ds.colors.accentStrong, fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
   placeMetaWrap: { gap: 6 },
-  placeMetaText: { color: '#9ca8c7', fontSize: 11 },
+  placeMetaText: { color: ds.colors.textMuted, fontSize: 11 },
   placeBadgeRow: { flexDirection: 'row', gap: 6 },
   placeBadge: {
-    color: '#d6def4',
+    color: ds.colors.text,
     fontSize: 10,
     fontWeight: '700',
     borderWidth: 1,
-    borderColor: 'rgba(100,116,139,0.6)',
-    borderRadius: 999,
+    borderColor: ds.colors.strokeStrong,
+    borderRadius: ds.radius.pill,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    backgroundColor: 'rgba(30,41,59,0.55)',
+    backgroundColor: '#fffefb',
   },
   linkRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   linkBtn: {
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.45)',
-    borderRadius: 999,
+    borderColor: ds.colors.strokeStrong,
+    borderRadius: ds.radius.pill,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: 'rgba(30,41,59,0.65)',
+    backgroundColor: '#fffefb',
   },
-  linkBtnText: { color: '#d9e4ff', fontSize: 11, fontWeight: '800' },
+  linkBtnText: { color: ds.colors.text, fontSize: 11, fontWeight: '700' },
   votersWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   voterChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    borderRadius: 999,
+    borderRadius: ds.radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.36)',
-    backgroundColor: 'rgba(30,41,59,0.45)',
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: '#fffefb',
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   voterAvatar: {
     width: 18,
     height: 18,
-    borderRadius: 999,
-    backgroundColor: '#334155',
+    borderRadius: ds.radius.pill,
+    backgroundColor: '#d6d0c0',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  voterAvatarText: { color: '#f8fafc', fontSize: 9, fontWeight: '800' },
-  voterName: { color: '#d2ddf8', fontSize: 11, fontWeight: '600' },
+  voterAvatarText: { color: ds.colors.text, fontSize: 9, fontWeight: '800' },
+  voterName: { color: ds.colors.textMuted, fontSize: 11, fontWeight: '600' },
   voteMeta: {
     minWidth: 58,
-    borderRadius: 16,
+    borderRadius: ds.radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(125,211,252,0.45)',
-    backgroundColor: 'rgba(15,23,42,0.88)',
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: '#fffefb',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 1,
@@ -333,48 +316,48 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 8,
   },
-  voteCount: { color: '#f0f7ff', fontWeight: '900', minWidth: 18, textAlign: 'center', fontSize: 18 },
-  voteCountLabel: { color: '#8ea2d5', fontWeight: '700', fontSize: 10, textTransform: 'uppercase' },
+  voteCount: { color: ds.colors.text, fontWeight: '900', minWidth: 18, textAlign: 'center', fontSize: 18 },
+  voteCountLabel: { color: ds.colors.textSoft, fontWeight: '700', fontSize: 10, textTransform: 'uppercase' },
   composerWrap: { flexDirection: 'row', gap: 8, marginTop: 4 },
   input: {
     flex: 1,
-    borderRadius: 14,
+    borderRadius: ds.radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.45)',
-    backgroundColor: 'rgba(15,23,42,0.75)',
-    color: '#f8fafc',
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: '#fffefb',
+    color: ds.colors.text,
     fontSize: 16,
     paddingHorizontal: 12,
     paddingVertical: 11,
   },
   addBtn: {
-    minWidth: 96,
+    minWidth: 104,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 13,
+    borderRadius: ds.radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(103,232,249,0.7)',
-    backgroundColor: '#67e8f9',
+    borderColor: ds.colors.accentStrong,
+    backgroundColor: ds.colors.accent,
     paddingHorizontal: 12,
   },
   addBtnPressed: { transform: [{ scale: 0.97 }], opacity: 0.9 },
-  addBtnText: { color: '#0f172a', fontWeight: '900', fontSize: 13 },
+  addBtnText: { color: '#ffffff', fontWeight: '800', fontSize: 13 },
   suggestionsWrap: {
-    borderRadius: 13,
+    borderRadius: ds.radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(100,116,139,0.5)',
-    backgroundColor: 'rgba(15,23,42,0.78)',
+    borderColor: ds.colors.stroke,
+    backgroundColor: '#fffefb',
     overflow: 'hidden',
   },
-  suggestHint: { color: '#9eb0d8', fontSize: 12, padding: 10 },
-  suggestionItem: { paddingHorizontal: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: 'rgba(51,65,85,0.75)' },
-  suggestionName: { color: '#e5edff', fontSize: 13, fontWeight: '700' },
-  suggestionSub: { color: '#a3b2d3', fontSize: 11, marginTop: 2 },
+  suggestHint: { color: ds.colors.textMuted, fontSize: 12, padding: 10 },
+  suggestionItem: { paddingHorizontal: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: ds.colors.stroke },
+  suggestionName: { color: ds.colors.text, fontSize: 13, fontWeight: '700' },
+  suggestionSub: { color: ds.colors.textSoft, fontSize: 11, marginTop: 2 },
   selectedRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  selectedText: { color: '#8cf2ff', fontSize: 12, fontWeight: '700' },
-  clearText: { color: '#c3d4ff', fontSize: 12, fontWeight: '700' },
+  selectedText: { color: ds.colors.accentStrong, fontSize: 12, fontWeight: '700' },
+  clearText: { color: ds.colors.textMuted, fontSize: 12, fontWeight: '700' },
   emptyInline: { paddingHorizontal: 2, paddingBottom: 2, gap: 4 },
-  emptyKicker: { color: '#67e8f9', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 },
-  emptyText: { color: '#a8b4d6', fontSize: 12, lineHeight: 18 },
-  privacyText: { color: '#7a8bb8', fontSize: 11, lineHeight: 16 },
+  emptyKicker: { color: ds.colors.accent, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 },
+  emptyText: { color: ds.colors.textMuted, fontSize: 12, lineHeight: 18 },
+  privacyText: { color: ds.colors.textSoft, fontSize: 11, lineHeight: 16 },
 });

@@ -1,0 +1,33 @@
+export const ds = {
+  colors: {
+    appBg: '#f4f1ea',
+    appBgAlt: '#ebe5da',
+    shell: '#fffdf8',
+    card: '#ffffff',
+    cardMuted: '#f8f5ee',
+    stroke: '#ded7c9',
+    strokeStrong: '#c8bea9',
+    text: '#2c281f',
+    textMuted: '#6f6655',
+    textSoft: '#8a816f',
+    accent: '#3f6f63',
+    accentStrong: '#2e564c',
+    accentSoft: '#ddece7',
+    danger: '#8e3b3b',
+    dangerSoft: '#f6e4e4',
+  },
+  radius: {
+    xl: 24,
+    lg: 18,
+    md: 14,
+    sm: 10,
+    pill: 999,
+  },
+  spacing: {
+    xs: 6,
+    sm: 10,
+    md: 14,
+    lg: 18,
+    xl: 24,
+  },
+};

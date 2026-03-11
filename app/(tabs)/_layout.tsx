@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ds } from '../../src/components/designSystem';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -9,33 +10,35 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={({ route }) => ({
         headerShown: false,
-        sceneStyle: { backgroundColor: '#030712' },
+        sceneStyle: { backgroundColor: ds.colors.appBg },
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
           position: 'absolute',
           left: 12,
           right: 12,
           bottom: Math.max(10, insets.bottom),
-          borderRadius: 18,
-          backgroundColor: 'rgba(15,20,44,0.92)',
+          borderRadius: 20,
+          backgroundColor: ds.colors.shell,
           borderTopColor: 'transparent',
           borderWidth: 1,
-          borderColor: '#3a4279',
+          borderColor: ds.colors.stroke,
           paddingBottom: 8,
-          height: 66,
+          paddingTop: 8,
+          height: 68,
         },
-        tabBarActiveTintColor: '#8be9ff',
-        tabBarInactiveTintColor: '#8a96b8',
+        tabBarActiveTintColor: ds.colors.accent,
+        tabBarInactiveTintColor: ds.colors.textSoft,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
         tabBarIcon: ({ color, size, focused }) => {
           const iconName =
             route.name === 'index'
               ? focused
-                ? 'checkmark-circle'
-                : 'checkmark-circle-outline'
+                ? 'sparkles'
+                : 'sparkles-outline'
               : route.name === 'history'
                 ? focused
-                  ? 'time'
-                  : 'time-outline'
+                  ? 'analytics'
+                  : 'analytics-outline'
                 : focused
                   ? 'people'
                   : 'people-outline';

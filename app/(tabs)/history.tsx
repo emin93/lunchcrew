@@ -1,8 +1,8 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HistoryPanel } from '../../src/components/HistoryPanel';
 import { useAppStateContext } from '../../src/state/AppStateContext';
+import { ds } from '../../src/components/designSystem';
 
 export default function HistoryScreen() {
   const state = useAppStateContext();
@@ -12,16 +12,16 @@ export default function HistoryScreen() {
     <View style={styles.flex}>
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top, 8), paddingBottom: Math.max(insets.bottom + 120, 132) }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + 6, 14), paddingBottom: Math.max(insets.bottom + 120, 136) }]}
         alwaysBounceVertical={false}
         bounces={false}
       >
         <View style={styles.maxWidthWrap}>
-          <LinearGradient colors={['#131b3f', '#10152f']} style={styles.hero}>
-            <Text style={styles.kicker}>Crew intelligence</Text>
-            <Text style={styles.title}>History & trends</Text>
-            <Text style={styles.subtitle}>Track what wins and turn lunch into a reliable daily ritual.</Text>
-          </LinearGradient>
+          <View style={styles.hero}>
+            <Text style={styles.kicker}>Insights</Text>
+            <Text style={styles.title}>History & performance</Text>
+            <Text style={styles.subtitle}>See what your team actually chooses across the week and month.</Text>
+          </View>
 
           <HistoryPanel
             days7={state.history7Days}
@@ -38,15 +38,16 @@ export default function HistoryScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 16, paddingBottom: 12, gap: 14 },
-  maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
+  scrollContent: { flexGrow: 1, padding: 16, gap: 16 },
+  maxWidthWrap: { width: '100%', maxWidth: 980, alignSelf: 'center', gap: 14 },
   hero: {
-    borderRadius: 24,
-    padding: 16,
+    borderRadius: ds.radius.xl,
+    padding: ds.spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(129,149,255,0.35)',
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.shell,
   },
-  kicker: { color: '#9ce5ff', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
-  title: { color: '#f8fafc', fontSize: 30, fontWeight: '900', marginTop: 3, letterSpacing: -0.6 },
-  subtitle: { color: '#b7c3e4', fontSize: 13, marginTop: 3 },
+  kicker: { color: ds.colors.accent, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
+  title: { color: ds.colors.text, fontSize: 30, fontWeight: '800', marginTop: 4, letterSpacing: -0.6 },
+  subtitle: { color: ds.colors.textMuted, fontSize: 13, marginTop: 4 },
 });

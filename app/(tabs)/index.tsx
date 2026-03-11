@@ -1,9 +1,9 @@
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PollPanel } from '../../src/components/PollPanel';
 import { useAppStateContext } from '../../src/state/AppStateContext';
 import { trackEvent } from '../../src/lib/analytics';
+import { ds } from '../../src/components/designSystem';
 
 export default function VoteScreen() {
   const state = useAppStateContext();
@@ -11,21 +11,19 @@ export default function VoteScreen() {
 
   return (
     <View style={styles.flex}>
-      <View style={styles.bgGlowOne} pointerEvents="none" />
-      <View style={styles.bgGlowTwo} pointerEvents="none" />
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + 4, 12), paddingBottom: Math.max(insets.bottom + 132, 148) }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + 6, 14), paddingBottom: Math.max(insets.bottom + 132, 148) }]}
         keyboardShouldPersistTaps="handled"
         alwaysBounceVertical={false}
         bounces={false}
         keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       >
         <View style={styles.maxWidthWrap}>
-          <LinearGradient colors={['#1a2150', '#131a3a', '#0f132a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-            <Text style={styles.kicker}>Live lunch pulse</Text>
-            <Text style={styles.title}>Vote in seconds</Text>
-            <Text style={styles.subtitle}>No thread chaos. Quick team consensus.</Text>
+          <View style={styles.hero}>
+            <Text style={styles.kicker}>LunchCrew</Text>
+            <Text style={styles.title}>Daily vote board</Text>
+            <Text style={styles.subtitle}>Pick today’s lunch winner without chat noise.</Text>
 
             <View style={styles.metricRow}>
               <View style={styles.metricCard}>
@@ -43,12 +41,12 @@ export default function VoteScreen() {
             </View>
 
             <Text style={styles.buildLabel}>{state.BUILD_LABEL}</Text>
-          </LinearGradient>
+          </View>
 
           {state.loading && (
             <View style={styles.loadingWrap}>
-              <ActivityIndicator color="#6ee7ff" />
-              <Text style={styles.loadingText}>Syncing crew...</Text>
+              <ActivityIndicator color={ds.colors.accent} />
+              <Text style={styles.loadingText}>Syncing crew…</Text>
             </View>
           )}
 
@@ -109,58 +107,37 @@ export default function VoteScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 16, paddingBottom: 12, gap: 14 },
-  maxWidthWrap: { width: '100%', maxWidth: 1024, alignSelf: 'center', gap: 14 },
+  scrollContent: { flexGrow: 1, padding: 16, gap: 16 },
+  maxWidthWrap: { width: '100%', maxWidth: 980, alignSelf: 'center', gap: 14 },
   hero: {
-    borderRadius: 24,
-    padding: 18,
+    borderRadius: ds.radius.xl,
+    padding: ds.spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(129,149,255,0.4)',
-    shadowColor: '#020617',
-    shadowOpacity: 0.34,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.shell,
+    gap: 10,
   },
-  kicker: { color: '#92f8ff', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.1 },
-  title: { color: '#f8fafc', fontSize: 34, fontWeight: '900', marginTop: 4, letterSpacing: -0.8 },
-  subtitle: { color: '#c0cdef', fontSize: 14, marginTop: 3, lineHeight: 20 },
-  metricRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  kicker: { color: ds.colors.accent, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.1 },
+  title: { color: ds.colors.text, fontSize: 32, fontWeight: '800', letterSpacing: -0.8 },
+  subtitle: { color: ds.colors.textMuted, fontSize: 14, lineHeight: 20 },
+  metricRow: { flexDirection: 'row', gap: 8 },
   metricCard: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: ds.radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(122,142,255,0.45)',
-    backgroundColor: 'rgba(16,24,55,0.55)',
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.cardMuted,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 9,
   },
-  metricLabel: { color: '#9fb1df', fontSize: 10, fontWeight: '700', marginBottom: 2 },
-  metricValue: { color: '#eff4ff', fontSize: 12, fontWeight: '900' },
-  buildLabel: { color: '#7787b0', fontSize: 11, marginTop: 10, fontWeight: '700' },
+  metricLabel: { color: ds.colors.textSoft, fontSize: 10, fontWeight: '700', marginBottom: 2 },
+  metricValue: { color: ds.colors.text, fontSize: 12, fontWeight: '800' },
+  buildLabel: { color: ds.colors.textSoft, fontSize: 11, marginTop: 4, fontWeight: '700' },
   loadingWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
-  loadingText: { color: '#9ae5ff', fontSize: 13 },
-  errorBox: { borderRadius: 14, borderWidth: 1, borderColor: '#7f1d1d', backgroundColor: '#2b1014', padding: 12, gap: 8 },
-  errorTitle: { color: '#fecaca', fontWeight: '800' },
-  errorText: { color: '#fca5a5', fontSize: 13 },
-  retryBtn: { alignSelf: 'flex-start', backgroundColor: '#ef4444', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
+  loadingText: { color: ds.colors.textMuted, fontSize: 13 },
+  errorBox: { borderRadius: ds.radius.md, borderWidth: 1, borderColor: '#ddb9b9', backgroundColor: ds.colors.dangerSoft, padding: 12, gap: 8 },
+  errorTitle: { color: ds.colors.danger, fontWeight: '800' },
+  errorText: { color: ds.colors.danger, fontSize: 13 },
+  retryBtn: { alignSelf: 'flex-start', backgroundColor: ds.colors.danger, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
   retryBtnText: { color: '#fff', fontWeight: '700' },
-  bgGlowOne: {
-    position: 'absolute',
-    top: -100,
-    left: -80,
-    width: 260,
-    height: 260,
-    borderRadius: 999,
-    backgroundColor: 'rgba(56,189,248,0.16)',
-  },
-  bgGlowTwo: {
-    position: 'absolute',
-    top: 60,
-    right: -90,
-    width: 300,
-    height: 300,
-    borderRadius: 999,
-    backgroundColor: 'rgba(139,92,246,0.14)',
-  },
 });

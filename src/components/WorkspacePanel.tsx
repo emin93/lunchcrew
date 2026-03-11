@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { initialsForName, MAX_DISPLAY_NAME_LENGTH, normalizeDisplayName } from '../lib/helpers';
 import { Workspace } from '../types';
+import { ds } from './designSystem';
 
 type Props = {
   workspace: Workspace;
@@ -41,10 +42,10 @@ export function WorkspacePanel({
             value={nameDraft}
             onChangeText={setNameDraft}
             placeholder="Crew name"
-            placeholderTextColor="#7c8fbf"
+            placeholderTextColor={ds.colors.textSoft}
           />
           <Pressable style={[styles.actionBtn, renaming && styles.disabled]} onPress={() => onRename(nameDraft)} disabled={renaming}>
-            {renaming ? <ActivityIndicator size="small" color="#eef3ff" /> : <Text style={styles.actionBtnText}>Save</Text>}
+            {renaming ? <ActivityIndicator size="small" color="#ffffff" /> : <Text style={styles.actionBtnText}>Save</Text>}
           </Pressable>
         </View>
         <Text style={styles.meta}>Invite code: {workspace.invite_code}</Text>
@@ -59,11 +60,11 @@ export function WorkspacePanel({
             value={displayNameDraft}
             onChangeText={(v) => setDisplayNameDraft(normalizeDisplayName(v))}
             placeholder="Your display name"
-            placeholderTextColor="#7c8fbf"
+            placeholderTextColor={ds.colors.textSoft}
             maxLength={MAX_DISPLAY_NAME_LENGTH}
           />
           <Pressable style={[styles.actionBtn, savingName && styles.disabled]} onPress={() => onSaveDisplayName(displayNameDraft)} disabled={savingName}>
-            {savingName ? <ActivityIndicator size="small" color="#eef3ff" /> : <Text style={styles.actionBtnText}>Save</Text>}
+            {savingName ? <ActivityIndicator size="small" color="#ffffff" /> : <Text style={styles.actionBtnText}>Save</Text>}
           </Pressable>
         </View>
       </View>
@@ -78,30 +79,30 @@ export function WorkspacePanel({
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: 28,
-    padding: 16,
-    backgroundColor: 'rgba(14,19,44,0.88)',
+    borderRadius: ds.radius.xl,
+    padding: ds.spacing.lg,
+    backgroundColor: ds.colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(129,140,248,0.34)',
+    borderColor: ds.colors.stroke,
     gap: 12,
   },
-  title: { color: '#f8fafc', fontSize: 22, fontWeight: '900' },
+  title: { color: ds.colors.text, fontSize: 22, fontWeight: '800' },
   block: {
-    borderRadius: 15,
+    borderRadius: ds.radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(129,140,248,0.38)',
-    backgroundColor: 'rgba(15,23,42,0.58)',
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.cardMuted,
     padding: 12,
     gap: 8,
   },
-  blockTitle: { color: '#9db0db', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
+  blockTitle: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.5)',
+    borderColor: ds.colors.strokeStrong,
     borderRadius: 12,
-    backgroundColor: 'rgba(30,41,59,0.6)',
-    color: '#e8eeff',
+    backgroundColor: '#fffefb',
+    color: ds.colors.text,
     fontSize: 14,
     paddingHorizontal: 10,
     paddingVertical: 9,
@@ -109,36 +110,36 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   actionBtn: {
     borderRadius: 12,
-    backgroundColor: '#4f46e5',
+    backgroundColor: ds.colors.accent,
     borderWidth: 1,
-    borderColor: '#93c5fd',
+    borderColor: ds.colors.accentStrong,
     paddingHorizontal: 12,
     paddingVertical: 9,
     minWidth: 64,
     alignItems: 'center',
   },
-  actionBtnText: { color: '#eef3ff', fontWeight: '800', fontSize: 12 },
+  actionBtnText: { color: '#ffffff', fontWeight: '800', fontSize: 12 },
   disabled: { opacity: 0.7 },
   avatar: {
     width: 34,
     height: 34,
     borderRadius: 999,
-    backgroundColor: '#334155',
+    backgroundColor: '#d9d1bf',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { color: '#e8eeff', fontWeight: '900', fontSize: 11 },
-  meta: { color: '#c5d2ef', fontSize: 12, fontWeight: '700' },
+  avatarText: { color: ds.colors.text, fontWeight: '900', fontSize: 11 },
+  meta: { color: ds.colors.textMuted, fontSize: 12, fontWeight: '700' },
   footerRow: { flexDirection: 'row', gap: 8 },
   secondaryBtn: {
     flex: 1,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.5)',
-    backgroundColor: 'rgba(30,41,59,0.56)',
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: '#fffefb',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
   },
-  secondaryText: { color: '#d6e2ff', fontWeight: '800', fontSize: 12 },
+  secondaryText: { color: ds.colors.text, fontWeight: '700', fontSize: 12 },
 });
