@@ -1,34 +1,48 @@
 'use client';
 
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { ONBOARDING_SLIDES } from '@/lib/types';
+import { Badge, Button, Card, Input, Panel } from '@/components/ui';
 
 export function Onboarding({ onComplete }: { onComplete: (name?: string) => void | Promise<void> }) {
   const [name, setName] = useState('');
+
   return (
-    <section className="container" style={{ padding: '48px 0 80px' }}>
-      <div className="card" style={{ padding: 28, display: 'grid', gap: 20 }}>
-        <div style={{ display: 'grid', gap: 8 }}>
-          <span className="badge">Welcome to LunchCrew</span>
-          <h1 style={{ margin: 0, fontSize: 40 }}>Set your name, then start lunch diplomacy.</h1>
-          <p className="dim" style={{ margin: 0, maxWidth: 720 }}>No account flow, no password detour. Just enough identity for your crew to know who voted.</p>
-        </div>
-        <div className="grid grid-3">
-          {ONBOARDING_SLIDES.map((slide) => (
-            <article key={slide.title} className="panel" style={{ padding: 18, display: 'grid', gap: 8 }}>
-              <strong>{slide.title}</strong>
-              <span className="dim">{slide.body}</span>
-            </article>
-          ))}
-        </div>
-        <div className="panel" style={{ padding: 18, display: 'grid', gap: 12 }}>
-          <label htmlFor="display-name" className="muted">Display name</label>
-          <input id="display-name" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="How your crew should see you" maxLength={32} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-            <span className="muted">Optional now, editable later in settings.</span>
-            <button className="button button-primary" onClick={() => onComplete(name)}>Enter the app</button>
+    <section className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10 sm:px-6 lg:px-8">
+      <div className="grid w-full gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <Card className="overflow-hidden p-8 sm:p-10">
+          <div className="grid gap-6">
+            <Badge>Welcome to LunchCrew</Badge>
+            <div className="grid gap-4">
+              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-6xl">Set your name and walk straight into lunch diplomacy.</h1>
+              <p className="max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">No account ceremony. No password detour. Just enough identity to make votes readable, persistent, and friendly.</p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              {ONBOARDING_SLIDES.map((slide) => (
+                <Panel key={slide.title} className="grid gap-3 p-5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/8 text-emerald-200"><Sparkles className="h-4 w-4" /></div>
+                  <div>
+                    <div className="text-base font-semibold text-white">{slide.title}</div>
+                    <div className="mt-2 text-sm leading-6 text-slate-400">{slide.body}</div>
+                  </div>
+                </Panel>
+              ))}
+            </div>
           </div>
-        </div>
+        </Card>
+
+        <Card className="p-8 sm:p-10">
+          <div className="grid gap-5">
+            <div>
+              <div className="text-sm font-medium text-slate-400">Display name</div>
+              <h2 className="mt-2 text-3xl font-semibold text-white">How should your crew see you?</h2>
+            </div>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Emin, Em, Lunch Captain…" maxLength={32} />
+            <Panel className="p-4 text-sm leading-6 text-slate-400">Optional now, editable later in crew settings. Location is only used to improve nearby suggestions and is never stored.</Panel>
+            <Button onClick={() => onComplete(name)} className="h-12 rounded-2xl">Enter the app <ArrowRight className="h-4 w-4" /></Button>
+          </div>
+        </Card>
       </div>
     </section>
   );
