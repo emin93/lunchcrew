@@ -30,8 +30,8 @@ export function LandingLaunchCard() {
     <Card className="p-6 sm:p-8">
       <div className="grid gap-4">
         <div>
-          <div className="text-lg font-semibold text-[var(--text)]">Open the real app</div>
-          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Open your last crew instantly. If this device has never used LunchCrew before, opening the app will create a fresh crew automatically.</p>
+          <div className="text-lg font-semibold text-[var(--text)]">Open app</div>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Reopen your last crew, or create a fresh one automatically if this device is new.</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <OpenAppButton className="w-full">Open app</OpenAppButton>

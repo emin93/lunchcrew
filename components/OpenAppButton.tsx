@@ -26,7 +26,7 @@ export function OpenAppButton({
   const [loading, setLoading] = useState(false);
 
   async function handleOpen() {
-    if (loading || !supabase) return;
+    if (loading) return;
     setLoading(true);
 
     try {
@@ -35,6 +35,8 @@ export function OpenAppButton({
         router.push(workspacePath(storedCode));
         return;
       }
+
+      if (!supabase) return;
 
       const storedWorkspaceId = storage.get(LAST_WORKSPACE_ID_KEY);
       if (storedWorkspaceId) {
