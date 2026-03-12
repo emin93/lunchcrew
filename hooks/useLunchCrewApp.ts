@@ -21,6 +21,7 @@ export function useLunchCrewApp(initialCode?: string) {
   const [deviceId, setDeviceId] = useState('');
   const [member, setMember] = useState<WorkspaceMember | null>(null);
   const [poll, setPoll] = useState<Poll | null>(null);
+  const [pollDataReady, setPollDataReady] = useState(false);
   const [options, setOptions] = useState<PollOption[]>([]);
   const [myOptionId, setMyOptionId] = useState<string | null>(null);
   const [newOption, setNewOption] = useState('');
@@ -193,6 +194,7 @@ export function useLunchCrewApp(initialCode?: string) {
   }
   async function refreshPollData(pollId: string, workspaceId: string, voterId: string) {
     if (!supabase) return;
+    setPollDataReady(false);
     const [optionsRes, myVoteRes, votesRes, membersRes] = await Promise.all([
       withTimeout(supabase.from('poll_options').select('id,poll_id,name,menu_url,place_cache_id,votes(count),place:places_cache(id,provider,external_place_id,name,formatted_address,rating,price_level,google_maps_url,website_url,detected_menu_url)').eq('poll_id', pollId).order('created_at')),
       withTimeout(supabase.from('votes').select('option_id').eq('poll_id', pollId).eq('voter_id', voterId).maybeSingle()),
@@ -211,6 +213,7 @@ export function useLunchCrewApp(initialCode?: string) {
     const mapped: PollOption[] = ((optionsRes.data as any[]) || []).map((r) => ({ id: r.id, poll_id: r.poll_id, name: r.name, votes: r.votes?.[0]?.count ?? 0, voters: votersByOption.get(r.id) || [], menu_url: r.menu_url, place: r.place || null }));
     setOptions(mapped);
     setMyOptionId((myVoteRes.data as any)?.option_id ?? null);
+    setPollDataReady(true);
   }
   async function refreshHistory(workspaceId: string) {
     if (!supabase) return;
@@ -292,6 +295,7 @@ export function useLunchCrewApp(initialCode?: string) {
   async function createNewCrew() { setLoadError(null); await createWorkspace(); }
   async function retryLoad() {
     setLoadError(null);
+    setPollDataReady(false);
     if (!workspace) {
       const lastWorkspaceId = storage.get(LAST_WORKSPACE_ID_KEY);
       if (lastWorkspaceId) {
@@ -305,7 +309,7 @@ export function useLunchCrewApp(initialCode?: string) {
   }
 
   useEffect(() => { if (!workspace || !deviceId) return; void ensureMember(workspace.id, deviceId); }, [workspace?.id, deviceId]);
-  useEffect(() => { if (!workspace || !deviceId) return; void (async () => { const todayPoll = await ensureTodayPoll(workspace.id); if (!todayPoll) return; setPoll(todayPoll); await refreshPollData(todayPoll.id, workspace.id, deviceId); await refreshHistory(workspace.id); })(); }, [workspace?.id, deviceId]);
+  useEffect(() => { if (!workspace || !deviceId) return; void (async () => { setPollDataReady(false); const todayPoll = await ensureTodayPoll(workspace.id); if (!todayPoll) return; setPoll(todayPoll); await refreshPollData(todayPoll.id, workspace.id, deviceId); await refreshHistory(workspace.id); })(); }, [workspace?.id, deviceId]);
   useEffect(() => {
     if (!supabase || !poll || !workspace || !deviceId) return;
     const client = supabase;
@@ -352,7 +356,7 @@ export function useLunchCrewApp(initialCode?: string) {
     BUILD_LABEL, configError, onboardingDone, onboardingReady, completeOnboarding, shareInvite, createNewCrew, retryLoad,
     showMonetizationModal, setShowMonetizationModal, show30DayHistory, setShow30DayHistory,
     workspace, deviceId, member, loading, renaming, savingName, loadError, setLoadError, renameCrew, saveDisplayName,
-    poll, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, topChoice, vote, addOption,
+    poll, pollDataReady, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, topChoice, vote, addOption,
     suggestions, loadingSuggestions, selectedSuggestion, setSelectedSuggestion, history7Days, history30Days, leaderboard,
   };
 }
