@@ -22,15 +22,31 @@ export function initialsForName(name: string) {
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
 }
+
+function extractInviteCodeFromPathname(pathname: string) {
+  const segments = pathname.split('/').filter(Boolean);
+  const candidate = segments[0] || '';
+  return /^LC-[A-Z0-9]{4}-[A-Z0-9]{4}$/i.test(candidate) ? candidate.toUpperCase() : '';
+}
+
+export function workspacePath(code: string, section: 'today' | 'plan' | 'history' | 'crew' = 'today') {
+  const normalized = normalizeDisplayName(code).toUpperCase();
+  if (!normalized) return '/';
+  if (section === 'today') return `/${encodeURIComponent(normalized)}`;
+  return `/${encodeURIComponent(normalized)}/${section}`;
+}
+
 export function extractInviteCode(input: string) {
   const trimmed = (input || '').trim();
   if (!trimmed) return '';
   const upper = trimmed.toUpperCase();
-  if (upper.startsWith('LC-')) return upper;
+  if (/^LC-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(upper)) return upper;
   try {
     const url = new URL(trimmed, typeof window !== 'undefined' ? window.location.origin : 'https://lunchcrew.app');
-    return (url.searchParams.get('code') || '').toUpperCase();
-  } catch { return ''; }
+    return extractInviteCodeFromPathname(url.pathname);
+  } catch {
+    return extractInviteCodeFromPathname(trimmed);
+  }
 }
 export async function withTimeout<T>(promise: PromiseLike<T>, ms = 12000): Promise<T> {
   return await Promise.race([Promise.resolve(promise), new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);

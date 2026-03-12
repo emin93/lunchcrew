@@ -1,23 +1,24 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Settings2, Share2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
 import { Onboarding } from '@/components/Onboarding';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge, Button, Card, Input, Panel } from '@/components/ui';
 import { useLunchCrewApp } from '@/hooks/useLunchCrewApp';
-import { initialsForName } from '@/lib/helpers';
+import { initialsForName, workspacePath } from '@/lib/helpers';
 import type { PlaceSuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-type AppView = 'today' | 'add' | 'history' | 'crew';
+type AppView = 'today' | 'plan' | 'history' | 'crew';
 
 const VIEWS: Array<{ id: AppView; label: string; short: string; icon: any }> = [
   { id: 'today', label: 'Today', short: 'Today', icon: UtensilsCrossed },
-  { id: 'add', label: 'Add option', short: 'Add', icon: Plus },
+  { id: 'plan', label: 'Plan', short: 'Plan', icon: Plus },
   { id: 'history', label: 'History', short: 'History', icon: History },
   { id: 'crew', label: 'Crew', short: 'Crew', icon: Users2 },
 ];
@@ -27,13 +28,23 @@ function priceLabel(priceLevel?: number | null) {
   return '$'.repeat(Math.max(1, Math.min(4, priceLevel)));
 }
 
-export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
+export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCode?: string; initialView?: AppView }) {
   const app = useLunchCrewApp(initialCode);
+  const pathname = usePathname();
+  const router = useRouter();
   const [joinCode, setJoinCode] = useState(initialCode || '');
-  const [activeView, setActiveView] = useState<AppView>('today');
 
   const activeHistory = app.show30DayHistory ? app.history30Days : app.history7Days;
   const totalVotes = useMemo(() => app.options.reduce((sum, opt) => sum + opt.votes, 0), [app.options]);
+  const defaultView: AppView = app.options.length === 0 ? 'plan' : 'today';
+  const requestedView = initialView;
+  const activeView: AppView = !app.workspace ? 'today' : requestedView === 'today' && app.options.length === 0 ? 'plan' : requestedView;
+
+  useEffect(() => {
+    if (!app.workspace?.invite_code) return;
+    const canonicalPath = workspacePath(app.workspace.invite_code, activeView === 'today' ? defaultView : activeView);
+    if (pathname !== canonicalPath) router.replace(canonicalPath);
+  }, [app.workspace?.invite_code, activeView, defaultView, pathname, router]);
 
   if (!app.onboardingReady) {
     return (
@@ -58,38 +69,19 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
           </div>
         </header>
 
-        <nav className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
-          {VIEWS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setActiveView(id)}
-              className={cn(
-                'flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition',
-                activeView === id
-                  ? 'border-transparent bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_16px_36px_rgba(255,122,89,0.24)]'
-                  : 'border-[var(--border)] bg-[var(--surface-strong)] text-[var(--text-soft)] hover:bg-[var(--surface)]',
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </button>
-          ))}
-        </nav>
-
         {app.loadError ? (
           <Card className="border-rose-500/20 bg-rose-500/10 p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <div className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-700 dark:text-rose-200">Something needs attention</div>
-                <p className="mt-2 text-sm text-rose-800/90 dark:text-rose-100/90">{app.loadError}</p>
+                <div className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-800 dark:text-rose-100">Something needs attention</div>
+                <p className="mt-2 text-sm text-rose-900/90 dark:text-rose-100/90">{app.loadError}</p>
               </div>
               <Button variant="destructive" onClick={() => app.retryLoad()}>Retry</Button>
             </div>
           </Card>
         ) : null}
 
-        {app.configError ? <Card className="p-5 text-sm text-amber-700 dark:text-amber-100">{app.configError}</Card> : null}
+        {app.configError ? <Card className="p-5 text-sm text-amber-900 dark:text-amber-100">{app.configError}</Card> : null}
 
         {!app.workspace ? (
           <Card className="p-6">
@@ -100,17 +92,39 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="Invite code, e.g. LC-ABCD-EFGH" />
-                <Link href={`/app?code=${encodeURIComponent(joinCode)}`} className="sm:w-auto"><Button className="w-full">Join crew</Button></Link>
+                <Link href={workspacePath(joinCode)} className="sm:w-auto"><Button className="w-full">Join crew</Button></Link>
               </div>
             </div>
           </Card>
         ) : (
           <>
+            <nav className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
+              {VIEWS.map(({ id, label, icon: Icon }) => {
+                const href = workspacePath(app.workspace!.invite_code, id === 'today' ? defaultView : id);
+                const isActive = activeView === id || (id === 'plan' && activeView === 'today' && defaultView === 'plan');
+                return (
+                  <Link
+                    key={id}
+                    href={href}
+                    className={cn(
+                      'flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition',
+                      isActive
+                        ? 'border-transparent bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_16px_36px_rgba(255,122,89,0.24)]'
+                        : 'border-[var(--border)] bg-[var(--surface-strong)] text-[var(--text-soft)] hover:bg-[var(--surface)]',
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </Link>
+                );
+              })}
+            </nav>
+
             {activeView === 'today' ? (
-              <TodayView app={app} totalVotes={totalVotes} onGoAdd={() => setActiveView('add')} />
+              <TodayView app={app} totalVotes={totalVotes} planHref={workspacePath(app.workspace.invite_code, 'plan')} />
             ) : null}
-            {activeView === 'add' ? (
-              <AddView app={app} onGoToday={() => setActiveView('today')} />
+            {activeView === 'plan' ? (
+              <PlanView app={app} todayHref={workspacePath(app.workspace.invite_code)} />
             ) : null}
             {activeView === 'history' ? (
               <HistoryView app={app} activeHistory={activeHistory} />
@@ -121,48 +135,53 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
           </>
         )}
 
-        <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 gap-2 rounded-[28px] border border-[var(--border)] bg-[rgba(255,252,248,0.92)] p-2 shadow-[var(--shadow)] backdrop-blur-xl dark:bg-[rgba(38,22,46,0.92)] lg:hidden">
-          {VIEWS.map(({ id, short, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setActiveView(id)}
-              className={cn(
-                'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-semibold transition',
-                activeView === id
-                  ? 'bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_12px_30px_rgba(255,122,89,0.22)]'
-                  : 'text-[var(--text-soft)]',
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              <span>{short}</span>
-            </button>
-          ))}
-        </nav>
+        {app.workspace ? (
+          <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 gap-2 rounded-[28px] border border-[var(--border)] bg-[rgba(255,252,248,0.92)] p-2 shadow-[var(--shadow)] backdrop-blur-xl dark:bg-[rgba(38,22,46,0.92)] lg:hidden">
+            {VIEWS.map(({ id, short, icon: Icon }) => {
+              const href = workspacePath(app.workspace!.invite_code, id === 'today' ? defaultView : id);
+              const isActive = activeView === id || (id === 'plan' && activeView === 'today' && defaultView === 'plan');
+              return (
+                <Link
+                  key={id}
+                  href={href}
+                  className={cn(
+                    'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-semibold transition',
+                    isActive
+                      ? 'bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_12px_30px_rgba(255,122,89,0.22)]'
+                      : 'text-[var(--text-soft)]',
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{short}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
       </main>
       <MonetizationModal visible={app.showMonetizationModal} workspaceId={app.workspace?.id} deviceId={app.deviceId} onClose={() => app.setShowMonetizationModal(false)} />
     </>
   );
 }
 
-function TodayView({ app, totalVotes, onGoAdd }: { app: ReturnType<typeof useLunchCrewApp>; totalVotes: number; onGoAdd: () => void }) {
+function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLunchCrewApp>; totalVotes: number; planHref: string }) {
   return (
     <section className="grid gap-4 sm:gap-5">
       <Card className="p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="w-fit">Today’s ballot</Badge>
+              <Badge className="text-rose-900 dark:text-amber-100">Today’s ballot</Badge>
               {app.workspace?.invite_code ? <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-soft)]">{app.workspace.invite_code}</span> : null}
             </div>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">{app.poll?.title || "Today's Lunch"}</h1>
-              <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">Vote first. Everything else lives in its own tab so the main task stays easy to reach.</p>
+              <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">Vote first. Planning, history, and crew admin all have their own pages now.</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share</Button>
-            <Button variant="gold" onClick={onGoAdd}><Plus className="h-4 w-4" /> Add option</Button>
+            <Link href={planHref}><Button variant="gold"><Plus className="h-4 w-4" /> Plan</Button></Link>
           </div>
         </div>
       </Card>
@@ -178,9 +197,9 @@ function TodayView({ app, totalVotes, onGoAdd }: { app: ReturnType<typeof useLun
           {app.options.length === 0 ? (
             <Panel className="grid gap-3 p-8 text-center">
               <div className="text-lg font-semibold text-[var(--text)]">No places yet</div>
-              <p className="text-sm text-[var(--text-muted)]">Add the first contender and the ballot will come alive.</p>
+              <p className="text-sm text-[var(--text-muted)]">Start in Plan mode to shape the shortlist before the votes roll in.</p>
               <div>
-                <Button onClick={onGoAdd}><Plus className="h-4 w-4" /> Add the first option</Button>
+                <Link href={planHref}><Button><Plus className="h-4 w-4" /> Open plan</Button></Link>
               </div>
             </Panel>
           ) : app.options.map((opt, index) => {
@@ -202,7 +221,7 @@ function TodayView({ app, totalVotes, onGoAdd }: { app: ReturnType<typeof useLun
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="grid gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      {index === 0 ? <Badge className="border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-100">Lead</Badge> : null}
+                      {index === 0 ? <Badge className="border-amber-500/30 bg-amber-500/18 text-amber-950 dark:text-amber-100">Lead</Badge> : null}
                       {isActive ? <Badge>Your vote</Badge> : null}
                     </div>
                     <div>
@@ -235,33 +254,43 @@ function TodayView({ app, totalVotes, onGoAdd }: { app: ReturnType<typeof useLun
   );
 }
 
-function AddView({ app, onGoToday }: { app: ReturnType<typeof useLunchCrewApp>; onGoToday: () => void }) {
+function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>; todayHref: string }) {
+  const [manualAdded, setManualAdded] = useState(false);
+
+  async function handleSuggestionSelect(suggestion: PlaceSuggestion) {
+    app.setSelectedSuggestion(suggestion);
+    app.setNewOption(suggestion.name);
+    const added = await app.addOption(suggestion);
+    if (added) setManualAdded(false);
+  }
+
   return (
     <section className="grid gap-4 sm:gap-5">
       <Card className="p-6 sm:p-8">
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <Badge className="w-fit">Add option</Badge>
-              <div className="mt-2 text-2xl font-semibold text-[var(--text)]">Search nearby or publish a manual option</div>
-              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">This step now has its own space, so you’re not scrolling past it every time you just want to vote.</p>
+              <Badge className="text-sky-950 dark:text-sky-100">Plan mode</Badge>
+              <div className="mt-2 text-2xl font-semibold text-[var(--text)]">Shape today’s shortlist</div>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Search nearby spots, drop in manual ideas, and tee up the ballot before everyone starts voting.</p>
             </div>
-            {app.selectedSuggestion ? <Button variant="secondary" onClick={() => app.setSelectedSuggestion(null)}>Clear selection</Button> : null}
+            <div className="flex flex-wrap gap-2">
+              {app.selectedSuggestion ? <Button variant="secondary" onClick={() => app.setSelectedSuggestion(null)}>Clear selection</Button> : null}
+              {app.options.length > 0 ? <Link href={todayHref}><Button variant="secondary">Back to today’s ballot</Button></Link> : null}
+            </div>
           </div>
           <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-              <Input className="pl-10" placeholder="Search nearby or type manually" value={app.newOption} onChange={(e) => app.setNewOption(e.target.value)} />
+              <Input className="pl-10" placeholder="Search nearby or type manually" value={app.newOption} onChange={(e) => { setManualAdded(false); app.setSelectedSuggestion(null); app.setNewOption(e.target.value); }} />
             </div>
-            <Button disabled={(!app.selectedSuggestion && !app.newOption.trim()) || app.addingOption} onClick={() => app.addOption()} className="lg:px-6">
-              {app.addingOption ? <><Loader2 className="h-4 w-4 animate-spin" /> Publishing…</> : <><Plus className="h-4 w-4" /> Publish option</>}
+            <Button disabled={!app.newOption.trim() || app.addingOption} onClick={async () => { const added = await app.addOption(); setManualAdded(added); }} className="lg:px-6">
+              {app.addingOption ? <><Loader2 className="h-4 w-4 animate-spin" /> Adding…</> : <><Plus className="h-4 w-4" /> Add manual option</>}
             </Button>
           </div>
-          {app.selectedSuggestion ? <Pill className="w-fit">Selected place: {app.selectedSuggestion.name}</Pill> : <p className="text-sm text-[var(--text-muted)]">Location only improves suggestions. It isn’t stored.</p>}
-          {!app.selectedSuggestion && app.newOption.trim().length >= 2 ? <Suggestions loading={app.loadingSuggestions} suggestions={app.suggestions} onSelect={(s) => { app.setSelectedSuggestion(s); app.setNewOption(s.name); }} /> : null}
-          <div className="pt-2">
-            <Button variant="secondary" onClick={onGoToday}>Back to today’s ballot</Button>
-          </div>
+          <p className="text-sm text-[var(--text-muted)]">Tap a search result to add it instantly. The button is only for manual entries you type yourself.</p>
+          {!app.selectedSuggestion && app.newOption.trim().length >= 2 ? <Suggestions loading={app.loadingSuggestions} suggestions={app.suggestions} onSelect={handleSuggestionSelect} /> : null}
+          {manualAdded ? <Pill className="w-fit border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100">Added to today’s ballot.</Pill> : null}
         </div>
       </Card>
     </section>
@@ -275,7 +304,7 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
         <div className="grid gap-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <Badge className="w-fit border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-100">History</Badge>
+              <Badge className="border-sky-500/25 bg-sky-500/14 text-sky-950 dark:text-sky-100">History</Badge>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">Patterns, not just receipts</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Recent winners and repeat favorites live here instead of competing with today’s main task.</p>
             </div>
@@ -315,7 +344,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
       <Card className="p-6 sm:p-8">
         <div className="grid gap-5">
           <div>
-            <Badge className="w-fit">Crew</Badge>
+            <Badge className="text-violet-950 dark:text-violet-100">Crew</Badge>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">Settings, identity, and invite access</h2>
             <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Workspace maintenance lives here instead of crowding the daily ballot.</p>
           </div>
@@ -340,7 +369,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
 
       <Card className="p-6 sm:p-8">
         <div className="grid gap-4">
-          <Badge className="w-fit border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-100">Snapshot</Badge>
+          <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14 text-fuchsia-900 dark:text-fuchsia-100">Snapshot</Badge>
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <Metric icon={Users2} label="Crew build" value={app.BUILD_LABEL} compact />
             <Metric icon={Clock3} label="Votes cast" value={String(totalVotes)} compact />

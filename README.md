@@ -8,7 +8,7 @@ Mobile lunch-planning app for coworkers.
 
 ## What works now
 - Auto-create workspace on app launch (no deep link)
-- Auto-join workspace from invite deep link (`?code=...`)
+- Auto-join workspace from invite path (`/[code]`)
 - Share invite link in one tap
 - Auto-create **today's poll** per workspace
 - Default options created automatically

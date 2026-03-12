@@ -6,6 +6,7 @@ import {
   BUILD_LABEL, DEVICE_ID_KEY, DISPLAY_NAME_KEY, LAST_WORKSPACE_ID_KEY, LOCATION_PROMPT_SEEN_KEY,
   MONETIZATION_LAST_PROMPT_AT_KEY, MONETIZATION_WAITLIST_JOINED_KEY, ONBOARDING_SEEN_KEY,
   extractInviteCode, generateInviteCode, makeDeviceId, normalizeDisplayName, storage, todayDateUTC, withTimeout,
+  workspacePath,
 } from '@/lib/helpers';
 import { isConfigured, supabase } from '@/lib/supabase';
 import type { HistoryDaySummary, LeaderboardPlace, PlaceSuggestion, Poll, PollOption, Workspace, WorkspaceMember } from '@/lib/types';
@@ -76,7 +77,7 @@ export function useLunchCrewApp(initialCode?: string) {
     setDeviceId(currentDeviceId);
 
     const boot = async () => {
-      const code = extractInviteCode(initialCode || (typeof window !== 'undefined' ? window.location.href : ''));
+      const code = extractInviteCode(initialCode || (typeof window !== 'undefined' ? window.location.pathname : ''));
       if (code) {
         await joinByCode(code, currentDeviceId);
         return;
@@ -105,9 +106,9 @@ export function useLunchCrewApp(initialCode?: string) {
     setWorkspace(next);
     storage.set(LAST_WORKSPACE_ID_KEY, next.id);
     if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('code', next.invite_code.toUpperCase());
-      window.history.replaceState({}, '', url.toString());
+      const path = window.location.pathname.replace(/\/+$/, '') || '/';
+      const section = path.endsWith('/plan') ? 'plan' : path.endsWith('/history') ? 'history' : path.endsWith('/crew') ? 'crew' : 'today';
+      window.history.replaceState({}, '', workspacePath(next.invite_code.toUpperCase(), section));
     }
   }
   async function ensureMember(workspaceId: string, currentDeviceId: string) {
@@ -245,21 +246,25 @@ export function useLunchCrewApp(initialCode?: string) {
     if (error) { setVotingOptionId(null); setLoadError(`Vote failed: ${error.message}`); return; }
     await refreshPollData(poll.id, workspace.id, deviceId); await refreshHistory(workspace.id); setVotingOptionId(null);
   }
-  async function addOption() {
-    if (!supabase || !poll || !workspace || addingOption) return;
-    const name = newOption.trim(); if (!name && !selectedSuggestion) return;
-    const candidateName = (selectedSuggestion?.name || name).trim().toLowerCase();
-    if (options.some((opt) => opt.name.trim().toLowerCase() === candidateName)) return setLoadError('That place is already in today’s poll.');
+  async function addOption(suggestionArg?: PlaceSuggestion | null) {
+    if (!supabase || !poll || !workspace || addingOption) return false;
+    const suggestion = suggestionArg ?? selectedSuggestion;
+    const name = newOption.trim(); if (!name && !suggestion) return false;
+    const candidateName = (suggestion?.name || name).trim().toLowerCase();
+    if (options.some((opt) => opt.name.trim().toLowerCase() === candidateName)) {
+      setLoadError('That place is already in today’s poll.');
+      return false;
+    }
     setAddingOption(true);
     try {
-      if (selectedSuggestion) {
-        const details = await fetchPlaceDetails(selectedSuggestion);
+      if (suggestion) {
+        const details = await fetchPlaceDetails(suggestion);
         let placeCacheId: string | null = null;
         if (details) {
           const placeRes = await withTimeout(supabase.from('places_cache').select('id').eq('provider', details.provider).eq('external_place_id', details.externalPlaceId).maybeSingle());
           placeCacheId = (placeRes.data as any)?.id || null;
         }
-        const { error } = await supabase.from('poll_options').insert({ poll_id: poll.id, name: selectedSuggestion.name, source: 'google_place', place_cache_id: placeCacheId, menu_url: details?.detectedMenuUrl || null });
+        const { error } = await supabase.from('poll_options').insert({ poll_id: poll.id, name: suggestion.name, source: 'google_place', place_cache_id: placeCacheId, menu_url: details?.detectedMenuUrl || null });
         if (error) throw error;
       } else {
         const { error } = await supabase.from('poll_options').insert({ poll_id: poll.id, name, source: 'manual' });
@@ -267,12 +272,13 @@ export function useLunchCrewApp(initialCode?: string) {
       }
       setNewOption(''); setSelectedSuggestion(null); setSuggestions([]); setLoadError(null);
       await refreshPollData(poll.id, workspace.id, deviceId); await refreshHistory(workspace.id);
-    } catch (error: any) { setLoadError(error?.message || 'Could not add option.'); }
+      return true;
+    } catch (error: any) { setLoadError(error?.message || 'Could not add option.'); return false; }
     finally { setAddingOption(false); }
   }
   async function shareInvite() {
     if (!workspace || typeof window === 'undefined') return;
-    const inviteLink = `${window.location.origin}/app?code=${workspace.invite_code}`;
+    const inviteLink = `${window.location.origin}${workspacePath(workspace.invite_code)}`;
     try {
       if (navigator.share) { await navigator.share({ title: 'LunchCrew Invite', text: `Join my LunchCrew: ${inviteLink}`, url: inviteLink }); return; }
       if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(inviteLink); }

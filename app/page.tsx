@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, Check, Compass, MapPinned, Sparkles, Users, Vote } from 'lucide-react';
+import { LandingLaunchCard } from '@/components/LandingLaunchCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge, Button, Card, Panel } from '@/components/ui';
 
@@ -14,13 +15,12 @@ const features = [
 
 const steps = [
   ['Start a room in seconds', 'Create a crew once, then keep reusing it with invite-based access that feels lightweight and social.'],
-  ['Drop in contenders fast', 'Search nearby spots, add manual picks, and shape today’s shortlist without opening five other tabs.'],
+  ['Plan the shortlist fast', 'Search nearby spots, add manual picks, and shape today’s shortlist without opening five other tabs.'],
   ['Let the winner emerge', 'Watch the board update live, then use history and leaderboard views to keep the ritual moving tomorrow too.'],
 ];
 
-export default async function MarketingPage({ searchParams }: { searchParams: Promise<{ code?: string }> }) {
-  const { code } = await searchParams;
-  const appHref = code ? `/app?code=${encodeURIComponent(code)}` : '/app';
+export default function MarketingPage() {
+  const appHref = '#open-app';
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-16 pt-6 sm:px-6 lg:px-8">
@@ -56,7 +56,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: Pr
               <Badge>Invite-led crews · nearby search · live voting</Badge>
               <div className="grid gap-4">
                 <h1 className="max-w-4xl text-5xl font-semibold tracking-tight text-[var(--text)] sm:text-6xl lg:text-7xl">Make lunch feel like a quick group win, not admin.</h1>
-                <p className="max-w-2xl text-lg leading-8 text-[var(--text-soft)] sm:text-xl">LunchCrew gives your team one cheerful place to shortlist nearby options, vote together, and move on with the day — without chat-scroll chaos or spreadsheet energy.</p>
+                <p className="max-w-2xl text-lg leading-8 text-[var(--text-soft)] sm:text-xl">LunchCrew gives your team one cheerful place to plan nearby options, vote together, and move on with the day — without chat-scroll chaos or spreadsheet energy.</p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <Link href={appHref}><Button className="rounded-full px-6">Start today’s vote <ArrowRight className="h-4 w-4" /></Button></Link>
@@ -90,7 +90,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: Pr
           <div className="absolute inset-x-6 top-10 h-px brand-dash" />
           <div className="grid gap-5">
             <div className="flex items-center justify-between">
-              <Badge className="border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-100">Today’s board</Badge>
+              <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14 text-fuchsia-900 dark:text-fuchsia-100">Today’s board</Badge>
               <span className="text-sm text-[var(--text-muted)]">Feels live</span>
             </div>
             <div className="grid gap-4">
@@ -137,9 +137,13 @@ export default async function MarketingPage({ searchParams }: { searchParams: Pr
       </section>
 
       <section className="mt-14 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+        <div id="open-app">
+          <LandingLaunchCard />
+        </div>
+
         <Card className="p-6 sm:p-8">
           <div className="grid gap-5">
-            <Badge className="border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-100">Why teams keep it around</Badge>
+            <Badge className="border-amber-500/30 bg-amber-500/18 text-amber-950 dark:text-amber-100">Why teams keep it around</Badge>
             {[
               ['Less back-and-forth, more momentum', 'The shared board makes the leader visible fast, so the crew can stop negotiating in fragments.'],
               ['The useful links are already there', 'Maps and menu shortcuts sit next to each place, which keeps research tiny and decisions easy.'],
@@ -161,7 +165,7 @@ export default async function MarketingPage({ searchParams }: { searchParams: Pr
           <div className="grid max-w-2xl gap-5">
             <Badge>Focused product workspace</Badge>
             <h2 className="text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">A consumer-friendly front door. A sharp app when it’s time to choose.</h2>
-            <p className="text-base leading-8 text-[var(--text-soft)] sm:text-lg">Open the app when the crew is hungry. Everything inside stays tuned for voting, adding contenders, sharing access, and checking patterns — just with more warmth, color, and personality than a typical internal tool.</p>
+            <p className="text-base leading-8 text-[var(--text-soft)] sm:text-lg">Open the app when the crew is hungry. Everything inside stays tuned for voting, planning the shortlist, sharing access, and checking patterns — just with more warmth, color, and personality than a typical internal tool.</p>
             <div>
               <Link href={appHref}><Button className="rounded-full px-6">Open LunchCrew <ArrowRight className="h-4 w-4" /></Button></Link>
             </div>

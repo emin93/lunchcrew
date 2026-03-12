@@ -38,5 +38,5 @@ export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<H
 }
 
 export function Badge({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
-  return <span className={cn('inline-flex items-center gap-2 rounded-full border border-[rgba(255,122,89,0.22)] bg-[rgba(255,122,89,0.1)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)] dark:text-[var(--accent-2)]', className)} {...props} />;
+  return <span className={cn('inline-flex items-center gap-2 rounded-full border border-[rgba(255,122,89,0.28)] bg-[rgba(255,122,89,0.14)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#8f2f19] dark:text-[var(--accent-2)]', className)} {...props} />;
 }
