@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { ArrowRight, Check, Compass, MapPinned, Sparkles, Users, Vote } from 'lucide-react';
+import { LiveBoardDemo } from '@/components/LiveBoardDemo';
 import { OpenAppButton } from '@/components/OpenAppButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge, Button, Card, Panel } from '@/components/ui';
@@ -17,12 +17,6 @@ const steps = [
   ['Start a room in seconds', 'Create a crew once, then keep reusing it with invite-based access that feels lightweight and social.'],
   ['Plan the shortlist fast', 'Search nearby spots, add manual picks, and shape today’s shortlist without opening five other tabs.'],
   ['Let the winner emerge', 'Watch the board update live, then use history and leaderboard views to keep the ritual moving tomorrow too.'],
-];
-
-const liveBoard = [
-  { name: 'Tacos del Centro', votes: 8, state: 'leader', meta: 'Map · Menu', width: '78%', dots: 4 },
-  { name: 'Noodle House', votes: 6, state: 'surging', meta: 'Map', width: '64%', dots: 3 },
-  { name: 'Green Bowl', votes: 4, state: 'open vote', meta: 'Menu', width: '48%', dots: 2 },
 ];
 
 export default function MarketingPage() {
@@ -89,40 +83,7 @@ export default function MarketingPage() {
         </div>
 
         <Card className="relative overflow-hidden p-6 sm:p-8 lg:sticky lg:top-6 lg:h-fit">
-          <div className="grid gap-5">
-            <div className="flex items-center justify-between">
-              <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14 text-fuchsia-900 dark:text-fuchsia-100">Today’s board</Badge>
-              <span className="text-sm text-[var(--text-muted)]">Feels live</span>
-            </div>
-            <div className="grid gap-4">
-              {liveBoard.map(({ name, votes, state, meta, width, dots }, index) => (
-                <Panel key={name} className={`vote-card grid gap-3 p-4 ${index === 0 ? 'border-[rgba(255,122,89,0.28)] bg-[rgba(255,122,89,0.12)]' : ''}`} style={{ animationDelay: `${index * 220}ms` }}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-base font-semibold text-[var(--text)]">{name}</div>
-                      <div className="mt-1 text-sm text-[var(--text-muted)]">{votes} votes</div>
-                    </div>
-                    <div className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--text-soft)]">{state}</div>
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="vote-track flex-1">
-                      <div className="vote-fill" style={{ width, animationDelay: `${index * 260}ms` }} />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {Array.from({ length: dots }).map((_, dotIndex) => (
-                        <span key={dotIndex} className="vote-dot" style={{ animationDelay: `${index * 240 + dotIndex * 140}ms` }} />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">{meta}</div>
-                </Panel>
-              ))}
-            </div>
-            <Panel className="p-4">
-              <div className="text-sm font-medium text-[var(--text)]">Made for the everyday lunch moment</div>
-              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">The landing page sets the tone. The app then turns into a playful, efficient decision surface instead of another productivity dashboard.</p>
-            </Panel>
-          </div>
+          <LiveBoardDemo />
         </Card>
       </section>
 
@@ -146,7 +107,7 @@ export default function MarketingPage() {
       <section className="mt-14 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
         <Card className="p-6 sm:p-8">
           <div className="grid gap-5">
-            <Badge className="border-amber-500/30 bg-amber-500/18 text-amber-950 dark:text-amber-100">Why teams keep it around</Badge>
+            <Badge className="border-amber-500/30 bg-amber-500/18">Why teams keep it around</Badge>
             {[
               ['Less back-and-forth, more momentum', 'The shared board makes the leader visible fast, so the crew can stop negotiating in fragments.'],
               ['The useful links are already there', 'Maps and menu shortcuts sit next to each place, which keeps research tiny and decisions easy.'],

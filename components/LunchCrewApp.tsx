@@ -159,13 +159,16 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
 }
 
 function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLunchCrewApp>; totalVotes: number; planHref: string }) {
+  const sortedOptions = [...app.options].sort((a, b) => b.votes - a.votes || a.name.localeCompare(b.name));
+  const maxVotes = Math.max(...sortedOptions.map((opt) => opt.votes), 1);
+
   return (
     <section className="grid gap-4 sm:gap-5">
       <Card className="p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="text-rose-900 dark:text-amber-100">Today’s ballot</Badge>
+              <Badge>Today’s ballot</Badge>
               {app.workspace?.invite_code ? <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-soft)]">{app.workspace.invite_code}</span> : null}
             </div>
             <div>
@@ -196,26 +199,28 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
                 <Link href={planHref}><Button><Plus className="h-4 w-4" /> Open plan</Button></Link>
               </div>
             </Panel>
-          ) : app.options.map((opt, index) => {
+          ) : sortedOptions.map((opt, index) => {
             const mapsUrl = opt.place?.google_maps_url;
             const menuUrl = opt.menu_url || opt.place?.detected_menu_url || opt.place?.website_url;
             const isActive = app.myOptionId === opt.id;
+            const isLeader = index === 0 && opt.votes > 0;
+            const width = `${Math.max(34, Math.round((opt.votes / maxVotes) * 100))}%`;
+            const activityDots = Math.max(2, Math.min(4, opt.voters.length || opt.votes || 1));
             return (
               <button
                 key={opt.id}
                 className={cn(
                   'group relative grid gap-4 rounded-[30px] border p-4 text-left transition duration-200 sm:p-5',
                   'border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:bg-[var(--surface-strong)]',
-                  isActive && 'border-[rgba(255,122,89,0.32)] bg-[rgba(255,122,89,0.11)]',
+                  (isLeader || isActive) && 'border-[rgba(255,122,89,0.32)] bg-[rgba(255,122,89,0.11)]',
                 )}
                 disabled={!!app.votingOptionId}
                 onClick={() => app.vote(opt.id)}
               >
-                <div className="absolute inset-y-4 left-0 w-1 rounded-full bg-transparent transition group-hover:bg-[rgba(255,122,89,0.26)]" />
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="grid gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      {index === 0 ? <Badge className="border-amber-500/30 bg-amber-500/18 text-amber-950 dark:text-amber-100">Lead</Badge> : null}
+                      {isLeader ? <Badge className="border-amber-500/30 bg-amber-500/18">Leading</Badge> : null}
                       {isActive ? <Badge>Your vote</Badge> : null}
                     </div>
                     <div>
@@ -226,6 +231,17 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
                   <div className="rounded-[24px] border border-[var(--border)] bg-[var(--panel-strong)] px-4 py-3 text-right shadow-[var(--shadow-soft)] sm:px-5">
                     <div className="text-2xl font-semibold text-[var(--text)] sm:text-3xl">{opt.votes}</div>
                     <div className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)] sm:text-xs">votes</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <div className="vote-track flex-1">
+                    <div className="vote-fill" style={{ width, animationDelay: `${index * 160}ms` }} />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {Array.from({ length: activityDots }).map((_, dotIndex) => (
+                      <span key={dotIndex} className="vote-dot" style={{ animationDelay: `${index * 140 + dotIndex * 120}ms` }} />
+                    ))}
                   </div>
                 </div>
 
@@ -264,7 +280,7 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <Badge className="text-sky-950 dark:text-sky-100">Plan mode</Badge>
+              <Badge>Plan mode</Badge>
               <div className="mt-2 text-2xl font-semibold text-[var(--text)]">Shape today’s shortlist</div>
               <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Search nearby spots, drop in manual ideas, and tee up the ballot before everyone starts voting.</p>
             </div>
@@ -298,7 +314,7 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
         <div className="grid gap-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <Badge className="border-sky-500/25 bg-sky-500/14 text-sky-950 dark:text-sky-100">History</Badge>
+              <Badge className="border-sky-500/25 bg-sky-500/14">History</Badge>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">Patterns, not just receipts</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Recent winners and repeat favorites live here instead of competing with today’s main task.</p>
             </div>
@@ -338,7 +354,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
       <Card className="p-6 sm:p-8">
         <div className="grid gap-5">
           <div>
-            <Badge className="text-violet-950 dark:text-violet-100">Crew</Badge>
+            <Badge>Crew</Badge>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">Settings, identity, and invite access</h2>
             <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Workspace maintenance lives here instead of crowding the daily ballot.</p>
           </div>
@@ -362,7 +378,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
 
       <Card className="p-6 sm:p-8">
         <div className="grid gap-4">
-          <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14 text-fuchsia-900 dark:text-fuchsia-100">Snapshot</Badge>
+          <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14">Snapshot</Badge>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <Metric icon={Clock3} label="Votes cast" value={String(totalVotes)} compact />
             <Metric icon={Crown} label="Front runner" value={app.topChoice || 'Waiting'} compact />
