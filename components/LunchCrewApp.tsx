@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Settings2, Share2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
+import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
@@ -350,9 +350,8 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">Settings, identity, and invite access</h2>
             <p className="mt-2 text-sm leading-7 text-[var(--text-muted)]">Workspace maintenance lives here instead of crowding the daily ballot.</p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-1">
             <Metric icon={Share2} label="Invite code" value={app.workspace?.invite_code || '—'} />
-            <Metric icon={Settings2} label="Build" value={app.BUILD_LABEL} />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button variant="secondary" className="justify-start" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share invite</Button>
@@ -372,8 +371,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
       <Card className="p-6 sm:p-8">
         <div className="grid gap-4">
           <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14 text-fuchsia-900 dark:text-fuchsia-100">Snapshot</Badge>
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-            <Metric icon={Users2} label="Crew build" value={app.BUILD_LABEL} compact />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <Metric icon={Clock3} label="Votes cast" value={String(totalVotes)} compact />
             <Metric icon={Crown} label="Front runner" value={app.topChoice || 'Waiting'} compact />
           </div>

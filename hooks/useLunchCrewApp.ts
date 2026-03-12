@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { trackEvent } from '@/lib/analytics';
 import {
-  BUILD_LABEL, DEVICE_ID_KEY, DISPLAY_NAME_KEY, LAST_WORKSPACE_CODE_KEY, LAST_WORKSPACE_ID_KEY, LOCATION_PROMPT_SEEN_KEY,
+  DEVICE_ID_KEY, DISPLAY_NAME_KEY, LAST_WORKSPACE_CODE_KEY, LAST_WORKSPACE_ID_KEY, LOCATION_PROMPT_SEEN_KEY,
   MONETIZATION_LAST_PROMPT_AT_KEY, MONETIZATION_WAITLIST_JOINED_KEY, ONBOARDING_SEEN_KEY,
   extractInviteCode, generateInviteCode, makeDeviceId, normalizeDisplayName, storage, todayDateUTC, withTimeout,
   workspacePath,
@@ -353,7 +353,7 @@ export function useLunchCrewApp(initialCode?: string) {
   }, [onboardingReady, onboardingDone, workspace?.id]);
 
   return {
-    BUILD_LABEL, configError, onboardingDone, onboardingReady, completeOnboarding, shareInvite, createNewCrew, retryLoad,
+    configError, onboardingDone, onboardingReady, completeOnboarding, shareInvite, createNewCrew, retryLoad,
     showMonetizationModal, setShowMonetizationModal, show30DayHistory, setShow30DayHistory,
     workspace, deviceId, member, loading, renaming, savingName, loadError, setLoadError, renameCrew, saveDisplayName,
     poll, pollDataReady, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, topChoice, vote, addOption,
