@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { trackEvent } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
+import { ds } from './designSystem';
 
 type Props = {
   workspaceId?: string;
@@ -70,9 +71,9 @@ export function MonetizationCard({ workspaceId, deviceId }: Props) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.badge}>Coming soon</Text>
+      <View style={styles.badge}><Text style={styles.badgeText}>Coming soon</Text></View>
       <Text style={styles.title}>LunchCrew Pro</Text>
-      <Text style={styles.subtitle}>Priority picks, recurring lunch rules, and team insights. Join the waitlist for early access.</Text>
+      <Text style={styles.subtitle}>Priority picks, recurring lunch rules, and richer team insights. Join the waitlist for early access.</Text>
 
       <View style={styles.inputWrap}>
         <TextInput
@@ -80,7 +81,7 @@ export function MonetizationCard({ workspaceId, deviceId }: Props) {
           value={email}
           onChangeText={setEmail}
           placeholder="Work email"
-          placeholderTextColor="#64748b"
+          placeholderTextColor={ds.colors.textSoft}
           keyboardType="email-address"
           autoCapitalize="none"
         />
@@ -89,17 +90,17 @@ export function MonetizationCard({ workspaceId, deviceId }: Props) {
           value={note}
           onChangeText={setNote}
           placeholder="What would make Pro worth paying for? (optional)"
-          placeholderTextColor="#64748b"
+          placeholderTextColor={ds.colors.textSoft}
           multiline
         />
       </View>
 
       <Pressable style={[styles.button, (!canSubmit || status === 'saving') && styles.buttonDisabled]} disabled={!canSubmit || status === 'saving'} onPress={() => void submit()}>
-        {status === 'saving' ? <ActivityIndicator size="small" color="#ecfeff" /> : <Text style={styles.buttonText}>Join Pro waitlist</Text>}
+        {status === 'saving' ? <ActivityIndicator size="small" color="#10182f" /> : <Text style={styles.buttonText}>Join Pro waitlist</Text>}
       </Pressable>
 
       {email.trim().length > 0 && !canSubmit && <Text style={styles.helper}>Enter a valid email to join the waitlist.</Text>}
-      {status === 'saved' && <Text style={styles.success}>Thanks — we will reach out before launch.</Text>}
+      {status === 'saved' && <Text style={styles.success}>Thanks — we’ll reach out before launch.</Text>}
       {status === 'error' && <Text style={styles.error}>Couldn’t save right now. Your interest was still noted.</Text>}
     </View>
   );
@@ -107,49 +108,47 @@ export function MonetizationCard({ workspaceId, deviceId }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 18,
-    padding: 14,
-    backgroundColor: '#0b1220',
+    borderRadius: ds.radius.xl,
+    padding: 16,
+    backgroundColor: ds.colors.cardSoft,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: ds.colors.stroke,
     gap: 10,
   },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f2937',
-    color: '#67e8f9',
-    borderRadius: 999,
+    backgroundColor: ds.colors.accentSoft,
+    borderRadius: ds.radius.pill,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    fontSize: 11,
-    fontWeight: '700',
+    paddingVertical: 5,
   },
-  title: { color: '#f8fafc', fontWeight: '800', fontSize: 18 },
-  subtitle: { color: '#94a3b8', fontSize: 13, lineHeight: 18 },
+  badgeText: { color: ds.colors.text, fontSize: 11, fontWeight: '800' },
+  title: { color: ds.colors.text, fontWeight: '900', fontSize: 18 },
+  subtitle: { color: ds.colors.textMuted, fontSize: 13, lineHeight: 19 },
   inputWrap: { gap: 8 },
   input: {
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 10,
-    backgroundColor: '#111827',
-    color: '#f8fafc',
+    borderColor: ds.colors.strokeStrong,
+    borderRadius: ds.radius.md,
+    backgroundColor: ds.colors.input,
+    color: ds.colors.text,
     fontSize: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   noteInput: { minHeight: 64, textAlignVertical: 'top' },
   button: {
     alignSelf: 'flex-start',
-    backgroundColor: '#0e7490',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    minWidth: 150,
+    backgroundColor: ds.colors.accent,
+    borderRadius: ds.radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    minWidth: 160,
     alignItems: 'center',
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#ecfeff', fontWeight: '700', fontSize: 13 },
-  helper: { color: '#94a3b8', fontSize: 12 },
-  success: { color: '#86efac', fontSize: 12, fontWeight: '600' },
-  error: { color: '#fca5a5', fontSize: 12, fontWeight: '600' },
+  buttonText: { color: '#10182f', fontWeight: '900', fontSize: 13 },
+  helper: { color: ds.colors.textSoft, fontSize: 12 },
+  success: { color: ds.colors.teal, fontSize: 12, fontWeight: '700' },
+  error: { color: ds.colors.danger, fontSize: 12, fontWeight: '700' },
 });

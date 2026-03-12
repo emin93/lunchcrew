@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { trackEvent } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
+import { ds } from './designSystem';
 
 type Props = {
   visible: boolean;
@@ -84,11 +85,9 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose, onJ
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.modalCard}>
-          <Text style={styles.badge}>LunchCrew Pro • Coming soon</Text>
+          <View style={styles.badge}><Text style={styles.badgeText}>LunchCrew Pro • Coming soon</Text></View>
           <Text style={styles.title}>Want smarter lunch planning for your team?</Text>
-          <Text style={styles.subtitle}>
-            Join the early access waitlist for advanced team insights, recurring rules, and admin controls.
-          </Text>
+          <Text style={styles.subtitle}>Join the early access waitlist for advanced insights, recurring rules, and admin controls.</Text>
 
           <View style={styles.inputWrap}>
             <TextInput
@@ -96,7 +95,7 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose, onJ
               value={email}
               onChangeText={setEmail}
               placeholder="Work email"
-              placeholderTextColor="#64748b"
+              placeholderTextColor={ds.colors.textSoft}
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -105,7 +104,7 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose, onJ
               value={note}
               onChangeText={setNote}
               placeholder="What would make Pro worth paying for? (optional)"
-              placeholderTextColor="#64748b"
+              placeholderTextColor={ds.colors.textSoft}
               multiline
             />
           </View>
@@ -119,7 +118,7 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose, onJ
               disabled={!canSubmit || status === 'saving'}
               onPress={() => void submit()}
             >
-              {status === 'saving' ? <ActivityIndicator size="small" color="#ecfeff" /> : <Text style={styles.primaryBtnText}>Join waitlist</Text>}
+              {status === 'saving' ? <ActivityIndicator size="small" color="#10182f" /> : <Text style={styles.primaryBtnText}>Join waitlist</Text>}
             </Pressable>
           </View>
 
@@ -134,7 +133,7 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose, onJ
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(3,7,18,0.72)',
+    backgroundColor: ds.colors.overlay,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -142,56 +141,59 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 520,
-    borderRadius: 18,
-    padding: 16,
-    backgroundColor: '#0b1220',
+    borderRadius: ds.radius.xxl,
+    padding: 18,
+    backgroundColor: ds.colors.card,
     borderWidth: 1,
-    borderColor: '#1e293b',
-    gap: 10,
+    borderColor: ds.colors.stroke,
+    gap: 12,
+    ...ds.shadow.card,
   },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f2937',
-    color: '#67e8f9',
-    borderRadius: 999,
+    backgroundColor: ds.colors.accentSoft,
+    borderRadius: ds.radius.pill,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    fontSize: 11,
-    fontWeight: '700',
+    paddingVertical: 5,
   },
-  title: { color: '#f8fafc', fontWeight: '800', fontSize: 18 },
-  subtitle: { color: '#94a3b8', fontSize: 13, lineHeight: 18 },
+  badgeText: { color: ds.colors.text, fontSize: 11, fontWeight: '800' },
+  title: { color: ds.colors.text, fontWeight: '900', fontSize: 22, lineHeight: 28 },
+  subtitle: { color: ds.colors.textMuted, fontSize: 13, lineHeight: 20 },
   inputWrap: { gap: 8 },
   input: {
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 10,
-    backgroundColor: '#111827',
-    color: '#f8fafc',
+    borderColor: ds.colors.strokeStrong,
+    borderRadius: ds.radius.md,
+    backgroundColor: ds.colors.input,
+    color: ds.colors.text,
     fontSize: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
-  noteInput: { minHeight: 64, textAlignVertical: 'top' },
+  noteInput: { minHeight: 70, textAlignVertical: 'top' },
   actions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   ghostBtn: {
+    flex: 1,
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 10,
+    borderColor: ds.colors.strokeStrong,
+    borderRadius: ds.radius.md,
     paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingVertical: 11,
+    alignItems: 'center',
+    backgroundColor: ds.colors.input,
   },
-  ghostBtnText: { color: '#cbd5e1', fontWeight: '700', fontSize: 13 },
+  ghostBtnText: { color: ds.colors.textMuted, fontWeight: '800', fontSize: 13 },
   primaryBtn: {
-    backgroundColor: '#0e7490',
-    borderRadius: 10,
+    flex: 1,
+    backgroundColor: ds.colors.accent,
+    borderRadius: ds.radius.md,
     paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingVertical: 11,
     minWidth: 126,
     alignItems: 'center',
   },
-  primaryBtnText: { color: '#ecfeff', fontWeight: '700', fontSize: 13 },
+  primaryBtnText: { color: '#10182f', fontWeight: '900', fontSize: 13 },
   buttonDisabled: { opacity: 0.6 },
-  helper: { color: '#94a3b8', fontSize: 12 },
-  error: { color: '#fca5a5', fontSize: 12, fontWeight: '600' },
+  helper: { color: ds.colors.textSoft, fontSize: 12 },
+  error: { color: ds.colors.danger, fontSize: 12, fontWeight: '700' },
 });

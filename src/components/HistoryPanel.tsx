@@ -17,9 +17,10 @@ export function HistoryPanel({ days7, days30, leaderboard, show30Days, onToggleR
   return (
     <View style={styles.panel}>
       <View style={styles.headerRow}>
-        <View>
+        <View style={styles.headerTextWrap}>
           <Text style={styles.eyebrow}>Performance</Text>
           <Text style={styles.title}>Lunch momentum</Text>
+          <Text style={styles.subtitle}>Track which places keep winning and how that changes across the week or month.</Text>
         </View>
         <View style={styles.toggleRow}>
           <Pressable style={[styles.toggleBtn, !show30Days && styles.toggleBtnActive]} onPress={() => onToggleRange(false)}>
@@ -32,6 +33,7 @@ export function HistoryPanel({ days7, days30, leaderboard, show30Days, onToggleR
       </View>
 
       <View style={styles.podiumWrap}>
+        <Text style={styles.sectionTitle}>Top winners</Text>
         {top3.length === 0 ? (
           <Text style={styles.empty}>No winners yet. Start voting to build your leaderboard.</Text>
         ) : (
@@ -56,8 +58,8 @@ export function HistoryPanel({ days7, days30, leaderboard, show30Days, onToggleR
         {rows.length === 0 ? (
           <Text style={styles.emptySmall}>No history rows yet.</Text>
         ) : (
-          rows.map((d) => (
-            <View key={d.poll_date} style={styles.tableRow}>
+          rows.map((d, index) => (
+            <View key={d.poll_date} style={[styles.tableRow, index === rows.length - 1 && styles.tableRowLast]}>
               <Text style={[styles.rowCell, styles.dateCol]}>{d.poll_date}</Text>
               <Text style={[styles.rowCell, styles.winnerCol]} numberOfLines={1}>{d.winner_name || 'No winner'}</Text>
               <Text style={[styles.rowCell, styles.votesCol]}>{d.winner_votes || 0}</Text>
@@ -71,69 +73,75 @@ export function HistoryPanel({ days7, days30, leaderboard, show30Days, onToggleR
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: ds.radius.xl,
-    padding: ds.spacing.lg,
+    borderRadius: ds.radius.xxl,
+    padding: ds.spacing.xl,
     backgroundColor: ds.colors.card,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    gap: 14,
+    gap: 18,
+    ...ds.shadow.card,
   },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  eyebrow: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
-  title: { color: ds.colors.text, fontSize: 22, fontWeight: '800', marginTop: 2 },
-  toggleRow: { flexDirection: 'row', gap: 6 },
+  headerRow: { gap: 12 },
+  headerTextWrap: { gap: 6 },
+  eyebrow: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 },
+  title: { color: ds.colors.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.8 },
+  subtitle: { color: ds.colors.textMuted, fontSize: 14, lineHeight: 21, maxWidth: 620 },
+  toggleRow: { flexDirection: 'row', gap: 8, alignSelf: 'flex-start' },
   toggleBtn: {
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
     borderRadius: ds.radius.pill,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
     backgroundColor: ds.colors.cardMuted,
   },
-  toggleBtnActive: { backgroundColor: ds.colors.accent, borderColor: ds.colors.accentStrong },
-  toggleText: { color: ds.colors.textMuted, fontSize: 12, fontWeight: '700' },
-  toggleTextActive: { color: '#ffffff' },
+  toggleBtnActive: { backgroundColor: ds.colors.accentSoft, borderColor: ds.colors.accentSoftStrong },
+  toggleText: { color: ds.colors.textMuted, fontSize: 12, fontWeight: '800' },
+  toggleTextActive: { color: ds.colors.text },
+  sectionTitle: { color: ds.colors.text, fontSize: 16, fontWeight: '800' },
   podiumWrap: {
+    borderRadius: ds.radius.xl,
+    borderWidth: 1,
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.cardMuted,
+    padding: 14,
+    gap: 12,
+  },
+  podiumRow: { flexDirection: 'row', gap: 10 },
+  podiumCard: {
+    flex: 1,
     borderRadius: ds.radius.lg,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    backgroundColor: ds.colors.cardMuted,
-    padding: 10,
+    backgroundColor: ds.colors.input,
+    padding: 12,
+    gap: 4,
   },
-  podiumRow: { flexDirection: 'row', gap: 8 },
-  podiumCard: {
-    flex: 1,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: ds.colors.stroke,
-    backgroundColor: '#0b1220',
-    padding: 10,
-    gap: 2,
-  },
-  podiumCardMain: { borderColor: ds.colors.accentStrong, backgroundColor: ds.colors.accentSoft },
-  podiumRank: { color: ds.colors.accentStrong, fontSize: 11, fontWeight: '900' },
-  podiumName: { color: ds.colors.text, fontWeight: '800', fontSize: 13 },
-  podiumWins: { color: ds.colors.textMuted, fontSize: 11, fontWeight: '700' },
+  podiumCardMain: { borderColor: 'rgba(255, 207, 112, 0.28)', backgroundColor: ds.colors.goldSoft },
+  podiumRank: { color: ds.colors.gold, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
+  podiumName: { color: ds.colors.text, fontWeight: '900', fontSize: 14 },
+  podiumWins: { color: ds.colors.textMuted, fontSize: 12, fontWeight: '700' },
   tableWrap: {
-    borderRadius: ds.radius.md,
+    borderRadius: ds.radius.xl,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
     overflow: 'hidden',
   },
-  tableHead: { flexDirection: 'row', backgroundColor: ds.colors.cardMuted, paddingVertical: 8, paddingHorizontal: 10 },
-  headCell: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
+  tableHead: { flexDirection: 'row', backgroundColor: ds.colors.cardMuted, paddingVertical: 10, paddingHorizontal: 12 },
+  headCell: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.7 },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 9,
-    paddingHorizontal: 10,
-    backgroundColor: '#0b1220',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: ds.colors.input,
     borderTopWidth: 1,
     borderTopColor: ds.colors.stroke,
   },
-  rowCell: { color: ds.colors.text, fontSize: 12, fontWeight: '600' },
-  dateCol: { width: 95 },
+  tableRowLast: { borderBottomWidth: 0 },
+  rowCell: { color: ds.colors.text, fontSize: 13, fontWeight: '700' },
+  dateCol: { width: 104 },
   winnerCol: { flex: 1 },
-  votesCol: { width: 46, textAlign: 'right' },
-  empty: { color: ds.colors.textMuted, fontSize: 12, lineHeight: 18 },
-  emptySmall: { color: ds.colors.textSoft, fontSize: 12, padding: 10 },
+  votesCol: { width: 56, textAlign: 'right' },
+  empty: { color: ds.colors.textMuted, fontSize: 13, lineHeight: 19 },
+  emptySmall: { color: ds.colors.textSoft, fontSize: 12, padding: 12 },
 });

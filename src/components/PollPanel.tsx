@@ -55,19 +55,21 @@ export function PollPanel({
   return (
     <View style={styles.panel}>
       <View style={styles.headerWrap}>
-        <View>
+        <View style={styles.headerContent}>
           <Text style={styles.eyebrow}>Today&apos;s poll</Text>
           <Text style={styles.pollTitle}>{poll.title}</Text>
+          <Text style={styles.pollSubtitle}>Tap a place to cast your vote. Add a new option below if the perfect lunch spot isn’t listed yet.</Text>
         </View>
-        {topChoice ? <Text style={styles.leaderTag}>Leading: {topChoice}</Text> : null}
+        {topChoice ? <View style={styles.leaderTag}><Text style={styles.leaderTagText}>Leading • {topChoice}</Text></View> : null}
       </View>
 
       <View style={styles.optionList}>
         {options.length === 0 ? (
           <View style={styles.emptyInline}>
             <Text style={styles.emptyKicker}>Start the board</Text>
-            <Text style={styles.emptyText}>Add your first place below. Places stay in your crew workspace while votes reset daily.</Text>
-            <Text style={styles.privacyText}>Location only improves nearby autocomplete and is never stored.</Text>
+            <Text style={styles.emptyTitle}>No places yet.</Text>
+            <Text style={styles.emptyText}>Add the first option below. Your crew’s place list sticks around while votes reset daily.</Text>
+            <Text style={styles.privacyText}>Location only improves autocomplete and is never stored.</Text>
           </View>
         ) : null}
 
@@ -92,17 +94,24 @@ export function PollPanel({
               accessibilityLabel={`Vote for ${opt.name}`}
               accessibilityHint="Double tap to cast your vote"
             >
+              <View style={styles.voteRail}>
+                {isVotingThis ? <ActivityIndicator size="small" color={ds.colors.accent} /> : <Text style={styles.voteCount}>{opt.votes}</Text>}
+                <Text style={styles.voteCountLabel}>{opt.votes === 1 ? 'vote' : 'votes'}</Text>
+              </View>
+
               <View style={styles.optionMain}>
                 <View style={styles.optionHeader}>
-                  <Text style={styles.optionName}>{opt.name}</Text>
-                  {isActive ? <Text style={styles.myVoteTag}>YOUR PICK</Text> : null}
+                  <View style={styles.titleWrap}>
+                    <Text style={styles.optionName}>{opt.name}</Text>
+                    {isActive ? <Text style={styles.myVoteTag}>Your pick</Text> : null}
+                  </View>
                 </View>
 
                 {opt.place ? (
                   <View style={styles.placeMetaWrap}>
                     {opt.place.formatted_address ? <Text style={styles.placeMetaText}>{opt.place.formatted_address}</Text> : null}
                     <View style={styles.placeBadgeRow}>
-                      {typeof opt.place.rating === 'number' ? <Text style={styles.placeBadge}>⭐ {opt.place.rating.toFixed(1)}</Text> : null}
+                      {typeof opt.place.rating === 'number' ? <Text style={[styles.placeBadge, styles.ratingBadge]}>★ {opt.place.rating.toFixed(1)}</Text> : null}
                       {priceLabel(opt.place.price_level) ? <Text style={styles.placeBadge}>{priceLabel(opt.place.price_level)}</Text> : null}
                     </View>
                     <View style={styles.linkRow}>
@@ -117,7 +126,7 @@ export function PollPanel({
                           accessibilityRole="button"
                           accessibilityLabel={`Open ${opt.name} in maps`}
                         >
-                          <Text style={styles.linkBtnText}>Maps</Text>
+                          <Text style={styles.linkBtnText}>Open maps</Text>
                         </Pressable>
                       ) : null}
                       {menuUrl ? (
@@ -131,7 +140,7 @@ export function PollPanel({
                           accessibilityRole="button"
                           accessibilityLabel={`Open ${opt.name} menu`}
                         >
-                          <Text style={styles.linkBtnText}>Menu</Text>
+                          <Text style={styles.linkBtnText}>View menu</Text>
                         </Pressable>
                       ) : null}
                     </View>
@@ -149,139 +158,166 @@ export function PollPanel({
                       </View>
                     ))}
                   </View>
-                ) : null}
-              </View>
-
-              <View style={styles.voteMeta}>
-                {isVotingThis ? <ActivityIndicator size="small" color={ds.colors.accent} /> : null}
-                <Text style={styles.voteCount}>{opt.votes}</Text>
-                <Text style={styles.voteCountLabel}>votes</Text>
+                ) : (
+                  <Text style={styles.noVotesText}>No votes yet — be first.</Text>
+                )}
               </View>
             </Pressable>
           );
         })}
       </View>
 
-      <View style={styles.composerWrap}>
-        <TextInput
-          style={styles.input}
-          placeholder="Suggest a place"
-          placeholderTextColor={ds.colors.textSoft}
-          value={newOption}
-          onChangeText={onChangeNewOption}
-          returnKeyType="done"
-          onSubmitEditing={() => {
-            if (canAddOption && !addingOption) onAddOption();
-          }}
-        />
-        <Pressable
-          style={({ pressed }) => [
-            styles.addBtn,
-            (!canAddOption || addingOption) && styles.optionDisabled,
-            pressed && canAddOption && !addingOption && styles.addBtnPressed,
-          ]}
-          onPress={onAddOption}
-          disabled={!canAddOption || addingOption}
-          accessibilityRole="button"
-          accessibilityLabel="Add place option"
-        >
-          {addingOption ? <ActivityIndicator size="small" color="#ffffff" /> : <Text style={styles.addBtnText}>Add place</Text>}
-        </Pressable>
-      </View>
+      <View style={styles.composerSection}>
+        <View style={styles.composerHeader}>
+          <View>
+            <Text style={styles.composerKicker}>Add a contender</Text>
+            <Text style={styles.composerTitle}>Suggest a new lunch spot</Text>
+          </View>
+          {selectedSuggestion ? (
+            <Pressable onPress={onClearSuggestion} accessibilityRole="button" accessibilityLabel="Clear selected suggestion">
+              <Text style={styles.clearText}>Change selection</Text>
+            </Pressable>
+          ) : null}
+        </View>
 
-      {selectedSuggestion ? (
-        <View style={styles.selectedRow}>
-          <Text style={styles.selectedText}>Selected: {selectedSuggestion.name}</Text>
-          <Pressable onPress={onClearSuggestion} accessibilityRole="button" accessibilityLabel="Clear selected suggestion">
-            <Text style={styles.clearText}>Change</Text>
+        <View style={styles.composerWrap}>
+          <TextInput
+            style={styles.input}
+            placeholder="Search or type a place name"
+            placeholderTextColor={ds.colors.textSoft}
+            value={newOption}
+            onChangeText={onChangeNewOption}
+            returnKeyType="done"
+            onSubmitEditing={() => {
+              if (canAddOption && !addingOption) onAddOption();
+            }}
+          />
+          <Pressable
+            style={({ pressed }) => [
+              styles.addBtn,
+              (!canAddOption || addingOption) && styles.optionDisabled,
+              pressed && canAddOption && !addingOption && styles.addBtnPressed,
+            ]}
+            onPress={onAddOption}
+            disabled={!canAddOption || addingOption}
+            accessibilityRole="button"
+            accessibilityLabel="Add place option"
+          >
+            {addingOption ? <ActivityIndicator size="small" color="#10182f" /> : <Text style={styles.addBtnText}>Add place</Text>}
           </Pressable>
         </View>
-      ) : null}
 
-      {showSuggestionList ? (
-        <View style={styles.suggestionsWrap}>
-          {loadingSuggestions ? <Text style={styles.suggestHint}>Searching places…</Text> : null}
-          {showNoResults ? <Text style={styles.suggestHint}>No places found. Try another name or add manually.</Text> : null}
-          {suggestions.map((s) => (
-            <Pressable key={s.id} style={styles.suggestionItem} onPress={() => onSelectSuggestion(s)} accessibilityRole="button">
-              <Text style={styles.suggestionName}>{s.name}</Text>
-              {s.secondaryText ? <Text style={styles.suggestionSub}>{s.secondaryText}</Text> : null}
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
+        {selectedSuggestion ? (
+          <View style={styles.selectedRow}>
+            <Text style={styles.selectedLabel}>Selected</Text>
+            <Text style={styles.selectedText}>{selectedSuggestion.name}</Text>
+          </View>
+        ) : null}
+
+        {showSuggestionList ? (
+          <View style={styles.suggestionsWrap}>
+            {loadingSuggestions ? <Text style={styles.suggestHint}>Searching places…</Text> : null}
+            {showNoResults ? <Text style={styles.suggestHint}>No places found. Try another name or add it manually.</Text> : null}
+            {suggestions.map((s, index) => (
+              <Pressable key={s.id} style={[styles.suggestionItem, index === suggestions.length - 1 && styles.suggestionItemLast]} onPress={() => onSelectSuggestion(s)} accessibilityRole="button">
+                <View style={styles.suggestionTextWrap}>
+                  <Text style={styles.suggestionName}>{s.name}</Text>
+                  {s.secondaryText ? <Text style={styles.suggestionSub}>{s.secondaryText}</Text> : null}
+                </View>
+                <Text style={styles.suggestionAction}>Use</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: ds.radius.xl,
-    padding: ds.spacing.lg,
+    borderRadius: ds.radius.xxl,
+    padding: ds.spacing.xl,
     backgroundColor: ds.colors.card,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    gap: 14,
+    gap: 20,
+    ...ds.shadow.card,
   },
-  headerWrap: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  eyebrow: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
-  pollTitle: { color: ds.colors.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5, marginTop: 3 },
+  headerWrap: { gap: 12 },
+  headerContent: { gap: 6 },
+  eyebrow: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 },
+  pollTitle: { color: ds.colors.text, fontSize: 28, lineHeight: 33, fontWeight: '900', letterSpacing: -0.8 },
+  pollSubtitle: { color: ds.colors.textMuted, fontSize: 14, lineHeight: 21, maxWidth: 620 },
   leaderTag: {
-    color: ds.colors.accentStrong,
-    fontSize: 11,
-    fontWeight: '700',
+    alignSelf: 'flex-start',
     borderRadius: ds.radius.pill,
     borderWidth: 1,
-    borderColor: ds.colors.strokeStrong,
+    borderColor: ds.colors.accentSoftStrong,
     backgroundColor: ds.colors.accentSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  optionList: { gap: 10 },
+  leaderTagText: { color: ds.colors.text, fontSize: 12, fontWeight: '800' },
+  optionList: { gap: 12 },
   optionCard: {
-    borderRadius: ds.radius.lg,
+    borderRadius: ds.radius.xl,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
     backgroundColor: ds.colors.cardMuted,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    padding: 14,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'stretch',
-    gap: 10,
+    gap: 14,
   },
-  optionMain: { flex: 1, gap: 8 },
-  optionHeader: { gap: 3 },
-  optionCardActive: { borderColor: ds.colors.accent, backgroundColor: '#10323f' },
-  optionCardPressed: { transform: [{ scale: 0.987 }], opacity: 0.92 },
+  optionMain: { flex: 1, gap: 10 },
+  optionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+  titleWrap: { flex: 1, gap: 4 },
+  optionCardActive: { borderColor: ds.colors.accentSoftStrong, backgroundColor: 'rgba(32, 43, 84, 0.98)' },
+  optionCardPressed: { transform: [{ scale: 0.99 }], opacity: 0.95 },
   optionDisabled: { opacity: 0.65 },
-  optionName: { color: ds.colors.text, fontWeight: '800', fontSize: 16 },
-  myVoteTag: { color: ds.colors.accentStrong, fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
-  placeMetaWrap: { gap: 6 },
-  placeMetaText: { color: ds.colors.textMuted, fontSize: 11 },
-  placeBadgeRow: { flexDirection: 'row', gap: 6 },
+  voteRail: {
+    width: 72,
+    borderRadius: ds.radius.lg,
+    borderWidth: 1,
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: 'rgba(7, 12, 28, 0.68)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  voteCount: { color: ds.colors.text, fontWeight: '900', minWidth: 18, textAlign: 'center', fontSize: 24 },
+  voteCountLabel: { color: ds.colors.textSoft, fontWeight: '800', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.7 },
+  optionName: { color: ds.colors.text, fontWeight: '900', fontSize: 19, lineHeight: 23 },
+  myVoteTag: { color: ds.colors.teal, fontSize: 11, fontWeight: '900', letterSpacing: 0.6, textTransform: 'uppercase' },
+  placeMetaWrap: { gap: 8 },
+  placeMetaText: { color: ds.colors.textMuted, fontSize: 12, lineHeight: 18 },
+  placeBadgeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   placeBadge: {
     color: ds.colors.text,
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
     borderRadius: ds.radius.pill,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: '#0b1220',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: ds.colors.input,
   },
+  ratingBadge: { backgroundColor: ds.colors.goldSoft, borderColor: 'rgba(255, 207, 112, 0.24)' },
   linkRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   linkBtn: {
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
     borderRadius: ds.radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: '#0b1220',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    backgroundColor: ds.colors.input,
   },
-  linkBtnText: { color: ds.colors.text, fontSize: 11, fontWeight: '700' },
-  votersWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  linkBtnText: { color: ds.colors.text, fontSize: 12, fontWeight: '800' },
+  votersWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   voterChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -289,75 +325,101 @@ const styles = StyleSheet.create({
     borderRadius: ds.radius.pill,
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
-    backgroundColor: '#0b1220',
+    backgroundColor: ds.colors.input,
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 5,
   },
   voterAvatar: {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     borderRadius: ds.radius.pill,
-    backgroundColor: '#1f2937',
+    backgroundColor: ds.colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  voterAvatarText: { color: ds.colors.text, fontSize: 9, fontWeight: '800' },
-  voterName: { color: ds.colors.textMuted, fontSize: 11, fontWeight: '600' },
-  voteMeta: {
-    minWidth: 58,
-    borderRadius: ds.radius.md,
-    borderWidth: 1,
-    borderColor: ds.colors.strokeStrong,
-    backgroundColor: '#0b1220',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 1,
-    alignSelf: 'center',
-    paddingVertical: 9,
-    paddingHorizontal: 8,
-  },
-  voteCount: { color: ds.colors.text, fontWeight: '900', minWidth: 18, textAlign: 'center', fontSize: 18 },
-  voteCountLabel: { color: ds.colors.textSoft, fontWeight: '700', fontSize: 10, textTransform: 'uppercase' },
-  composerWrap: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  input: {
-    flex: 1,
-    borderRadius: ds.radius.md,
-    borderWidth: 1,
-    borderColor: ds.colors.strokeStrong,
-    backgroundColor: '#0b1220',
-    color: ds.colors.text,
-    fontSize: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-  },
-  addBtn: {
-    minWidth: 104,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: ds.radius.md,
-    borderWidth: 1,
-    borderColor: ds.colors.accentStrong,
-    backgroundColor: ds.colors.accent,
-    paddingHorizontal: 12,
-  },
-  addBtnPressed: { transform: [{ scale: 0.97 }], opacity: 0.9 },
-  addBtnText: { color: '#ffffff', fontWeight: '800', fontSize: 13 },
-  suggestionsWrap: {
-    borderRadius: ds.radius.md,
+  voterAvatarText: { color: ds.colors.text, fontSize: 9, fontWeight: '900' },
+  voterName: { color: ds.colors.textMuted, fontSize: 11, fontWeight: '700' },
+  noVotesText: { color: ds.colors.textSoft, fontSize: 12, fontWeight: '600' },
+  composerSection: {
+    borderRadius: ds.radius.xl,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    backgroundColor: '#0b1220',
+    backgroundColor: 'rgba(8, 13, 31, 0.44)',
+    padding: 16,
+    gap: 12,
+  },
+  composerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+  composerKicker: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 },
+  composerTitle: { color: ds.colors.text, fontSize: 18, fontWeight: '800', marginTop: 2 },
+  composerWrap: { flexDirection: 'row', gap: 10 },
+  input: {
+    flex: 1,
+    borderRadius: ds.radius.lg,
+    borderWidth: 1,
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: ds.colors.input,
+    color: ds.colors.text,
+    fontSize: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+  },
+  addBtn: {
+    minWidth: 116,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: ds.radius.lg,
+    backgroundColor: ds.colors.accent,
+    paddingHorizontal: 14,
+    ...ds.shadow.glow,
+  },
+  addBtnPressed: { transform: [{ scale: 0.98 }], opacity: 0.92 },
+  addBtnText: { color: '#10182f', fontWeight: '900', fontSize: 13 },
+  suggestionsWrap: {
+    borderRadius: ds.radius.lg,
+    borderWidth: 1,
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.input,
     overflow: 'hidden',
   },
-  suggestHint: { color: ds.colors.textMuted, fontSize: 12, padding: 10 },
-  suggestionItem: { paddingHorizontal: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: ds.colors.stroke },
-  suggestionName: { color: ds.colors.text, fontSize: 13, fontWeight: '700' },
+  suggestHint: { color: ds.colors.textMuted, fontSize: 12, padding: 12 },
+  suggestionItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: ds.colors.stroke,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  suggestionItemLast: { borderBottomWidth: 0 },
+  suggestionTextWrap: { flex: 1 },
+  suggestionName: { color: ds.colors.text, fontSize: 14, fontWeight: '800' },
   suggestionSub: { color: ds.colors.textSoft, fontSize: 11, marginTop: 2 },
-  selectedRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  selectedText: { color: ds.colors.accentStrong, fontSize: 12, fontWeight: '700' },
-  clearText: { color: ds.colors.textMuted, fontSize: 12, fontWeight: '700' },
-  emptyInline: { paddingHorizontal: 2, paddingBottom: 2, gap: 4 },
-  emptyKicker: { color: ds.colors.accent, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 },
-  emptyText: { color: ds.colors.textMuted, fontSize: 12, lineHeight: 18 },
-  privacyText: { color: ds.colors.textSoft, fontSize: 11, lineHeight: 16 },
+  suggestionAction: { color: ds.colors.teal, fontSize: 12, fontWeight: '800' },
+  selectedRow: {
+    borderRadius: ds.radius.lg,
+    borderWidth: 1,
+    borderColor: ds.colors.accentSoftStrong,
+    backgroundColor: ds.colors.accentSoft,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 2,
+  },
+  selectedLabel: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.7 },
+  selectedText: { color: ds.colors.text, fontSize: 13, fontWeight: '800' },
+  clearText: { color: ds.colors.textMuted, fontSize: 12, fontWeight: '800' },
+  emptyInline: {
+    borderRadius: ds.radius.xl,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: 'rgba(8, 13, 31, 0.36)',
+    padding: 16,
+    gap: 6,
+  },
+  emptyKicker: { color: ds.colors.teal, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 },
+  emptyTitle: { color: ds.colors.text, fontSize: 20, fontWeight: '900' },
+  emptyText: { color: ds.colors.textMuted, fontSize: 13, lineHeight: 19 },
+  privacyText: { color: ds.colors.textSoft, fontSize: 12, lineHeight: 18 },
 });
