@@ -34,30 +34,30 @@ export function WorkspacePanel({
   return (
     <View style={styles.panel}>
       <View style={styles.header}>
-        <View style={styles.headerBadge}><Text style={styles.headerBadgeText}>Active crew</Text></View>
+        <Text style={styles.eyebrow}>Crew control</Text>
         <Text style={styles.title}>{workspace.name}</Text>
-        <Text style={styles.subtitle}>Keep the crew recognizable, keep invites simple, and make sure everyone shows up correctly when it’s time to vote.</Text>
+        <Text style={styles.subtitle}>Treat this as the operating room: invite access, crew naming, and the profile everyone sees when votes start moving.</Text>
       </View>
 
-      <View style={styles.overviewGrid}>
-        <View style={[styles.overviewCard, styles.overviewCardPrimary]}>
-          <Text style={styles.overviewLabel}>Invite code</Text>
-          <Text style={styles.overviewValue}>{workspace.invite_code}</Text>
-          <Text style={styles.overviewCopy}>Share this to bring someone straight into the crew.</Text>
+      <View style={styles.summaryGrid}>
+        <View style={[styles.summaryCard, styles.summaryCardAccent]}>
+          <Text style={styles.summaryLabel}>Invite code</Text>
+          <Text style={styles.summaryValue}>{workspace.invite_code}</Text>
+          <Text style={styles.summaryText}>Best for dropping a crew invite into chat without friction.</Text>
         </View>
-        <View style={styles.overviewCard}>
-          <Text style={styles.overviewLabel}>Workspace</Text>
-          <Text style={styles.overviewValue} numberOfLines={2}>{workspace.name}</Text>
-          <Text style={styles.overviewCopy}>Renaming the crew doesn’t affect routing or data flow.</Text>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryLabel}>Workspace</Text>
+          <Text style={styles.summaryValue} numberOfLines={2}>{workspace.name}</Text>
+          <Text style={styles.summaryText}>Renaming keeps the same data and routing, just a better label.</Text>
         </View>
       </View>
 
       <View style={styles.block}>
         <View style={styles.blockHeader}>
-          <Text style={styles.blockTitle}>Crew identity</Text>
-          <Text style={styles.blockCopy}>Edit the name your team sees everywhere in the app.</Text>
+          <Text style={styles.blockTitle}>Rename the crew</Text>
+          <Text style={styles.blockCopy}>Update the crew’s public identity everywhere in the app.</Text>
         </View>
-        <View style={styles.row}>
+        <View style={styles.inlineRow}>
           <TextInput
             style={[styles.input, styles.flex]}
             value={nameDraft}
@@ -65,39 +65,52 @@ export function WorkspacePanel({
             placeholder="Crew name"
             placeholderTextColor={ds.colors.textSoft}
           />
-          <Pressable style={[styles.actionBtn, renaming && styles.disabled]} onPress={() => onRename(nameDraft)} disabled={renaming}>
-            {renaming ? <ActivityIndicator size="small" color="#10182f" /> : <Text style={styles.actionBtnText}>Save</Text>}
+          <Pressable style={[styles.primaryButton, renaming && styles.disabled]} onPress={() => onRename(nameDraft)} disabled={renaming}>
+            {renaming ? <ActivityIndicator size="small" color="#07111f" /> : <Text style={styles.primaryButtonText}>Save</Text>}
           </Pressable>
         </View>
       </View>
 
       <View style={styles.block}>
         <View style={styles.blockHeader}>
-          <Text style={styles.blockTitle}>Your profile</Text>
-          <Text style={styles.blockCopy}>This is how you appear inside votes and crew activity.</Text>
+          <Text style={styles.blockTitle}>Your on-board identity</Text>
+          <Text style={styles.blockCopy}>This is the name everyone sees attached to your votes.</Text>
         </View>
-        <View style={styles.profileShell}>
-          <View style={styles.avatar}><Text style={styles.avatarText}>{initialsForName(displayNameDraft)}</Text></View>
-          <View style={styles.profileFields}>
-            <TextInput
-              style={styles.input}
-              value={displayNameDraft}
-              onChangeText={(v) => setDisplayNameDraft(normalizeDisplayName(v))}
-              placeholder="Your display name"
-              placeholderTextColor={ds.colors.textSoft}
-              maxLength={MAX_DISPLAY_NAME_LENGTH}
-            />
-            <Text style={styles.meta}>{displayNameDraft.length}/{MAX_DISPLAY_NAME_LENGTH} characters</Text>
+
+        <View style={styles.profileCard}>
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatar}><Text style={styles.avatarText}>{initialsForName(displayNameDraft)}</Text></View>
+            <View style={styles.avatarCopy}>
+              <Text style={styles.avatarName}>{displayNameDraft || 'Anonymous voter'}</Text>
+              <Text style={styles.avatarMeta}>Visible throughout the ballot and crew activity.</Text>
+            </View>
           </View>
-          <Pressable style={[styles.actionBtn, savingName && styles.disabled]} onPress={() => onSaveDisplayName(displayNameDraft)} disabled={savingName}>
-            {savingName ? <ActivityIndicator size="small" color="#10182f" /> : <Text style={styles.actionBtnText}>Save</Text>}
-          </Pressable>
+
+          <TextInput
+            style={styles.input}
+            value={displayNameDraft}
+            onChangeText={(v) => setDisplayNameDraft(normalizeDisplayName(v))}
+            placeholder="Your display name"
+            placeholderTextColor={ds.colors.textSoft}
+            maxLength={MAX_DISPLAY_NAME_LENGTH}
+          />
+
+          <View style={styles.profileFooter}>
+            <Text style={styles.counter}>{displayNameDraft.length}/{MAX_DISPLAY_NAME_LENGTH} characters</Text>
+            <Pressable style={[styles.primaryButton, savingName && styles.disabled]} onPress={() => onSaveDisplayName(displayNameDraft)} disabled={savingName}>
+              {savingName ? <ActivityIndicator size="small" color="#07111f" /> : <Text style={styles.primaryButtonText}>Update profile</Text>}
+            </Pressable>
+          </View>
         </View>
       </View>
 
       <View style={styles.actionStrip}>
-        <Pressable style={styles.secondaryBtn} onPress={onShare}><Text style={styles.secondaryText}>Share invite</Text></Pressable>
-        <Pressable style={[styles.secondaryBtn, styles.secondaryBtnStrong]} onPress={onCreateNewCrew}><Text style={styles.secondaryTextStrong}>Create new crew</Text></Pressable>
+        <Pressable style={styles.secondaryButton} onPress={onShare}>
+          <Text style={styles.secondaryButtonText}>Share invite</Text>
+        </Pressable>
+        <Pressable style={[styles.secondaryButton, styles.secondaryButtonAccent]} onPress={onCreateNewCrew}>
+          <Text style={styles.secondaryButtonTextAccent}>Create new crew</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -110,60 +123,38 @@ const styles = StyleSheet.create({
     backgroundColor: ds.colors.card,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    gap: 18,
+    gap: 20,
     ...ds.shadow.card,
   },
   header: { gap: 8 },
-  headerBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(87, 227, 194, 0.22)',
-    backgroundColor: ds.colors.tealSoft,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  headerBadgeText: { color: ds.colors.text, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
-  title: { color: ds.colors.text, fontSize: 30, fontWeight: '900', letterSpacing: -0.7 },
-  subtitle: { color: ds.colors.textMuted, fontSize: 14, lineHeight: 21, maxWidth: 680 },
-  overviewGrid: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  overviewCard: {
-    minWidth: 180,
-    flexGrow: 1,
+  eyebrow: { color: ds.colors.accent, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.1 },
+  title: { color: ds.colors.text, fontSize: 30, fontWeight: '900', letterSpacing: -0.8 },
+  subtitle: { color: ds.colors.textMuted, fontSize: 14, lineHeight: 21, maxWidth: 720 },
+  summaryGrid: { gap: 10 },
+  summaryCard: {
     borderRadius: 26,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    backgroundColor: 'rgba(8, 13, 31, 0.54)',
+    backgroundColor: ds.colors.cardMuted,
     padding: 16,
     gap: 5,
   },
-  overviewCardPrimary: { borderColor: ds.colors.accentSoftStrong, backgroundColor: 'rgba(20, 29, 58, 0.92)' },
-  overviewLabel: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
-  overviewValue: { color: ds.colors.text, fontSize: 22, lineHeight: 28, fontWeight: '900' },
-  overviewCopy: { color: ds.colors.textMuted, fontSize: 12, lineHeight: 18 },
+  summaryCardAccent: { borderColor: ds.colors.accentSoftStrong, backgroundColor: ds.colors.accentSoft },
+  summaryLabel: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
+  summaryValue: { color: ds.colors.text, fontSize: 22, lineHeight: 28, fontWeight: '900' },
+  summaryText: { color: ds.colors.textMuted, fontSize: 12, lineHeight: 18 },
   block: {
     borderRadius: 30,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    backgroundColor: ds.colors.cardMuted,
+    backgroundColor: ds.colors.panel,
     padding: 18,
     gap: 12,
   },
   blockHeader: { gap: 4 },
-  blockTitle: { color: ds.colors.text, fontSize: 19, fontWeight: '900' },
+  blockTitle: { color: ds.colors.text, fontSize: 20, fontWeight: '900' },
   blockCopy: { color: ds.colors.textSoft, fontSize: 13, lineHeight: 19 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  profileShell: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: ds.colors.stroke,
-    backgroundColor: 'rgba(7, 11, 26, 0.44)',
-    padding: 12,
-  },
-  profileFields: { flex: 1, gap: 6 },
+  inlineRow: { gap: 10 },
   input: {
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
@@ -175,22 +166,19 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   flex: { flex: 1 },
-  actionBtn: {
-    borderRadius: 18,
-    backgroundColor: ds.colors.accent,
-    paddingHorizontal: 18,
-    paddingVertical: 13,
-    minWidth: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...ds.shadow.glow,
+  profileCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.cardSoft,
+    padding: 14,
+    gap: 12,
   },
-  actionBtnText: { color: '#10182f', fontWeight: '900', fontSize: 13 },
-  disabled: { opacity: 0.7 },
+  avatarWrap: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: {
     width: 58,
     height: 58,
-    borderRadius: 20,
+    borderRadius: 18,
     backgroundColor: ds.colors.accentSoft,
     borderWidth: 1,
     borderColor: ds.colors.accentSoftStrong,
@@ -198,27 +186,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { color: ds.colors.text, fontWeight: '900', fontSize: 16 },
-  meta: { color: ds.colors.textSoft, fontSize: 12, fontWeight: '700' },
-  actionStrip: {
-    flexDirection: 'row',
-    gap: 10,
-    padding: 6,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: ds.colors.stroke,
-    backgroundColor: 'rgba(7, 11, 26, 0.38)',
+  avatarCopy: { flex: 1, gap: 2 },
+  avatarName: { color: ds.colors.text, fontSize: 16, fontWeight: '900' },
+  avatarMeta: { color: ds.colors.textSoft, fontSize: 12, lineHeight: 18 },
+  profileFooter: { gap: 10 },
+  counter: { color: ds.colors.textSoft, fontSize: 12, fontWeight: '700' },
+  primaryButton: {
+    minWidth: 100,
+    minHeight: 48,
+    borderRadius: 18,
+    backgroundColor: ds.colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+    ...ds.shadow.glow,
   },
-  secondaryBtn: {
-    flex: 1,
+  primaryButtonText: { color: '#07111f', fontWeight: '900', fontSize: 13 },
+  disabled: { opacity: 0.7 },
+  actionStrip: { gap: 10 },
+  secondaryButton: {
+    minHeight: 50,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
     backgroundColor: ds.colors.input,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
   },
-  secondaryBtnStrong: { backgroundColor: 'rgba(87, 227, 194, 0.12)', borderColor: 'rgba(87, 227, 194, 0.24)' },
-  secondaryText: { color: ds.colors.text, fontWeight: '800', fontSize: 13 },
-  secondaryTextStrong: { color: ds.colors.teal, fontWeight: '900', fontSize: 13 },
+  secondaryButtonAccent: { backgroundColor: ds.colors.goldSoft, borderColor: 'rgba(246, 212, 122, 0.26)' },
+  secondaryButtonText: { color: ds.colors.text, fontWeight: '800', fontSize: 13 },
+  secondaryButtonTextAccent: { color: ds.colors.text, fontWeight: '900', fontSize: 13 },
 });

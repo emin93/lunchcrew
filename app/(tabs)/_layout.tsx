@@ -5,9 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ds } from '../../src/components/designSystem';
 
 const meta = {
-  index: { label: 'Today', active: 'sparkles', idle: 'sparkles-outline' },
-  history: { label: 'Insights', active: 'stats-chart', idle: 'stats-chart-outline' },
-  crew: { label: 'Crew', active: 'people', idle: 'people-outline' },
+  index: { label: 'Today', active: 'radio', idle: 'radio-outline' },
+  history: { label: 'Archive', active: 'albums', idle: 'albums-outline' },
+  crew: { label: 'Crew', active: 'grid', idle: 'grid-outline' },
 } as const;
 
 export default function TabsLayout() {
@@ -22,24 +22,23 @@ export default function TabsLayout() {
           headerShown: false,
           sceneStyle: { backgroundColor: ds.colors.appBg },
           tabBarHideOnKeyboard: true,
+          tabBarShowLabel: false,
           tabBarStyle: {
             position: 'absolute',
-            left: 18,
-            right: 18,
-            bottom: Math.max(14, insets.bottom || 14),
-            height: 82,
-            paddingHorizontal: 12,
+            left: 16,
+            right: 16,
+            bottom: Math.max(12, insets.bottom || 12),
+            height: 76,
+            paddingHorizontal: 10,
             paddingTop: 8,
             paddingBottom: 10,
             borderTopWidth: 0,
-            borderRadius: 30,
-            backgroundColor: 'rgba(8, 13, 30, 0.92)',
+            borderRadius: 26,
+            backgroundColor: 'rgba(8, 17, 30, 0.94)',
             borderWidth: 1,
             borderColor: ds.colors.strokeStrong,
             ...ds.shadow.card,
           },
-          tabBarShowLabel: false,
-          tabBarItemStyle: { marginHorizontal: 2 },
           tabBarButton: (props) => {
             const focused = props.accessibilityState?.selected;
             return (
@@ -53,11 +52,7 @@ export default function TabsLayout() {
                 style={[styles.tabButton, focused && styles.tabButtonFocused]}
               >
                 <View style={[styles.iconWrap, focused && styles.iconWrapFocused]}>
-                  <Ionicons
-                    name={(focused ? routeMeta.active : routeMeta.idle) as any}
-                    size={20}
-                    color={focused ? ds.colors.text : ds.colors.textSoft}
-                  />
+                  <Ionicons name={(focused ? routeMeta.active : routeMeta.idle) as any} size={18} color={focused ? ds.colors.text : ds.colors.textSoft} />
                 </View>
                 <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>{routeMeta.label}</Text>
               </Pressable>
@@ -67,7 +62,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Today' }} />
-      <Tabs.Screen name="history" options={{ title: 'Insights' }} />
+      <Tabs.Screen name="history" options={{ title: 'Archive' }} />
       <Tabs.Screen name="crew" options={{ title: 'Crew' }} />
     </Tabs>
   );
@@ -76,37 +71,24 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   tabButton: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
-    borderRadius: 24,
-    paddingVertical: 8,
+    gap: 10,
+    borderRadius: 20,
   },
-  tabButtonFocused: {
-    backgroundColor: 'rgba(255,255,255,0.02)',
-  },
+  tabButtonFocused: { backgroundColor: ds.colors.cardMuted },
   iconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: ds.colors.input,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.04)',
+    borderColor: ds.colors.stroke,
   },
-  iconWrapFocused: {
-    backgroundColor: ds.colors.accentSoft,
-    borderColor: ds.colors.accentSoftStrong,
-    ...ds.shadow.glow,
-  },
-  tabLabel: {
-    color: ds.colors.textSoft,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-  tabLabelFocused: {
-    color: ds.colors.text,
-  },
+  iconWrapFocused: { backgroundColor: ds.colors.accentSoft, borderColor: ds.colors.accentSoftStrong },
+  tabLabel: { color: ds.colors.textSoft, fontSize: 12, fontWeight: '800', letterSpacing: 0.3 },
+  tabLabelFocused: { color: ds.colors.text },
 });

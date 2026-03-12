@@ -13,9 +13,10 @@ import { AppStateProvider, useAppStateContext } from '../src/state/AppStateConte
 function AppBackdrop() {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <LinearGradient colors={[ds.colors.appBg, ds.colors.appBgAlt, '#050816']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      <View style={styles.orbTop} />
-      <View style={styles.orbBottom} />
+      <LinearGradient colors={[ds.colors.appBg, ds.colors.appBgAlt, '#06111d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <View style={styles.topGlow} />
+      <View style={styles.rightGlow} />
+      <View style={styles.bottomGlow} />
     </View>
   );
 }
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
   navigatorWrap: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   loadingCard: {
-    minWidth: 210,
+    minWidth: 220,
     borderRadius: ds.radius.xl,
     paddingHorizontal: 22,
     paddingVertical: 18,
@@ -98,22 +99,31 @@ const styles = StyleSheet.create({
     ...ds.shadow.card,
   },
   helper: { color: ds.colors.textMuted, fontSize: 14, fontWeight: '600' },
-  orbTop: {
+  topGlow: {
     position: 'absolute',
-    top: -120,
-    right: -60,
+    top: -150,
+    left: -90,
+    width: 280,
+    height: 280,
+    borderRadius: 280,
+    backgroundColor: 'rgba(122, 227, 195, 0.12)',
+  },
+  rightGlow: {
+    position: 'absolute',
+    top: -80,
+    right: -70,
+    width: 300,
+    height: 300,
+    borderRadius: 300,
+    backgroundColor: 'rgba(246, 212, 122, 0.08)',
+  },
+  bottomGlow: {
+    position: 'absolute',
+    bottom: -120,
+    left: '20%' as any,
     width: 260,
     height: 260,
     borderRadius: 260,
-    backgroundColor: 'rgba(124, 156, 255, 0.16)',
-  },
-  orbBottom: {
-    position: 'absolute',
-    bottom: -100,
-    left: -80,
-    width: 240,
-    height: 240,
-    borderRadius: 240,
-    backgroundColor: 'rgba(82, 230, 197, 0.08)',
+    backgroundColor: 'rgba(132, 174, 218, 0.08)',
   },
 });
