@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { trackEvent } from '@/lib/analytics';
 import {
-  BUILD_LABEL, DEVICE_ID_KEY, DISPLAY_NAME_KEY, LAST_WORKSPACE_ID_KEY, LOCATION_PROMPT_SEEN_KEY,
+  BUILD_LABEL, DEVICE_ID_KEY, DISPLAY_NAME_KEY, LAST_WORKSPACE_CODE_KEY, LAST_WORKSPACE_ID_KEY, LOCATION_PROMPT_SEEN_KEY,
   MONETIZATION_LAST_PROMPT_AT_KEY, MONETIZATION_WAITLIST_JOINED_KEY, ONBOARDING_SEEN_KEY,
   extractInviteCode, generateInviteCode, makeDeviceId, normalizeDisplayName, storage, todayDateUTC, withTimeout,
   workspacePath,
@@ -105,6 +105,7 @@ export function useLunchCrewApp(initialCode?: string) {
   async function setCurrentWorkspace(next: Workspace) {
     setWorkspace(next);
     storage.set(LAST_WORKSPACE_ID_KEY, next.id);
+    storage.set(LAST_WORKSPACE_CODE_KEY, next.invite_code.toUpperCase());
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.replace(/\/+$/, '') || '/';
       const section = path.endsWith('/plan') ? 'plan' : path.endsWith('/history') ? 'history' : path.endsWith('/crew') ? 'crew' : 'today';

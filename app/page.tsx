@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Check, Compass, MapPinned, Sparkles, Users, Vote } from 'lucide-react';
 import { LandingLaunchCard } from '@/components/LandingLaunchCard';
+import { OpenAppButton } from '@/components/OpenAppButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge, Button, Card, Panel } from '@/components/ui';
 
@@ -20,8 +21,6 @@ const steps = [
 ];
 
 export default function MarketingPage() {
-  const appHref = '#open-app';
-
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-16 pt-6 sm:px-6 lg:px-8">
       <header className="mb-10">
@@ -39,9 +38,7 @@ export default function MarketingPage() {
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle className="rounded-full px-4" />
-            <Link href={appHref}>
-              <Button variant="secondary" className="rounded-full px-5">Open app</Button>
-            </Link>
+            <OpenAppButton className="rounded-full px-5">Open app</OpenAppButton>
           </div>
         </nav>
       </header>
@@ -59,7 +56,7 @@ export default function MarketingPage() {
                 <p className="max-w-2xl text-lg leading-8 text-[var(--text-soft)] sm:text-xl">LunchCrew gives your team one cheerful place to plan nearby options, vote together, and move on with the day — without chat-scroll chaos or spreadsheet energy.</p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <Link href={appHref}><Button className="rounded-full px-6">Start today’s vote <ArrowRight className="h-4 w-4" /></Button></Link>
+                <OpenAppButton className="rounded-full px-6">Start today’s vote <ArrowRight className="h-4 w-4" /></OpenAppButton>
                 <a href="#features"><Button variant="secondary" className="rounded-full px-6">See what it includes</Button></a>
               </div>
               <div className="grid gap-3 pt-2 sm:grid-cols-3">
@@ -167,7 +164,7 @@ export default function MarketingPage() {
             <h2 className="text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">A consumer-friendly front door. A sharp app when it’s time to choose.</h2>
             <p className="text-base leading-8 text-[var(--text-soft)] sm:text-lg">Open the app when the crew is hungry. Everything inside stays tuned for voting, planning the shortlist, sharing access, and checking patterns — just with more warmth, color, and personality than a typical internal tool.</p>
             <div>
-              <Link href={appHref}><Button className="rounded-full px-6">Open LunchCrew <ArrowRight className="h-4 w-4" /></Button></Link>
+              <OpenAppButton className="rounded-full px-6">Open LunchCrew <ArrowRight className="h-4 w-4" /></OpenAppButton>
             </div>
           </div>
         </Card>

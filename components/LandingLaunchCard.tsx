@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { OpenAppButton } from '@/components/OpenAppButton';
 import { Button, Card, Input } from '@/components/ui';
 import { extractInviteCode, generateInviteCode, workspacePath } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
@@ -30,10 +31,11 @@ export function LandingLaunchCard() {
       <div className="grid gap-4">
         <div>
           <div className="text-lg font-semibold text-[var(--text)]">Open the real app</div>
-          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Create a crew, jump back into your current one, or paste an invite link to land directly inside the new route-based app.</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Open your last crew instantly. If this device has never used LunchCrew before, opening the app will create a fresh crew automatically.</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button onClick={() => createCrew()} disabled={loading}>{loading ? 'Creating crew…' : 'Create a crew'}</Button>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <OpenAppButton className="w-full">Open app</OpenAppButton>
+          <Button variant="secondary" onClick={() => createCrew()} disabled={loading}>{loading ? 'Creating crew…' : 'Create a new crew'}</Button>
           <Link href={parsedCode ? workspacePath(parsedCode) : '/'}><Button variant="secondary" className="w-full" disabled={!parsedCode}>Join with code/link</Button></Link>
         </div>
         <Input value={joinInput} onChange={(e) => setJoinInput(e.target.value)} placeholder="Paste invite code or full invite link" />
