@@ -2,42 +2,48 @@
 
 :root {
   color-scheme: light;
-  --bg: #f5f7fb;
-  --bg-elevated: rgba(255, 255, 255, 0.82);
-  --surface: rgba(255, 255, 255, 0.74);
-  --surface-strong: rgba(255, 255, 255, 0.92);
-  --panel: rgba(255, 255, 255, 0.62);
-  --panel-strong: rgba(255, 255, 255, 0.88);
-  --border: rgba(15, 23, 42, 0.1);
-  --border-strong: rgba(15, 23, 42, 0.16);
-  --text: #0f172a;
-  --text-soft: #475569;
-  --text-muted: #64748b;
-  --accent: #059669;
-  --accent-strong: #047857;
-  --accent-soft: rgba(16, 185, 129, 0.12);
-  --shadow: 0 30px 80px rgba(15, 23, 42, 0.12);
-  --ring: rgba(16, 185, 129, 0.28);
+  --bg: #fff8f2;
+  --bg-elevated: rgba(255, 252, 248, 0.82);
+  --surface: rgba(255, 247, 240, 0.82);
+  --surface-strong: rgba(255, 252, 248, 0.96);
+  --panel: rgba(255, 242, 232, 0.72);
+  --panel-strong: rgba(255, 249, 243, 0.94);
+  --border: rgba(129, 87, 55, 0.12);
+  --border-strong: rgba(129, 87, 55, 0.2);
+  --text: #40281c;
+  --text-soft: #6d4a37;
+  --text-muted: #9a735d;
+  --accent: #ff7a59;
+  --accent-strong: #ff5f42;
+  --accent-soft: rgba(255, 122, 89, 0.16);
+  --accent-2: #ffd166;
+  --accent-3: #75d48b;
+  --shadow: 0 28px 80px rgba(172, 92, 52, 0.15);
+  --shadow-soft: 0 18px 45px rgba(172, 92, 52, 0.11);
+  --ring: rgba(255, 122, 89, 0.28);
 }
 
 .dark {
   color-scheme: dark;
-  --bg: #07111f;
-  --bg-elevated: rgba(2, 6, 23, 0.8);
+  --bg: #1a1020;
+  --bg-elevated: rgba(38, 22, 46, 0.8);
   --surface: rgba(255, 255, 255, 0.07);
-  --surface-strong: rgba(15, 23, 42, 0.88);
-  --panel: rgba(2, 6, 23, 0.52);
-  --panel-strong: rgba(2, 6, 23, 0.72);
-  --border: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.18);
-  --text: #f8fafc;
-  --text-soft: #cbd5e1;
-  --text-muted: #94a3b8;
-  --accent: #6ee7b7;
-  --accent-strong: #34d399;
-  --accent-soft: rgba(110, 231, 183, 0.12);
-  --shadow: 0 30px 80px rgba(2, 8, 23, 0.45);
-  --ring: rgba(110, 231, 183, 0.24);
+  --surface-strong: rgba(49, 29, 59, 0.92);
+  --panel: rgba(72, 42, 84, 0.36);
+  --panel-strong: rgba(54, 31, 64, 0.78);
+  --border: rgba(255, 226, 205, 0.12);
+  --border-strong: rgba(255, 226, 205, 0.2);
+  --text: #fff6ef;
+  --text-soft: #f6d9c7;
+  --text-muted: #d8b7a2;
+  --accent: #ff9a62;
+  --accent-strong: #ffbe55;
+  --accent-soft: rgba(255, 154, 98, 0.16);
+  --accent-2: #ffd56f;
+  --accent-3: #7fe29d;
+  --shadow: 0 34px 90px rgba(8, 3, 15, 0.45);
+  --shadow-soft: 0 20px 56px rgba(8, 3, 15, 0.32);
+  --ring: rgba(255, 154, 98, 0.26);
 }
 
 * {
@@ -63,12 +69,11 @@ body::before {
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 24%),
-    radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(250, 204, 21, 0.12), transparent 22%),
-    linear-gradient(180deg, color-mix(in srgb, var(--bg) 94%, white 6%) 0%, var(--bg) 100%);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+    radial-gradient(circle at 10% 12%, rgba(255, 209, 102, 0.36), transparent 24%),
+    radial-gradient(circle at 84% 16%, rgba(255, 122, 89, 0.24), transparent 26%),
+    radial-gradient(circle at 20% 82%, rgba(117, 212, 139, 0.18), transparent 24%),
+    radial-gradient(circle at 80% 76%, rgba(115, 182, 255, 0.18), transparent 24%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, white 8%) 0%, var(--bg) 100%);
 }
 
 body::after {
@@ -77,9 +82,12 @@ body::after {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 88%);
+  background:
+    radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.62) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 74% 30%, rgba(255, 255, 255, 0.42) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 66% 72%, rgba(255, 255, 255, 0.32) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 26% 78%, rgba(255, 255, 255, 0.22) 0 1.5px, transparent 2px);
+  opacity: 0.9;
 }
 
 .app-shell {
@@ -95,8 +103,9 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 15% 10%, rgba(16, 185, 129, 0.1), transparent 18%),
-    radial-gradient(circle at 85% 18%, rgba(59, 130, 246, 0.08), transparent 18%);
+    radial-gradient(circle at 14% 12%, rgba(255, 209, 102, 0.18), transparent 20%),
+    radial-gradient(circle at 88% 18%, rgba(255, 122, 89, 0.16), transparent 18%),
+    radial-gradient(circle at 72% 76%, rgba(117, 212, 139, 0.14), transparent 18%);
 }
 
 a {
@@ -113,4 +122,16 @@ textarea {
 ::selection {
   background: color-mix(in srgb, var(--accent) 32%, transparent);
   color: var(--text);
+}
+
+.brand-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(10px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.brand-dash {
+  background-image: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 45%, white 10%), transparent);
 }

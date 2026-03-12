@@ -4,8 +4,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://lunchcrew.app'),
-  title: 'LunchCrew — Modern team lunch voting',
-  description: 'Realtime team lunch voting with nearby place suggestions, invite links, maps, menus, history, and crew settings.',
+  title: 'LunchCrew — Team lunch voting with some personality',
+  description: 'A brighter way to shortlist nearby lunch spots, vote live, and keep the daily team lunch ritual moving.',
   manifest: '/site.webmanifest',
   icons: {
     icon: [

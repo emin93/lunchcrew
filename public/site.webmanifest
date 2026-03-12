@@ -1,9 +1,9 @@
 {
   "name": "LunchCrew",
   "short_name": "LunchCrew",
-  "description": "Realtime team lunch voting with nearby place suggestions, invite links, maps, menus, history, and crew settings.",
-  "theme_color": "#059669",
-  "background_color": "#07111f",
+  "description": "A brighter way to shortlist nearby lunch spots, vote live, and keep the daily team lunch ritual moving.",
+  "theme_color": "#ff7a59",
+  "background_color": "#fff8f2",
   "display": "standalone",
   "icons": [
     {
