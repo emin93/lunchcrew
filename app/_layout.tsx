@@ -46,9 +46,11 @@ function RootContent() {
     <SafeAreaView style={[styles.safeArea, Platform.OS === 'web' && styles.safeAreaWeb]} edges={['top', 'left', 'right']}>
       <AppBackdrop />
       <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+      <View style={styles.navigatorWrap}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </View>
 
       <MonetizationModal
         visible={state.showMonetizationModal}
@@ -81,6 +83,7 @@ export default function Layout() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: ds.colors.appBg },
   safeAreaWeb: { minHeight: '100dvh' as any },
+  navigatorWrap: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   loadingCard: {
     minWidth: 210,
