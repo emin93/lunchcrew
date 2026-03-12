@@ -256,7 +256,7 @@ export function useLunchCrewApp(initialCode?: string) {
     const name = newOption.trim(); if (!name && !suggestion) return false;
     const candidateName = (suggestion?.name || name).trim().toLowerCase();
     if (options.some((opt) => opt.name.trim().toLowerCase() === candidateName)) {
-      setLoadError('That place is already in today’s poll.');
+      setLoadError('That place is already in today’s shortlist. You can see it in the shortlist panel below.');
       return false;
     }
     setAddingOption(true);

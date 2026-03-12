@@ -276,41 +276,144 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
 
 function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>; todayHref: string }) {
   const [manualAdded, setManualAdded] = useState(false);
+  const [recentlyAddedName, setRecentlyAddedName] = useState<string | null>(null);
+  const sortedShortlist = [...app.options].sort((a, b) => b.votes - a.votes || a.name.localeCompare(b.name));
+  const shortlistCountLabel = `${app.options.length} ${app.options.length === 1 ? 'place' : 'places'}`;
 
   async function handleSuggestionSelect(suggestion: PlaceSuggestion) {
     app.setSelectedSuggestion(suggestion);
     app.setNewOption(suggestion.name);
     const added = await app.addOption(suggestion);
-    if (added) setManualAdded(false);
+    if (added) {
+      setManualAdded(false);
+      setRecentlyAddedName(suggestion.name);
+    }
+  }
+
+  async function handleManualAdd() {
+    const name = app.newOption.trim();
+    const added = await app.addOption();
+    setManualAdded(added);
+    if (added) setRecentlyAddedName(name);
   }
 
   return (
-    <section className="grid gap-4 sm:gap-5">
+    <section className="grid gap-4 sm:gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
       <Card className="panel-fade p-6 sm:p-8">
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <Badge>Plan mode</Badge>
-              <div className="mt-2 text-2xl font-semibold text-[var(--text)]">Shape today’s shortlist</div>
-              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Search nearby spots, drop in manual ideas, and tee up the ballot before everyone starts voting.</p>
+              <div className="mt-2 text-2xl font-semibold text-[var(--text)]">Build today’s shortlist</div>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Add places here, keep an eye on the shortlist below, then jump back to voting when the list feels right.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {app.selectedSuggestion ? <Button variant="secondary" onClick={() => app.setSelectedSuggestion(null)}>Clear selection</Button> : null}
-              {app.options.length > 0 ? <Link href={todayHref}><Button variant="secondary">Back to today’s ballot</Button></Link> : null}
+              {app.options.length > 0 ? <Link href={todayHref}><Button variant="secondary">Go to today’s ballot</Button></Link> : null}
             </div>
           </div>
-          <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-              <Input className="pl-10" placeholder="Search nearby or type manually" value={app.newOption} onChange={(e) => { setManualAdded(false); app.setSelectedSuggestion(null); app.setNewOption(e.target.value); }} />
+
+          <Panel className="grid gap-4 p-4 sm:p-5">
+            <div className="grid gap-1">
+              <div className="text-sm font-semibold text-[var(--text)]">Search & add</div>
+              <p className="text-sm leading-6 text-[var(--text-muted)]">Tap a suggested place to add it instantly, or type your own and use the button.</p>
             </div>
-            <Button disabled={!app.newOption.trim() || app.addingOption} onClick={async () => { const added = await app.addOption(); setManualAdded(added); }} className="lg:px-6">
-              {app.addingOption ? <><Loader2 className="h-4 w-4 animate-spin" /> Adding…</> : <><Plus className="h-4 w-4" /> Add manual option</>}
-            </Button>
+
+            <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+                <Input
+                  className="pl-10"
+                  placeholder="Search nearby or type a place"
+                  value={app.newOption}
+                  onChange={(e) => {
+                    setManualAdded(false);
+                    setRecentlyAddedName(null);
+                    app.setSelectedSuggestion(null);
+                    app.setNewOption(e.target.value);
+                  }}
+                />
+              </div>
+              <Button disabled={!app.newOption.trim() || app.addingOption} onClick={handleManualAdd} className="lg:px-6">
+                {app.addingOption ? <><Loader2 className="h-4 w-4 animate-spin" /> Adding…</> : <><Plus className="h-4 w-4" /> Add typed place</>}
+              </Button>
+            </div>
+
+            {!app.selectedSuggestion && app.newOption.trim().length >= 2 ? <Suggestions loading={app.loadingSuggestions} suggestions={app.suggestions} onSelect={handleSuggestionSelect} /> : null}
+
+            {recentlyAddedName ? (
+              <Panel className="border-emerald-500/20 bg-emerald-500/10 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-100">Added to today’s shortlist</div>
+                    <p className="mt-1 text-sm text-emerald-900/90 dark:text-emerald-100/90">{recentlyAddedName} is now in the shortlist and ready for votes.</p>
+                  </div>
+                  <Pill className="border-emerald-500/25 bg-white/60 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-100">{shortlistCountLabel}</Pill>
+                </div>
+              </Panel>
+            ) : null}
+
+            {manualAdded && !recentlyAddedName ? <Pill className="w-fit border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100">Added to today’s shortlist.</Pill> : null}
+          </Panel>
+        </div>
+      </Card>
+
+      <Card className="panel-fade p-6 sm:p-8">
+        <div className="grid gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <Badge className="border-sky-500/25 bg-sky-500/14">Today’s shortlist</Badge>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">What’s already in</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">This stays visible while you plan, so duplicates make sense and the flow feels grounded.</p>
+            </div>
+            <Pill>{shortlistCountLabel}</Pill>
           </div>
-          <p className="text-sm text-[var(--text-muted)]">Tap a search result to add it instantly. The button is only for manual entries you type yourself.</p>
-          {!app.selectedSuggestion && app.newOption.trim().length >= 2 ? <Suggestions loading={app.loadingSuggestions} suggestions={app.suggestions} onSelect={handleSuggestionSelect} /> : null}
-          {manualAdded ? <Pill className="w-fit border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100">Added to today’s ballot.</Pill> : null}
+
+          {app.options.length === 0 ? (
+            <Panel className="grid gap-3 p-5">
+              <div className="text-base font-semibold text-[var(--text)]">Start the list with the first place</div>
+              <p className="text-sm leading-6 text-[var(--text-muted)]">Search nearby or type a custom idea. As soon as you add one, it will stay visible here.</p>
+            </Panel>
+          ) : (
+            <div className="grid gap-3">
+              {sortedShortlist.map((opt, index) => {
+                const mapsUrl = opt.place?.google_maps_url;
+                const menuUrl = opt.menu_url || opt.place?.detected_menu_url || opt.place?.website_url;
+                const isRecentlyAdded = !!recentlyAddedName && opt.name.trim().toLowerCase() === recentlyAddedName.trim().toLowerCase();
+                return (
+                  <Panel
+                    key={opt.id}
+                    className={cn(
+                      'grid gap-3 p-4 transition-all duration-300',
+                      isRecentlyAdded && 'border-emerald-500/25 bg-emerald-500/10 ring-1 ring-emerald-500/20',
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {index === 0 ? <Pill className="border-amber-500/25 bg-amber-500/12 text-amber-900 dark:text-amber-100">Top voted</Pill> : null}
+                          {isRecentlyAdded ? <Pill className="border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100">Just added</Pill> : null}
+                        </div>
+                        <div className="mt-2 text-base font-semibold text-[var(--text)]">{opt.name}</div>
+                        {opt.place?.formatted_address ? <div className="mt-1 text-sm text-[var(--text-muted)]">{opt.place.formatted_address}</div> : null}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-semibold text-[var(--text)]"><AnimatedNumber value={opt.votes} /></div>
+                        <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">votes</div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-soft)]">
+                      {typeof opt.place?.rating === 'number' ? <Pill>★ {opt.place.rating.toFixed(1)}</Pill> : null}
+                      {priceLabel(opt.place?.price_level) ? <Pill>{priceLabel(opt.place?.price_level)}</Pill> : null}
+                      {mapsUrl ? <ActionLink href={mapsUrl} label="Maps" icon={MapPinned} /> : null}
+                      {menuUrl ? <ActionLink href={menuUrl} label="Menu" icon={ExternalLink} /> : null}
+                    </div>
+                  </Panel>
+                );
+              })}
+            </div>
+          )}
         </div>
       </Card>
     </section>
