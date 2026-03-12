@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useSelectedLayoutSegments } from 'next/navigation';
 import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
 import { Onboarding } from '@/components/Onboarding';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -27,15 +28,16 @@ function priceLabel(priceLevel?: number | null) {
   return '$'.repeat(Math.max(1, Math.min(4, priceLevel)));
 }
 
-export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCode?: string; initialView?: AppView }) {
+export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
   const app = useLunchCrewApp(initialCode);
+  const segments = useSelectedLayoutSegments();
   const [joinCode, setJoinCode] = useState(initialCode || '');
 
   const activeHistory = app.show30DayHistory ? app.history30Days : app.history7Days;
   const totalVotes = useMemo(() => app.options.reduce((sum, opt) => sum + opt.votes, 0), [app.options]);
   const pollReady = !!app.poll;
   const emptyBallot = pollReady && app.pollDataReady && app.options.length === 0;
-  const requestedView = initialView;
+  const requestedView = (segments[0] as AppView | undefined) || 'today';
   const activeView: AppView = !app.workspace ? 'today' : requestedView === 'today' && emptyBallot ? 'plan' : requestedView;
 
   if (!app.onboardingReady) {
