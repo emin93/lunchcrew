@@ -36,9 +36,11 @@ export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCo
 
   const activeHistory = app.show30DayHistory ? app.history30Days : app.history7Days;
   const totalVotes = useMemo(() => app.options.reduce((sum, opt) => sum + opt.votes, 0), [app.options]);
-  const defaultView: AppView = app.options.length === 0 ? 'plan' : 'today';
+  const pollReady = !!app.poll;
+  const emptyBallot = pollReady && app.options.length === 0;
+  const defaultView: AppView = emptyBallot ? 'plan' : 'today';
   const requestedView = initialView;
-  const activeView: AppView = !app.workspace ? 'today' : requestedView === 'today' && app.options.length === 0 ? 'plan' : requestedView;
+  const activeView: AppView = !app.workspace ? 'today' : requestedView === 'today' && emptyBallot ? 'plan' : requestedView;
 
   useEffect(() => {
     if (!app.workspace?.invite_code) return;
