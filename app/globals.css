@@ -1,7 +1,43 @@
 @import 'tailwindcss';
 
 :root {
+  color-scheme: light;
+  --bg: #f5f7fb;
+  --bg-elevated: rgba(255, 255, 255, 0.82);
+  --surface: rgba(255, 255, 255, 0.74);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --panel: rgba(255, 255, 255, 0.62);
+  --panel-strong: rgba(255, 255, 255, 0.88);
+  --border: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.16);
+  --text: #0f172a;
+  --text-soft: #475569;
+  --text-muted: #64748b;
+  --accent: #059669;
+  --accent-strong: #047857;
+  --accent-soft: rgba(16, 185, 129, 0.12);
+  --shadow: 0 30px 80px rgba(15, 23, 42, 0.12);
+  --ring: rgba(16, 185, 129, 0.28);
+}
+
+.dark {
   color-scheme: dark;
+  --bg: #07111f;
+  --bg-elevated: rgba(2, 6, 23, 0.8);
+  --surface: rgba(255, 255, 255, 0.07);
+  --surface-strong: rgba(15, 23, 42, 0.88);
+  --panel: rgba(2, 6, 23, 0.52);
+  --panel-strong: rgba(2, 6, 23, 0.72);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text: #f8fafc;
+  --text-soft: #cbd5e1;
+  --text-muted: #94a3b8;
+  --accent: #6ee7b7;
+  --accent-strong: #34d399;
+  --accent-soft: rgba(110, 231, 183, 0.12);
+  --shadow: 0 30px 80px rgba(2, 8, 23, 0.45);
+  --ring: rgba(110, 231, 183, 0.24);
 }
 
 * {
@@ -15,12 +51,52 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top, rgba(16, 185, 129, 0.18), transparent 28%),
-    radial-gradient(circle at right, rgba(59, 130, 246, 0.14), transparent 26%),
-    linear-gradient(180deg, #020617 0%, #06111f 45%, #020617 100%);
-  color: #f8fafc;
+  background: var(--bg);
+  color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 24%),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(250, 204, 21, 0.12), transparent 22%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 94%, white 6%) 0%, var(--bg) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 88%);
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+}
+
+.app-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(16, 185, 129, 0.1), transparent 18%),
+    radial-gradient(circle at 85% 18%, rgba(59, 130, 246, 0.08), transparent 18%);
 }
 
 a {
@@ -35,6 +111,6 @@ textarea {
 }
 
 ::selection {
-  background: rgba(110, 231, 183, 0.28);
-  color: #fff;
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  color: var(--text);
 }
