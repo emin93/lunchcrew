@@ -7,7 +7,7 @@ export function Button({ className, variant = 'default', ...props }: React.Butto
   return (
     <button
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold transition duration-200 disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
         variant === 'default' && 'border border-transparent bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_16px_40px_rgba(255,122,89,0.28)] hover:-translate-y-0.5 hover:shadow-[0_20px_46px_rgba(255,122,89,0.34)]',
         variant === 'secondary' && 'border border-[var(--border)] bg-[color:var(--surface-strong)] text-[var(--text)] shadow-[var(--shadow-soft)] hover:-translate-y-0.5 hover:bg-[var(--surface)]',
@@ -22,21 +22,21 @@ export function Button({ className, variant = 'default', ...props }: React.Butto
 }
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('rounded-[32px] border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow)] backdrop-blur-xl', className)} {...props} />;
+  return <div className={cn('rounded-[32px] border border-[var(--border)] bg-[var(--bg-elevated)] shadow-[var(--shadow)] backdrop-blur-xl transition-all duration-300', className)} {...props} />;
 }
 
 export function Panel({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('rounded-[26px] border border-[var(--border)] bg-[var(--panel)] shadow-[var(--shadow-soft)] backdrop-blur-sm', className)} {...props} />;
+  return <div className={cn('rounded-[26px] border border-[var(--border)] bg-[var(--panel)] shadow-[var(--shadow-soft)] backdrop-blur-sm transition-all duration-300', className)} {...props} />;
 }
 
 export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cn('h-12 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)] px-4 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] shadow-[var(--shadow-soft)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]', className)} {...props} />;
+  return <input className={cn('h-12 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)] px-4 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] shadow-[var(--shadow-soft)] transition-all duration-300 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]', className)} {...props} />;
 }
 
 export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={cn('w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] shadow-[var(--shadow-soft)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]', className)} {...props} />;
+  return <textarea className={cn('w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] shadow-[var(--shadow-soft)] transition-all duration-300 focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]', className)} {...props} />;
 }
 
 export function Badge({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
-  return <span className={cn('inline-flex items-center gap-2 rounded-full border border-[var(--badge-border)] bg-[var(--badge-bg)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--badge-text)]', className)} {...props} />;
+  return <span className={cn('inline-flex items-center gap-2 rounded-full border border-[var(--badge-border)] bg-[var(--badge-bg)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--badge-text)] transition-all duration-300', className)} {...props} />;
 }

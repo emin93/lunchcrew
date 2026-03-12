@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useSelectedLayoutSegments } from 'next/navigation';
 import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
 import { Onboarding } from '@/components/Onboarding';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -52,7 +52,7 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
   return (
     <>
       <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 px-4 pb-28 pt-4 sm:gap-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-6">
-        <header className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-[var(--border)] bg-[var(--bg-elevated)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-xl sm:px-5">
+        <header className="panel-fade flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-[var(--border)] bg-[var(--bg-elevated)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-xl sm:px-5">
           <div className="min-w-0">
             <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-muted)]">LunchCrew</div>
             <div className="mt-1 truncate text-lg font-semibold text-[var(--text)] sm:text-xl">{app.workspace?.name || 'Pick today’s lunch'}</div>
@@ -64,7 +64,7 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
         </header>
 
         {app.loadError ? (
-          <Card className="border-rose-500/20 bg-rose-500/10 p-5">
+          <Card className="panel-fade border-rose-500/20 bg-rose-500/10 p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-800 dark:text-rose-100">Something needs attention</div>
@@ -75,10 +75,10 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
           </Card>
         ) : null}
 
-        {app.configError ? <Card className="p-5 text-sm text-amber-900 dark:text-amber-100">{app.configError}</Card> : null}
+        {app.configError ? <Card className="panel-fade p-5 text-sm text-amber-900 dark:text-amber-100">{app.configError}</Card> : null}
 
         {!app.workspace ? (
-          <Card className="p-6">
+          <Card className="panel-fade p-6">
             <div className="grid gap-4">
               <div>
                 <div className="text-lg font-semibold text-[var(--text)]">Join or restore a crew</div>
@@ -101,7 +101,7 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
                     key={id}
                     href={href}
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition',
+                      'flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-300 ease-out hover:-translate-y-0.5',
                       isActive
                         ? 'border-transparent bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_16px_36px_rgba(255,122,89,0.24)]'
                         : 'border-[var(--border)] bg-[var(--surface-strong)] text-[var(--text-soft)] hover:bg-[var(--surface)]',
@@ -114,18 +114,20 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
               })}
             </nav>
 
-            {activeView === 'today' ? (
-              <TodayView app={app} totalVotes={totalVotes} planHref={workspacePath(app.workspace.invite_code, 'plan')} />
-            ) : null}
-            {activeView === 'plan' ? (
-              <PlanView app={app} todayHref={workspacePath(app.workspace.invite_code)} />
-            ) : null}
-            {activeView === 'history' ? (
-              <HistoryView app={app} activeHistory={activeHistory} />
-            ) : null}
-            {activeView === 'crew' ? (
-              <CrewView app={app} totalVotes={totalVotes} />
-            ) : null}
+            <div key={activeView} className="view-stage">
+              {activeView === 'today' ? (
+                <TodayView app={app} totalVotes={totalVotes} planHref={workspacePath(app.workspace.invite_code, 'plan')} />
+              ) : null}
+              {activeView === 'plan' ? (
+                <PlanView app={app} todayHref={workspacePath(app.workspace.invite_code)} />
+              ) : null}
+              {activeView === 'history' ? (
+                <HistoryView app={app} activeHistory={activeHistory} />
+              ) : null}
+              {activeView === 'crew' ? (
+                <CrewView app={app} totalVotes={totalVotes} />
+              ) : null}
+            </div>
           </>
         )}
 
@@ -139,10 +141,10 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
                   key={id}
                   href={href}
                   className={cn(
-                    'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-semibold transition',
+                    'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-semibold transition-all duration-300 ease-out active:scale-[0.98]',
                     isActive
                       ? 'bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-[var(--nav-active-text)] shadow-[0_12px_30px_rgba(255,122,89,0.22)]'
-                      : 'text-[var(--nav-inactive-text)]',
+                      : 'text-[var(--nav-inactive-text)] hover:bg-[var(--surface)]/70',
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -164,12 +166,12 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
 
   return (
     <section className="grid gap-4 sm:gap-5">
-      <Card className="p-4 sm:p-5">
+      <Card className="panel-fade p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge>Today’s ballot</Badge>
-              {app.workspace?.invite_code ? <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-soft)]">{app.workspace.invite_code}</span> : null}
+              {app.workspace?.invite_code ? <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-soft)] transition-colors duration-300">{app.workspace.invite_code}</span> : null}
             </div>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">{app.poll?.title || "Today's Lunch"}</h1>
@@ -184,12 +186,12 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Metric icon={CalendarDays} label="Options" value={String(app.options.length)} compact />
-        <Metric icon={Trophy} label="Votes" value={String(totalVotes)} compact />
+        <Metric icon={CalendarDays} label="Options" value={app.options.length} compact />
+        <Metric icon={Trophy} label="Votes" value={totalVotes} compact />
         <Metric icon={Crown} label="Leader" value={app.topChoice || 'Waiting'} compact />
       </div>
 
-      <Card className="p-4 sm:p-6">
+      <Card className="panel-fade p-4 sm:p-6">
         <div className="grid gap-4">
           {app.options.length === 0 ? (
             <Panel className="grid gap-3 p-8 text-center">
@@ -204,39 +206,47 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
             const menuUrl = opt.menu_url || opt.place?.detected_menu_url || opt.place?.website_url;
             const isActive = app.myOptionId === opt.id;
             const isLeader = index === 0 && opt.votes > 0;
-            const width = `${Math.max(34, Math.round((opt.votes / maxVotes) * 100))}%`;
+            const isVoting = app.votingOptionId === opt.id;
+            const width = Math.max(34, Math.round((opt.votes / maxVotes) * 100));
             const activityDots = Math.max(2, Math.min(4, opt.voters.length || opt.votes || 1));
             return (
               <button
                 key={opt.id}
                 className={cn(
-                  'group relative grid gap-4 rounded-[30px] border p-4 text-left transition duration-200 sm:p-5',
-                  'border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:bg-[var(--surface-strong)]',
+                  'group relative grid gap-4 overflow-hidden rounded-[30px] border p-4 text-left transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] sm:p-5',
+                  'border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:bg-[var(--surface-strong)] hover:shadow-[0_22px_48px_rgba(0,0,0,0.08)] active:scale-[0.995]',
                   (isLeader || isActive) && 'border-[rgba(255,122,89,0.32)] bg-[rgba(255,122,89,0.11)]',
+                  isVoting && 'pointer-events-none scale-[0.995] opacity-85',
                 )}
                 disabled={!!app.votingOptionId}
                 onClick={() => app.vote(opt.id)}
               >
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className={cn('pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500', (isLeader || isActive) && 'opacity-100')}>
+                  <div className="absolute inset-x-10 top-0 h-16 rounded-full bg-[rgba(255,209,102,0.18)] blur-2xl" />
+                  <div className="absolute -right-6 bottom-0 h-20 w-20 rounded-full bg-[rgba(255,122,89,0.14)] blur-2xl" />
+                </div>
+
+                <div className="relative flex flex-wrap items-start justify-between gap-4">
                   <div className="grid gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      {isLeader ? <Badge className="border-amber-500/30 bg-amber-500/18">Leading</Badge> : null}
-                      {isActive ? <Badge>Your vote</Badge> : null}
+                      <AnimatedBadge visible={isLeader} className="border-amber-500/30 bg-amber-500/18">Leading</AnimatedBadge>
+                      <AnimatedBadge visible={isActive}>Your vote</AnimatedBadge>
+                      <AnimatedBadge visible={isVoting} className="border-sky-500/25 bg-sky-500/14 text-sky-900 dark:text-sky-100">Casting…</AnimatedBadge>
                     </div>
                     <div>
-                      <div className="text-xl font-semibold text-[var(--text)] sm:text-2xl">{opt.name}</div>
-                      {opt.place?.formatted_address ? <div className="mt-1 text-sm text-[var(--text-muted)]">{opt.place.formatted_address}</div> : null}
+                      <div className="text-xl font-semibold text-[var(--text)] transition-colors duration-300 sm:text-2xl">{opt.name}</div>
+                      {opt.place?.formatted_address ? <div className="mt-1 text-sm text-[var(--text-muted)] transition-opacity duration-300">{opt.place.formatted_address}</div> : null}
                     </div>
                   </div>
-                  <div className="rounded-[24px] border border-[var(--border)] bg-[var(--panel-strong)] px-4 py-3 text-right shadow-[var(--shadow-soft)] sm:px-5">
-                    <div className="text-2xl font-semibold text-[var(--text)] sm:text-3xl">{opt.votes}</div>
+                  <div className={cn('rounded-[24px] border border-[var(--border)] bg-[var(--panel-strong)] px-4 py-3 text-right shadow-[var(--shadow-soft)] transition-all duration-500 sm:px-5', isLeader && 'border-amber-500/20 bg-amber-500/10')}>
+                    <div className="text-2xl font-semibold text-[var(--text)] sm:text-3xl"><AnimatedNumber value={opt.votes} /></div>
                     <div className="text-[10px] uppercase tracking-[0.24em] text-[var(--text-muted)] sm:text-xs">votes</div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
+                <div className="relative flex items-center justify-between gap-3">
                   <div className="vote-track flex-1">
-                    <div className="vote-fill" style={{ width, animationDelay: `${index * 160}ms` }} />
+                    <div className="vote-fill" style={{ width: `${width}%`, animationDelay: `${index * 160}ms` }} />
                   </div>
                   <div className="flex items-center gap-1.5">
                     {Array.from({ length: activityDots }).map((_, dotIndex) => (
@@ -245,14 +255,14 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-soft)]">
+                <div className="relative flex flex-wrap items-center gap-2 text-sm text-[var(--text-soft)]">
                   {typeof opt.place?.rating === 'number' ? <Pill>★ {opt.place.rating.toFixed(1)}</Pill> : null}
                   {priceLabel(opt.place?.price_level) ? <Pill>{priceLabel(opt.place?.price_level)}</Pill> : null}
                   {mapsUrl ? <ActionLink href={mapsUrl} label="Maps" icon={MapPinned} /> : null}
                   {menuUrl ? <ActionLink href={menuUrl} label="Menu" icon={ExternalLink} /> : null}
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="relative flex flex-wrap gap-2">
                   {opt.voters.length ? opt.voters.map((v, i) => <Pill key={`${opt.id}-${i}`}>{initialsForName(v)} · {v}</Pill>) : <span className="text-sm text-[var(--text-muted)]">Still quiet. First vote changes the board.</span>}
                 </div>
               </button>
@@ -276,7 +286,7 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
 
   return (
     <section className="grid gap-4 sm:gap-5">
-      <Card className="p-6 sm:p-8">
+      <Card className="panel-fade p-6 sm:p-8">
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -310,7 +320,7 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
 function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCrewApp>; activeHistory: ReturnType<typeof useLunchCrewApp>['history7Days'] }) {
   return (
     <section className="grid gap-4 sm:gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-      <Card className="p-6 sm:p-8">
+      <Card className="panel-fade p-6 sm:p-8">
         <div className="grid gap-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -319,24 +329,24 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
               <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Recent winners and repeat favorites live here instead of competing with today’s main task.</p>
             </div>
             <div className="flex rounded-full border border-[var(--border)] bg-[var(--surface)] p-1 shadow-[var(--shadow-soft)]">
-              <button className={cn('rounded-full px-4 py-2 text-sm transition', !app.show30DayHistory ? 'bg-[var(--text)] text-[var(--bg)]' : 'text-[var(--text-muted)]')} onClick={() => app.setShow30DayHistory(false)}>7 days</button>
-              <button className={cn('rounded-full px-4 py-2 text-sm transition', app.show30DayHistory ? 'bg-[var(--text)] text-[var(--bg)]' : 'text-[var(--text-muted)]')} onClick={() => app.setShow30DayHistory(true)}>30 days</button>
+              <button className={cn('rounded-full px-4 py-2 text-sm transition-all duration-300', !app.show30DayHistory ? 'bg-[var(--text)] text-[var(--bg)] shadow-[var(--shadow-soft)]' : 'text-[var(--text-muted)]')} onClick={() => app.setShow30DayHistory(false)}>7 days</button>
+              <button className={cn('rounded-full px-4 py-2 text-sm transition-all duration-300', app.show30DayHistory ? 'bg-[var(--text)] text-[var(--bg)] shadow-[var(--shadow-soft)]' : 'text-[var(--text-muted)]')} onClick={() => app.setShow30DayHistory(true)}>30 days</button>
             </div>
           </div>
-          <Panel className="grid gap-3 p-4">
+          <Panel className="panel-fade grid gap-3 p-4">
             <div className="text-sm font-medium text-[var(--text-muted)]">Leaderboard</div>
             {app.leaderboard.slice(0, 5).length ? app.leaderboard.slice(0, 5).map((place, i) => <Pill key={place.name}>#{i + 1} · {place.name} · {place.wins} wins</Pill>) : <span className="text-sm text-[var(--text-muted)]">No winners yet.</span>}
           </Panel>
         </div>
       </Card>
 
-      <Card className="overflow-hidden">
+      <Card className="panel-fade overflow-hidden">
         <div className="grid grid-cols-[120px_1fr_72px] gap-3 border-b border-[var(--border)] px-4 py-3 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
           <span>Date</span><span>Winner</span><span>Votes</span>
         </div>
         <div className="max-h-[36rem] overflow-auto">
-          {activeHistory.map((row) => (
-            <div key={row.poll_date} className="grid grid-cols-[120px_1fr_72px] gap-3 border-b border-[var(--border)] px-4 py-3 text-sm text-[var(--text-soft)] last:border-b-0">
+          {activeHistory.map((row, index) => (
+            <div key={row.poll_date} className="grid grid-cols-[120px_1fr_72px] gap-3 border-b border-[var(--border)] px-4 py-3 text-sm text-[var(--text-soft)] transition-colors duration-300 last:border-b-0 hover:bg-[var(--surface)]/65" style={{ animationDelay: `${index * 40}ms` }}>
               <span className="text-[var(--text-muted)]">{row.poll_date}</span>
               <span>{row.winner_name || 'No winner'}</span>
               <span>{row.winner_votes || 0}</span>
@@ -351,7 +361,7 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
 function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>; totalVotes: number }) {
   return (
     <section className="grid gap-4 sm:gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-      <Card className="p-6 sm:p-8">
+      <Card className="panel-fade p-6 sm:p-8">
         <div className="grid gap-5">
           <div>
             <Badge>Crew</Badge>
@@ -376,14 +386,14 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
         </div>
       </Card>
 
-      <Card className="p-6 sm:p-8">
+      <Card className="panel-fade p-6 sm:p-8">
         <div className="grid gap-4">
           <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14">Snapshot</Badge>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <Metric icon={Clock3} label="Votes cast" value={String(totalVotes)} compact />
+            <Metric icon={Clock3} label="Votes cast" value={totalVotes} compact />
             <Metric icon={Crown} label="Front runner" value={app.topChoice || 'Waiting'} compact />
           </div>
-          <Panel className="p-4">
+          <Panel className="panel-fade p-4">
             <div className="text-sm font-medium text-[var(--text)]">Restore and invite flows stay intact</div>
             <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">This redesign changes the information architecture, not the existing workspace logic, persistence, or realtime/polling behavior.</p>
           </Panel>
@@ -395,11 +405,11 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
 
 function Suggestions({ loading, suggestions, onSelect }: { loading: boolean; suggestions: PlaceSuggestion[]; onSelect: (s: PlaceSuggestion) => void }) {
   return (
-    <Panel className="overflow-hidden">
-      {loading ? <div className="px-4 py-3 text-sm text-[var(--text-muted)]">Searching places…</div> : null}
+    <Panel className="panel-fade overflow-hidden">
+      {loading ? <div className="shimmer px-4 py-3 text-sm text-[var(--text-muted)]">Searching places…</div> : null}
       {!loading && suggestions.length === 0 ? <div className="px-4 py-3 text-sm text-[var(--text-muted)]">No suggested places yet. You can still add it manually.</div> : null}
-      {suggestions.map((s) => (
-        <button key={s.id} onClick={() => onSelect(s)} className="grid w-full gap-1 border-b border-[var(--border)] px-4 py-3 text-left transition hover:bg-[var(--surface)] last:border-b-0">
+      {suggestions.map((s, index) => (
+        <button key={s.id} onClick={() => onSelect(s)} className="grid w-full gap-1 border-b border-[var(--border)] px-4 py-3 text-left transition-all duration-300 hover:bg-[var(--surface)] hover:pl-5 last:border-b-0" style={{ animationDelay: `${index * 45}ms` }}>
           <span className="text-sm font-semibold text-[var(--text)]">{s.name}</span>
           {s.secondaryText ? <span className="text-sm text-[var(--text-muted)]">{s.secondaryText}</span> : null}
         </button>
@@ -409,22 +419,73 @@ function Suggestions({ loading, suggestions, onSelect }: { loading: boolean; sug
 }
 
 function Pill({ className, children }: { className?: string; children: ReactNode }) {
-  return <span className={cn('inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-soft)] shadow-[var(--shadow-soft)]', className)}>{children}</span>;
+  return <span className={cn('inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-soft)] shadow-[var(--shadow-soft)] transition-all duration-300', className)}>{children}</span>;
 }
 
-function Metric({ icon: Icon, label, value, compact = false }: { icon: any; label: string; value: string; compact?: boolean }) {
+function Metric({ icon: Icon, label, value, compact = false }: { icon: any; label: string; value: string | number; compact?: boolean }) {
+  const numericValue = typeof value === 'number' ? value : Number.NaN;
   return (
-    <Panel className={cn('grid gap-2 p-4', compact && 'min-w-[9rem]')}>
+    <Panel className={cn('panel-fade grid gap-2 p-4', compact && 'min-w-[9rem]')}>
       <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]"><Icon className="h-4 w-4" /> {label}</div>
-      <div className={cn('font-semibold text-[var(--text)] break-words', compact ? 'text-lg' : 'text-2xl')}>{value}</div>
+      <div className={cn('font-semibold text-[var(--text)] break-words', compact ? 'text-lg' : 'text-2xl')}>
+        {Number.isFinite(numericValue) ? <AnimatedNumber value={numericValue} /> : value}
+      </div>
     </Panel>
   );
 }
 
 function ActionLink({ href, label, icon: Icon }: { href: string; label: string; icon: any }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--panel)] px-3 py-1.5 text-xs font-medium text-[var(--text-soft)] transition hover:bg-[var(--surface)]">
+    <a href={href} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--panel)] px-3 py-1.5 text-xs font-medium text-[var(--text-soft)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--surface)]">
       <Icon className="h-3.5 w-3.5" /> {label}
     </a>
   );
+}
+
+function AnimatedBadge({ visible, className, children }: { visible: boolean; className?: string; children: ReactNode }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center overflow-hidden rounded-full transition-all duration-400 ease-out',
+        visible ? 'max-w-[10rem] scale-100 opacity-100' : 'pointer-events-none max-w-0 scale-95 opacity-0',
+      )}
+      aria-hidden={!visible}
+    >
+      <Badge className={className}>{children}</Badge>
+    </span>
+  );
+}
+
+function AnimatedNumber({ value }: { value: number }) {
+  const [displayValue, setDisplayValue] = useState(value);
+  const previousValueRef = useRef(value);
+
+  useEffect(() => {
+    const startValue = previousValueRef.current;
+    const delta = value - startValue;
+    if (!delta) {
+      setDisplayValue(value);
+      return;
+    }
+
+    let frame = 0;
+    const start = performance.now();
+    const duration = 560;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(startValue + delta * eased));
+      if (progress < 1) {
+        frame = window.requestAnimationFrame(tick);
+      } else {
+        previousValueRef.current = value;
+      }
+    };
+
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [value]);
+
+  return <span className="tabular-nums">{displayValue}</span>;
 }
