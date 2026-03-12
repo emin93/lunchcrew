@@ -19,14 +19,20 @@ const steps = [
   ['Let the winner emerge', 'Watch the board update live, then use history and leaderboard views to keep the ritual moving tomorrow too.'],
 ];
 
+const liveBoard = [
+  { name: 'Tacos del Centro', votes: 8, state: 'leader', meta: 'Map · Menu', width: '78%', dots: 4 },
+  { name: 'Noodle House', votes: 6, state: 'surging', meta: 'Map', width: '64%', dots: 3 },
+  { name: 'Green Bowl', votes: 4, state: 'open vote', meta: 'Menu', width: '48%', dots: 2 },
+];
+
 export default function MarketingPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-16 pt-6 sm:px-6 lg:px-8">
       <header className="mb-10">
-        <nav className="relative flex flex-wrap items-center justify-between gap-4 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-5 py-3 backdrop-blur-xl">
+        <nav className="relative flex flex-col gap-3 rounded-[28px] border border-[var(--border)] bg-[var(--bg-elevated)] px-4 py-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:rounded-full sm:px-5 sm:py-3">
           <div className="brand-orb left-6 top-1/2 h-12 w-12 -translate-y-1/2 bg-[rgba(255,209,102,0.24)]" />
-          <div className="flex items-center gap-3">
-            <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-[1.35rem] border border-white/40 bg-[linear-gradient(135deg,#ffd766,#ff8f66_52%,#6bb8ff)] text-xl shadow-[0_16px_30px_rgba(255,122,89,0.28)]">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[1.35rem] border border-white/40 bg-[linear-gradient(135deg,#ffd766,#ff8f66_52%,#6bb8ff)] text-xl shadow-[0_16px_30px_rgba(255,122,89,0.28)] sm:h-12 sm:w-12">
               <span className="absolute inset-x-1 bottom-1 h-3 rounded-full bg-white/35 blur-sm" />
               🍔
             </div>
@@ -35,9 +41,9 @@ export default function MarketingPage() {
               <div className="text-xs text-[var(--text-muted)]">A brighter lunch ritual for teams</div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle className="rounded-full px-4" />
-            <OpenAppButton className="rounded-full px-5">Open app</OpenAppButton>
+          <div className="flex w-full items-center justify-end gap-2 sm:w-auto sm:gap-3">
+            <ThemeToggle className="rounded-full px-3 sm:px-4" />
+            <OpenAppButton className="rounded-full px-4 sm:px-5">Open app</OpenAppButton>
           </div>
         </nav>
       </header>
@@ -83,25 +89,30 @@ export default function MarketingPage() {
         </div>
 
         <Card className="relative overflow-hidden p-6 sm:p-8 lg:sticky lg:top-6 lg:h-fit">
-          <div className="absolute inset-x-6 top-10 h-px brand-dash" />
           <div className="grid gap-5">
             <div className="flex items-center justify-between">
               <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14 text-fuchsia-900 dark:text-fuchsia-100">Today’s board</Badge>
               <span className="text-sm text-[var(--text-muted)]">Feels live</span>
             </div>
             <div className="grid gap-4">
-              {[
-                ['Tacos del Centro', '8 votes · leader', 'Map · Menu'],
-                ['Noodle House', '5 votes', 'Map'],
-                ['Green Bowl', '3 votes', 'Menu'],
-              ].map(([name, votes, meta], index) => (
-                <Panel key={name} className={`grid gap-3 p-4 ${index === 0 ? 'border-[rgba(255,122,89,0.28)] bg-[rgba(255,122,89,0.12)]' : ''}`}>
+              {liveBoard.map(({ name, votes, state, meta, width, dots }, index) => (
+                <Panel key={name} className={`vote-card grid gap-3 p-4 ${index === 0 ? 'border-[rgba(255,122,89,0.28)] bg-[rgba(255,122,89,0.12)]' : ''}`} style={{ animationDelay: `${index * 220}ms` }}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-base font-semibold text-[var(--text)]">{name}</div>
-                      <div className="mt-1 text-sm text-[var(--text-muted)]">{votes}</div>
+                      <div className="mt-1 text-sm text-[var(--text-muted)]">{votes} votes</div>
                     </div>
-                    <div className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--text-soft)]">{index === 0 ? 'Winning' : 'Open vote'}</div>
+                    <div className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--text-soft)]">{state}</div>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="vote-track flex-1">
+                      <div className="vote-fill" style={{ width, animationDelay: `${index * 260}ms` }} />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {Array.from({ length: dots }).map((_, dotIndex) => (
+                        <span key={dotIndex} className="vote-dot" style={{ animationDelay: `${index * 240 + dotIndex * 140}ms` }} />
+                      ))}
+                    </div>
                   </div>
                   <div className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">{meta}</div>
                 </Panel>
@@ -153,7 +164,6 @@ export default function MarketingPage() {
         </Card>
 
         <Card className="relative flex items-center justify-center overflow-hidden p-8 text-center sm:p-12">
-          <div className="absolute inset-x-10 top-10 h-px brand-dash" />
           <div className="grid max-w-2xl gap-5">
             <Badge>Focused product workspace</Badge>
             <h2 className="text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">A consumer-friendly front door. A sharp app when it’s time to choose.</h2>
