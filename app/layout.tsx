@@ -1,26 +1,38 @@
 import type { Metadata } from 'next';
+import { ThemeProvider } from '@/components/theme-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://lunchcrew.app'),
   title: 'LunchCrew — Modern team lunch voting',
   description: 'Realtime team lunch voting with nearby place suggestions, invite links, maps, menus, history, and crew settings.',
+  manifest: '/site.webmanifest',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: ['/favicon.ico'],
+  },
   openGraph: {
     title: 'LunchCrew',
     description: 'Decide lunch in minutes, not message threads.',
     type: 'website',
     url: 'https://lunchcrew.app',
+    images: [{ url: '/icon-512.png', width: 512, height: 512, alt: 'LunchCrew app icon' }],
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <div className="relative isolate overflow-x-hidden">
-          <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.18),transparent_55%)]" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-96 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.14),transparent_55%)]" />
-          {children}
-        </div>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <div className="app-shell">{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );
