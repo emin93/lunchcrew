@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
 import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -30,23 +29,14 @@ function priceLabel(priceLevel?: number | null) {
 
 export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCode?: string; initialView?: AppView }) {
   const app = useLunchCrewApp(initialCode);
-  const pathname = usePathname();
-  const router = useRouter();
   const [joinCode, setJoinCode] = useState(initialCode || '');
 
   const activeHistory = app.show30DayHistory ? app.history30Days : app.history7Days;
   const totalVotes = useMemo(() => app.options.reduce((sum, opt) => sum + opt.votes, 0), [app.options]);
   const pollReady = !!app.poll;
   const emptyBallot = pollReady && app.pollDataReady && app.options.length === 0;
-  const defaultView: AppView = emptyBallot ? 'plan' : 'today';
   const requestedView = initialView;
   const activeView: AppView = !app.workspace ? 'today' : requestedView === 'today' && emptyBallot ? 'plan' : requestedView;
-
-  useEffect(() => {
-    if (!app.workspace?.invite_code) return;
-    const canonicalPath = workspacePath(app.workspace.invite_code, activeView === 'today' ? defaultView : activeView);
-    if (pathname !== canonicalPath) router.replace(canonicalPath);
-  }, [app.workspace?.invite_code, activeView, defaultView, pathname, router]);
 
   if (!app.onboardingReady) {
     return (
@@ -102,8 +92,8 @@ export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCo
           <>
             <nav className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
               {VIEWS.map(({ id, label, icon: Icon }) => {
-                const href = workspacePath(app.workspace!.invite_code, id === 'today' ? defaultView : id);
-                const isActive = activeView === id || (id === 'plan' && activeView === 'today' && defaultView === 'plan');
+                const href = workspacePath(app.workspace!.invite_code, id);
+                const isActive = activeView === id;
                 return (
                   <Link
                     key={id}
@@ -140,8 +130,8 @@ export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCo
         {app.workspace ? (
           <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 gap-2 rounded-[28px] border border-[var(--border)] bg-[rgba(255,252,248,0.92)] p-2 shadow-[var(--shadow)] backdrop-blur-xl dark:bg-[rgba(38,22,46,0.92)] lg:hidden">
             {VIEWS.map(({ id, short, icon: Icon }) => {
-              const href = workspacePath(app.workspace!.invite_code, id === 'today' ? defaultView : id);
-              const isActive = activeView === id || (id === 'plan' && activeView === 'today' && defaultView === 'plan');
+              const href = workspacePath(app.workspace!.invite_code, id);
+              const isActive = activeView === id;
               return (
                 <Link
                   key={id}

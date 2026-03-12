@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { ArrowRight, Check, Compass, MapPinned, Sparkles, Users, Vote } from 'lucide-react';
-import { LandingLaunchCard } from '@/components/LandingLaunchCard';
 import { OpenAppButton } from '@/components/OpenAppButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Badge, Button, Card, Panel } from '@/components/ui';
@@ -134,10 +133,6 @@ export default function MarketingPage() {
       </section>
 
       <section className="mt-14 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div id="open-app">
-          <LandingLaunchCard />
-        </div>
-
         <Card className="p-6 sm:p-8">
           <div className="grid gap-5">
             <Badge className="border-amber-500/30 bg-amber-500/18 text-amber-950 dark:text-amber-100">Why teams keep it around</Badge>
