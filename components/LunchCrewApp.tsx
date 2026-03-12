@@ -40,7 +40,7 @@ export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCo
 
   if (!app.onboardingReady) {
     return (
-      <section className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10 sm:px-6 lg:px-8">
+      <section className="mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-10 sm:px-6 lg:px-8">
         <Card className="w-full p-10 text-center text-[var(--text-soft)]">Loading LunchCrew…</Card>
       </section>
     );
@@ -49,7 +49,7 @@ export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCo
 
   return (
     <>
-      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 px-4 pb-28 pt-4 sm:gap-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-6">
+      <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 px-4 pb-28 pt-4 sm:gap-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-6">
         <header className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-[var(--border)] bg-[var(--bg-elevated)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-xl sm:px-5">
           <div className="min-w-0">
             <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-muted)]">LunchCrew</div>
