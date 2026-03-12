@@ -55,12 +55,22 @@ export function PollPanel({
   return (
     <View style={styles.panel}>
       <View style={styles.headerWrap}>
-        <View style={styles.headerContent}>
-          <Text style={styles.eyebrow}>Today&apos;s poll</Text>
+        <View style={styles.headerCopy}>
+          <Text style={styles.eyebrow}>Today&apos;s ballot</Text>
           <Text style={styles.pollTitle}>{poll.title}</Text>
-          <Text style={styles.pollSubtitle}>Tap a place to cast your vote. Add a new option below if the perfect lunch spot isn’t listed yet.</Text>
+          <Text style={styles.pollSubtitle}>Pick a place, watch the ranking settle, and add another contender only when the list actually needs it.</Text>
         </View>
-        {topChoice ? <View style={styles.leaderTag}><Text style={styles.leaderTagText}>Leading • {topChoice}</Text></View> : null}
+
+        <View style={styles.summaryRail}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Status</Text>
+            <Text style={styles.summaryValue}>{options.length === 0 ? 'Open board' : 'Voting live'}</Text>
+          </View>
+          <View style={[styles.summaryCard, styles.summaryCardAccent]}>
+            <Text style={styles.summaryLabel}>Leading now</Text>
+            <Text style={styles.summaryValue} numberOfLines={2}>{topChoice || 'No leader yet'}</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.optionList}>
@@ -73,7 +83,7 @@ export function PollPanel({
           </View>
         ) : null}
 
-        {options.map((opt) => {
+        {options.map((opt, index) => {
           const isActive = myOptionId === opt.id;
           const isVotingThis = votingOptionId === opt.id;
           const mapsUrl = opt.place?.google_maps_url;
@@ -94,16 +104,23 @@ export function PollPanel({
               accessibilityLabel={`Vote for ${opt.name}`}
               accessibilityHint="Double tap to cast your vote"
             >
-              <View style={styles.voteRail}>
-                {isVotingThis ? <ActivityIndicator size="small" color={ds.colors.accent} /> : <Text style={styles.voteCount}>{opt.votes}</Text>}
-                <Text style={styles.voteCountLabel}>{opt.votes === 1 ? 'vote' : 'votes'}</Text>
+              <View style={styles.voteStack}>
+                <View style={[styles.rankBubble, index === 0 && styles.rankBubbleFirst]}>
+                  <Text style={styles.rankText}>#{index + 1}</Text>
+                </View>
+                <View style={[styles.voteRail, isActive && styles.voteRailActive]}>
+                  {isVotingThis ? <ActivityIndicator size="small" color={ds.colors.accent} /> : <Text style={styles.voteCount}>{opt.votes}</Text>}
+                  <Text style={styles.voteCountLabel}>{opt.votes === 1 ? 'vote' : 'votes'}</Text>
+                </View>
               </View>
 
               <View style={styles.optionMain}>
                 <View style={styles.optionHeader}>
                   <View style={styles.titleWrap}>
-                    <Text style={styles.optionName}>{opt.name}</Text>
-                    {isActive ? <Text style={styles.myVoteTag}>Your pick</Text> : null}
+                    <View style={styles.nameRow}>
+                      <Text style={styles.optionName}>{opt.name}</Text>
+                      {isActive ? <View style={styles.myVoteBadge}><Text style={styles.myVoteTag}>Your pick</Text></View> : null}
+                    </View>
                   </View>
                 </View>
 
@@ -159,7 +176,7 @@ export function PollPanel({
                     ))}
                   </View>
                 ) : (
-                  <Text style={styles.noVotesText}>No votes yet — be first.</Text>
+                  <Text style={styles.noVotesText}>No votes yet — be first to move the board.</Text>
                 )}
               </View>
             </Pressable>
@@ -170,12 +187,12 @@ export function PollPanel({
       <View style={styles.composerSection}>
         <View style={styles.composerHeader}>
           <View>
-            <Text style={styles.composerKicker}>Add a contender</Text>
-            <Text style={styles.composerTitle}>Suggest a new lunch spot</Text>
+            <Text style={styles.composerKicker}>Expand the ballot</Text>
+            <Text style={styles.composerTitle}>Add a new lunch spot</Text>
           </View>
           {selectedSuggestion ? (
-            <Pressable onPress={onClearSuggestion} accessibilityRole="button" accessibilityLabel="Clear selected suggestion">
-              <Text style={styles.clearText}>Change selection</Text>
+            <Pressable onPress={onClearSuggestion} accessibilityRole="button" accessibilityLabel="Clear selected suggestion" style={styles.clearBtn}>
+              <Text style={styles.clearText}>Change</Text>
             </Pressable>
           ) : null}
         </View>
@@ -209,7 +226,7 @@ export function PollPanel({
 
         {selectedSuggestion ? (
           <View style={styles.selectedRow}>
-            <Text style={styles.selectedLabel}>Selected</Text>
+            <Text style={styles.selectedLabel}>Selected suggestion</Text>
             <Text style={styles.selectedText}>{selectedSuggestion.name}</Text>
           </View>
         ) : null}
@@ -241,57 +258,84 @@ const styles = StyleSheet.create({
     backgroundColor: ds.colors.card,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    gap: 20,
+    gap: 24,
     ...ds.shadow.card,
   },
-  headerWrap: { gap: 12 },
-  headerContent: { gap: 6 },
+  headerWrap: { gap: 16 },
+  headerCopy: { gap: 8 },
   eyebrow: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 },
-  pollTitle: { color: ds.colors.text, fontSize: 28, lineHeight: 33, fontWeight: '900', letterSpacing: -0.8 },
-  pollSubtitle: { color: ds.colors.textMuted, fontSize: 14, lineHeight: 21, maxWidth: 620 },
-  leaderTag: {
-    alignSelf: 'flex-start',
-    borderRadius: ds.radius.pill,
+  pollTitle: { color: ds.colors.text, fontSize: 30, lineHeight: 36, fontWeight: '900', letterSpacing: -0.9 },
+  pollSubtitle: { color: ds.colors.textMuted, fontSize: 14, lineHeight: 21, maxWidth: 660 },
+  summaryRail: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
+  summaryCard: {
+    minWidth: 170,
+    flexGrow: 1,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: ds.colors.accentSoftStrong,
-    backgroundColor: ds.colors.accentSoft,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderColor: ds.colors.stroke,
+    backgroundColor: ds.colors.panel,
+    padding: 16,
+    gap: 4,
   },
-  leaderTagText: { color: ds.colors.text, fontSize: 12, fontWeight: '800' },
-  optionList: { gap: 12 },
+  summaryCardAccent: { borderColor: ds.colors.accentSoftStrong, backgroundColor: 'rgba(20, 30, 62, 0.92)' },
+  summaryLabel: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
+  summaryValue: { color: ds.colors.text, fontSize: 18, lineHeight: 22, fontWeight: '900' },
+  optionList: { gap: 14 },
   optionCard: {
-    borderRadius: ds.radius.xl,
+    borderRadius: 30,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
     backgroundColor: ds.colors.cardMuted,
-    padding: 14,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'stretch',
-    gap: 14,
+    gap: 16,
   },
-  optionMain: { flex: 1, gap: 10 },
+  optionMain: { flex: 1, gap: 12 },
   optionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
   titleWrap: { flex: 1, gap: 4 },
-  optionCardActive: { borderColor: ds.colors.accentSoftStrong, backgroundColor: 'rgba(32, 43, 84, 0.98)' },
-  optionCardPressed: { transform: [{ scale: 0.99 }], opacity: 0.95 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
+  optionCardActive: { borderColor: ds.colors.accentSoftStrong, backgroundColor: 'rgba(27, 38, 76, 0.98)' },
+  optionCardPressed: { transform: [{ scale: 0.992 }], opacity: 0.96 },
   optionDisabled: { opacity: 0.65 },
-  voteRail: {
-    width: 72,
-    borderRadius: ds.radius.lg,
+  voteStack: { width: 76, gap: 8 },
+  rankBubble: {
+    alignSelf: 'flex-start',
+    minWidth: 42,
+    borderRadius: 15,
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
-    backgroundColor: 'rgba(7, 12, 28, 0.68)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  rankBubbleFirst: { borderColor: 'rgba(255, 207, 114, 0.24)', backgroundColor: ds.colors.goldSoft },
+  rankText: { color: ds.colors.text, fontWeight: '900', fontSize: 11, letterSpacing: 0.5 },
+  voteRail: {
+    flex: 1,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: ds.colors.strokeStrong,
+    backgroundColor: 'rgba(7, 12, 28, 0.76)',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 8,
   },
+  voteRailActive: { borderColor: ds.colors.accentSoftStrong, backgroundColor: ds.colors.accentSoft },
   voteCount: { color: ds.colors.text, fontWeight: '900', minWidth: 18, textAlign: 'center', fontSize: 24 },
   voteCountLabel: { color: ds.colors.textSoft, fontWeight: '800', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.7 },
-  optionName: { color: ds.colors.text, fontWeight: '900', fontSize: 19, lineHeight: 23 },
-  myVoteTag: { color: ds.colors.teal, fontSize: 11, fontWeight: '900', letterSpacing: 0.6, textTransform: 'uppercase' },
+  optionName: { color: ds.colors.text, fontWeight: '900', fontSize: 20, lineHeight: 24, flexShrink: 1 },
+  myVoteBadge: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(87, 227, 194, 0.24)',
+    backgroundColor: ds.colors.tealSoft,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  myVoteTag: { color: ds.colors.teal, fontSize: 11, fontWeight: '900', letterSpacing: 0.5, textTransform: 'uppercase' },
   placeMetaWrap: { gap: 8 },
   placeMetaText: { color: ds.colors.textMuted, fontSize: 12, lineHeight: 18 },
   placeBadgeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -301,19 +345,19 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
-    borderRadius: ds.radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 14,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     backgroundColor: ds.colors.input,
   },
-  ratingBadge: { backgroundColor: ds.colors.goldSoft, borderColor: 'rgba(255, 207, 112, 0.24)' },
+  ratingBadge: { backgroundColor: ds.colors.goldSoft, borderColor: 'rgba(255, 207, 114, 0.24)' },
   linkRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   linkBtn: {
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
-    borderRadius: ds.radius.pill,
+    borderRadius: 16,
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 8,
     backgroundColor: ds.colors.input,
   },
   linkBtnText: { color: ds.colors.text, fontSize: 12, fontWeight: '800' },
@@ -322,12 +366,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    borderRadius: ds.radius.pill,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
     backgroundColor: ds.colors.input,
     paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingVertical: 6,
   },
   voterAvatar: {
     width: 20,
@@ -341,20 +385,28 @@ const styles = StyleSheet.create({
   voterName: { color: ds.colors.textMuted, fontSize: 11, fontWeight: '700' },
   noVotesText: { color: ds.colors.textSoft, fontSize: 12, fontWeight: '600' },
   composerSection: {
-    borderRadius: ds.radius.xl,
+    borderRadius: 30,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
-    backgroundColor: 'rgba(8, 13, 31, 0.44)',
-    padding: 16,
-    gap: 12,
+    backgroundColor: 'rgba(8, 13, 31, 0.56)',
+    padding: 18,
+    gap: 14,
   },
-  composerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+  composerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   composerKicker: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 },
-  composerTitle: { color: ds.colors.text, fontSize: 18, fontWeight: '800', marginTop: 2 },
+  composerTitle: { color: ds.colors.text, fontSize: 20, fontWeight: '900', marginTop: 2 },
+  clearBtn: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: ds.colors.strokeStrong,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: ds.colors.input,
+  },
   composerWrap: { flexDirection: 'row', gap: 10 },
   input: {
     flex: 1,
-    borderRadius: ds.radius.lg,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: ds.colors.strokeStrong,
     backgroundColor: ds.colors.input,
@@ -367,7 +419,7 @@ const styles = StyleSheet.create({
     minWidth: 116,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: ds.radius.lg,
+    borderRadius: 18,
     backgroundColor: ds.colors.accent,
     paddingHorizontal: 14,
     ...ds.shadow.glow,
@@ -375,7 +427,7 @@ const styles = StyleSheet.create({
   addBtnPressed: { transform: [{ scale: 0.98 }], opacity: 0.92 },
   addBtnText: { color: '#10182f', fontWeight: '900', fontSize: 13 },
   suggestionsWrap: {
-    borderRadius: ds.radius.lg,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: ds.colors.stroke,
     backgroundColor: ds.colors.input,
@@ -383,8 +435,8 @@ const styles = StyleSheet.create({
   },
   suggestHint: { color: ds.colors.textMuted, fontSize: 12, padding: 12 },
   suggestionItem: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
     borderBottomWidth: 1,
     borderBottomColor: ds.colors.stroke,
     flexDirection: 'row',
@@ -398,24 +450,24 @@ const styles = StyleSheet.create({
   suggestionSub: { color: ds.colors.textSoft, fontSize: 11, marginTop: 2 },
   suggestionAction: { color: ds.colors.teal, fontSize: 12, fontWeight: '800' },
   selectedRow: {
-    borderRadius: ds.radius.lg,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: ds.colors.accentSoftStrong,
     backgroundColor: ds.colors.accentSoft,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     gap: 2,
   },
   selectedLabel: { color: ds.colors.textSoft, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.7 },
   selectedText: { color: ds.colors.text, fontSize: 13, fontWeight: '800' },
   clearText: { color: ds.colors.textMuted, fontSize: 12, fontWeight: '800' },
   emptyInline: {
-    borderRadius: ds.radius.xl,
+    borderRadius: 28,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: ds.colors.strokeStrong,
     backgroundColor: 'rgba(8, 13, 31, 0.36)',
-    padding: 16,
+    padding: 18,
     gap: 6,
   },
   emptyKicker: { color: ds.colors.teal, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 },
