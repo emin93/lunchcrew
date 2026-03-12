@@ -18,6 +18,12 @@
   --accent-soft: rgba(255, 122, 89, 0.16);
   --accent-2: #ffd166;
   --accent-3: #75d48b;
+  --badge-bg: rgba(255, 122, 89, 0.2);
+  --badge-border: rgba(143, 47, 25, 0.22);
+  --badge-text: #7f2716;
+  --nav-bar-bg: rgba(255, 252, 248, 0.96);
+  --nav-inactive-text: #5d3b2c;
+  --nav-active-text: #3c180d;
   --shadow: 0 28px 80px rgba(172, 92, 52, 0.15);
   --shadow-soft: 0 18px 45px rgba(172, 92, 52, 0.11);
   --ring: rgba(255, 122, 89, 0.28);
@@ -41,6 +47,12 @@
   --accent-soft: rgba(255, 154, 98, 0.16);
   --accent-2: #ffd56f;
   --accent-3: #7fe29d;
+  --badge-bg: rgba(255, 154, 98, 0.16);
+  --badge-border: rgba(255, 213, 111, 0.22);
+  --badge-text: #fff0c2;
+  --nav-bar-bg: rgba(38, 22, 46, 0.92);
+  --nav-inactive-text: #f6d9c7;
+  --nav-active-text: #fffaf5;
   --shadow: 0 34px 90px rgba(8, 3, 15, 0.45);
   --shadow-soft: 0 20px 56px rgba(8, 3, 15, 0.32);
   --ring: rgba(255, 154, 98, 0.26);

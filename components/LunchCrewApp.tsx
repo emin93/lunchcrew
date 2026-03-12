@@ -128,7 +128,7 @@ export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCo
         )}
 
         {app.workspace ? (
-          <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 gap-2 rounded-[28px] border border-[var(--border)] bg-[rgba(255,252,248,0.92)] p-2 shadow-[var(--shadow)] backdrop-blur-xl dark:bg-[rgba(38,22,46,0.92)] lg:hidden">
+          <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 gap-2 rounded-[28px] border border-[var(--border)] bg-[var(--nav-bar-bg)] p-2 shadow-[var(--shadow)] backdrop-blur-xl lg:hidden">
             {VIEWS.map(({ id, short, icon: Icon }) => {
               const href = workspacePath(app.workspace!.invite_code, id);
               const isActive = activeView === id;
@@ -139,8 +139,8 @@ export function LunchCrewApp({ initialCode, initialView = 'today' }: { initialCo
                   className={cn(
                     'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-semibold transition',
                     isActive
-                      ? 'bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_12px_30px_rgba(255,122,89,0.22)]'
-                      : 'text-[var(--text-soft)]',
+                      ? 'bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-[var(--nav-active-text)] shadow-[0_12px_30px_rgba(255,122,89,0.22)]'
+                      : 'text-[var(--nav-inactive-text)]',
                   )}
                 >
                   <Icon className="h-4 w-4" />
