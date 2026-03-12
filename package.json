@@ -1,31 +1,24 @@
 {
-  "name": "lunch-crew-app",
-  "version": "1.0.0",
-  "main": "expo-router/entry",
+  "name": "lunchcrew",
+  "version": "2.0.0",
+  "private": true,
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@expo/vector-icons": "^15.1.1",
-    "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.98.0",
-    "expo": "~54.0.0",
-    "expo-linear-gradient": "^55.0.8",
-    "expo-location": "^55.1.2",
-    "expo-router": "^55.0.4",
-    "expo-status-bar": "~3.0.8",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-web": "^0.21.0"
+    "next": "^15.2.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/react": "~19.1.10",
-    "typescript": "~5.9.2"
-  },
-  "private": true
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "typescript": "^5.8.2"
+  }
 }
