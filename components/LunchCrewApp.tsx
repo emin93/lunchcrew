@@ -375,16 +375,14 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
               <p className="text-sm leading-6 text-[var(--text-muted)]">Search nearby or type a custom idea. As soon as you add one, it will stay visible here.</p>
             </Panel>
           ) : (
-            <div className="grid gap-3">
+            <div className="grid gap-2.5">
               {sortedShortlist.map((opt, index) => {
-                const mapsUrl = opt.place?.google_maps_url;
-                const menuUrl = opt.menu_url || opt.place?.detected_menu_url || opt.place?.website_url;
                 const isRecentlyAdded = !!recentlyAddedName && opt.name.trim().toLowerCase() === recentlyAddedName.trim().toLowerCase();
                 return (
                   <Panel
                     key={opt.id}
                     className={cn(
-                      'grid gap-3 p-4 transition-all duration-300',
+                      'grid gap-2 p-3.5 transition-all duration-300',
                       isRecentlyAdded && 'border-emerald-500/25 bg-emerald-500/10 ring-1 ring-emerald-500/20',
                     )}
                   >
@@ -394,20 +392,12 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
                           {index === 0 ? <Pill className="border-amber-500/25 bg-amber-500/12 text-amber-900 dark:text-amber-100">Top voted</Pill> : null}
                           {isRecentlyAdded ? <Pill className="border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100">Just added</Pill> : null}
                         </div>
-                        <div className="mt-2 text-base font-semibold text-[var(--text)]">{opt.name}</div>
-                        {opt.place?.formatted_address ? <div className="mt-1 text-sm text-[var(--text-muted)]">{opt.place.formatted_address}</div> : null}
+                        <div className="mt-1.5 text-sm font-semibold text-[var(--text)] sm:text-base">{opt.name}</div>
+                        {opt.place?.formatted_address ? <div className="mt-0.5 line-clamp-1 text-xs text-[var(--text-muted)]">{opt.place.formatted_address}</div> : null}
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-semibold text-[var(--text)]"><AnimatedNumber value={opt.votes} /></div>
-                        <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--text-muted)]">votes</div>
+                      <div className="shrink-0 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-sm font-semibold text-[var(--text)]">
+                        <AnimatedNumber value={opt.votes} />
                       </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-soft)]">
-                      {typeof opt.place?.rating === 'number' ? <Pill>★ {opt.place.rating.toFixed(1)}</Pill> : null}
-                      {priceLabel(opt.place?.price_level) ? <Pill>{priceLabel(opt.place?.price_level)}</Pill> : null}
-                      {mapsUrl ? <ActionLink href={mapsUrl} label="Maps" icon={MapPinned} /> : null}
-                      {menuUrl ? <ActionLink href={menuUrl} label="Menu" icon={ExternalLink} /> : null}
                     </div>
                   </Panel>
                 );
