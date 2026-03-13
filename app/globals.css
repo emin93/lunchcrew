@@ -18,9 +18,9 @@
   --accent-soft: rgba(255, 122, 89, 0.16);
   --accent-2: #ffd166;
   --accent-3: #75d48b;
-  --badge-bg: rgba(255, 122, 89, 0.2);
-  --badge-border: rgba(143, 47, 25, 0.22);
-  --badge-text: #7f2716;
+  --badge-bg: rgba(255, 122, 89, 0.22);
+  --badge-border: rgba(143, 47, 25, 0.26);
+  --badge-text: #5f1d10;
   --nav-bar-bg: rgba(255, 252, 248, 0.96);
   --nav-inactive-text: #5d3b2c;
   --nav-active-text: #3c180d;
@@ -49,7 +49,7 @@
   --accent-3: #7fe29d;
   --badge-bg: rgba(255, 154, 98, 0.16);
   --badge-border: rgba(255, 213, 111, 0.22);
-  --badge-text: #fff0c2;
+  --badge-text: #fff3d4;
   --nav-bar-bg: rgba(38, 22, 46, 0.92);
   --nav-inactive-text: #f6d9c7;
   --nav-active-text: #fffaf5;

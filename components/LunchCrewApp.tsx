@@ -165,28 +165,28 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
   const maxVotes = Math.max(...sortedOptions.map((opt) => opt.votes), 1);
 
   return (
-    <section className="grid gap-4 sm:gap-5">
-      <Card className="panel-fade p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="grid gap-2">
+    <section className="grid gap-3 sm:gap-5">
+      <Card className="panel-fade p-3 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="grid gap-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <Badge>Today’s ballot</Badge>
               {app.workspace?.invite_code ? <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-soft)] transition-colors duration-300">{app.workspace.invite_code}</span> : null}
             </div>
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">{app.poll?.title || "Today's Lunch"}</h1>
-              <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">Vote first. Planning, history, and crew admin all have their own pages now.</p>
+              <h1 className="text-xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">{app.poll?.title || "Today's Lunch"}</h1>
+              <p className="mt-1 hidden text-sm leading-6 text-[var(--text-muted)] sm:block">Vote first. Planning, history, and crew admin all have their own pages now.</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share</Button>
-            <Link href={planHref}><Button variant="gold"><Plus className="h-4 w-4" /> Plan</Button></Link>
+            <Button variant="secondary" className="px-3 sm:px-4" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share</Button>
+            <Link href={planHref}><Button variant="gold" className="px-3 sm:px-4"><Plus className="h-4 w-4" /> Plan</Button></Link>
           </div>
         </div>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Metric icon={CalendarDays} label="Options" value={app.options.length} compact />
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
+        <Metric icon={CalendarDays} label="Options" value={app.options.length} compact className="hidden sm:grid" />
         <Metric icon={Trophy} label="Votes" value={totalVotes} compact />
         <Metric icon={Crown} label="Leader" value={app.topChoice || 'Waiting'} compact />
       </div>
@@ -525,10 +525,10 @@ function Pill({ className, children }: { className?: string; children: ReactNode
   return <span className={cn('inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-soft)] shadow-[var(--shadow-soft)] transition-all duration-300', className)}>{children}</span>;
 }
 
-function Metric({ icon: Icon, label, value, compact = false }: { icon: any; label: string; value: string | number; compact?: boolean }) {
+function Metric({ icon: Icon, label, value, compact = false, className }: { icon: any; label: string; value: string | number; compact?: boolean; className?: string }) {
   const numericValue = typeof value === 'number' ? value : Number.NaN;
   return (
-    <Panel className={cn('panel-fade grid gap-2 p-4', compact && 'min-w-[9rem]')}>
+    <Panel className={cn('panel-fade grid gap-1.5 p-3 sm:gap-2 sm:p-4', compact && 'min-w-[9rem]', className)}>
       <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]"><Icon className="h-4 w-4" /> {label}</div>
       <div className={cn('font-semibold text-[var(--text)] break-words', compact ? 'text-lg' : 'text-2xl')}>
         {Number.isFinite(numericValue) ? <AnimatedNumber value={numericValue} /> : value}
