@@ -78,6 +78,21 @@ function areaLabelFromGeocode(result: any) {
   return result?.formatted_address || null;
 }
 
+function googleStatusError(prefix: string, payload: any, fallbackStatus = 502) {
+  const status = payload?.status;
+  const message = payload?.error_message || payload?.error?.message || payload?.message || null;
+  if (!status || status === 'OK' || status === 'ZERO_RESULTS') return null;
+  return json(
+    {
+      error: prefix,
+      googleStatus: status,
+      googleMessage: message,
+      details: payload,
+    },
+    fallbackStatus,
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
 
@@ -176,6 +191,8 @@ Deno.serve(async (req) => {
         }
 
         const reversePayload = await reverseResp.json();
+        const reverseError = googleStatusError('Google reverse geocode failed', reversePayload);
+        if (reverseError) return reverseError;
         const top = (reversePayload.results || [])[0];
         if (!top) return json({ item: null });
 
@@ -201,6 +218,8 @@ Deno.serve(async (req) => {
       }
 
       const payload = await resp.json();
+      const geocodeError = googleStatusError('Google geocode failed', payload);
+      if (geocodeError) return geocodeError;
       const top = (payload.results || [])[0];
       if (top?.geometry?.location) {
         return json({
@@ -233,6 +252,14 @@ Deno.serve(async (req) => {
       }
 
       const textSearchPayload = await textSearchResp.json();
+      if (textSearchPayload?.error) {
+        return json({
+          error: 'Google text search failed',
+          googleStatus: textSearchPayload.error.status || null,
+          googleMessage: textSearchPayload.error.message || null,
+          details: textSearchPayload,
+        }, 502);
+      }
       const place = (textSearchPayload.places || [])[0];
       if (!place?.location) return json({ item: null });
 

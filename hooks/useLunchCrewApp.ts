@@ -295,9 +295,12 @@ export function useLunchCrewApp(initialCode?: string) {
     }
     const url = `${supabaseUrl}/functions/v1/places-proxy/geocode?${params.toString()}`;
     const resp = await withTimeout(fetch(url, { headers: { apikey: anonKey } }));
-    if (!resp.ok) throw new Error(`Area lookup failed (${resp.status})`);
-    const payload = await resp.json() as SearchAreaResponse;
-    return payload.item ?? null;
+    const payload = await resp.json().catch(() => ({} as any));
+    if (!resp.ok) {
+      const details = [payload?.googleStatus, payload?.googleMessage].filter(Boolean).join(': ');
+      throw new Error(details ? `Area lookup failed — ${details}` : `Area lookup failed (${resp.status})`);
+    }
+    return (payload as SearchAreaResponse).item ?? null;
   }
   async function applySearchArea(rawQuery?: string) {
     const query = (rawQuery ?? searchAreaInput).trim();
