@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 import { Badge, Button, Card, Input, Panel, Textarea } from '@/components/ui';
@@ -12,6 +12,23 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose }: {
   const [note, setNote] = useState('');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const canSubmit = useMemo(() => /^\S+@\S+\.\S+$/.test(email.trim()), [email]);
+
+  useEffect(() => {
+    if (!visible || typeof document === 'undefined') return;
+    const { body, documentElement } = document;
+    const prevBodyOverflow = body.style.overflow;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
+    const prevHtmlOverflow = documentElement.style.overflow;
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'none';
+    documentElement.style.overflow = 'hidden';
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+      documentElement.style.overflow = prevHtmlOverflow;
+    };
+  }, [visible]);
+
   if (!visible) return null;
 
   async function submit() {
@@ -36,9 +53,9 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-md">
-      <div className="grid min-h-full place-items-center py-4 sm:py-6">
-        <Card className="max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto p-6 sm:max-h-[calc(100vh-3rem)] sm:p-8 lg:p-10">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/55 p-4 backdrop-blur-md">
+      <div className="grid h-full place-items-center">
+        <Card className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto overscroll-contain p-6 sm:max-h-[calc(100dvh-3rem)] sm:p-8 lg:p-10">
           <div className="grid gap-5">
           <Badge className="w-fit"><Sparkles className="h-3.5 w-3.5" /> Founding Crew Access</Badge>
           <div className="grid gap-2">
