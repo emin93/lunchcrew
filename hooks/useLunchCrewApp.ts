@@ -204,7 +204,7 @@ export function useLunchCrewApp(initialCode?: string) {
       setSearchAreaLoading(false);
     }
   }
-  async function requestMagicLink(email: string) {
+  async function requestMagicLink(email: string, mode: 'claim' | 'signin' = 'signin') {
     const cleanEmail = email.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) return { ok: false, error: 'Enter a valid email first.' };
     if (!supabase) return { ok: false, error: 'Login is unavailable right now.' };
@@ -214,7 +214,13 @@ export function useLunchCrewApp(initialCode?: string) {
       const redirectTo = typeof window !== 'undefined'
         ? `${window.location.origin}${workspace?.invite_code ? workspacePath(workspace.invite_code.toUpperCase(), 'crew') : window.location.pathname}`
         : undefined;
-      const { error } = await supabase.auth.signInWithOtp({ email: cleanEmail, options: { emailRedirectTo: redirectTo, shouldCreateUser: true } });
+      const { error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          emailRedirectTo: redirectTo,
+          shouldCreateUser: mode === 'claim',
+        },
+      });
       if (error) return { ok: false, error: error.message || 'Could not send magic link.' };
       return { ok: true };
     } finally {

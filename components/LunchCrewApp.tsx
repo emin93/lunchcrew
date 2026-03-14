@@ -589,15 +589,17 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
     setFeedbackEmail('');
   }
 
-  async function handleMagicLink() {
+  async function handleMagicLink(mode: 'claim' | 'signin' = 'signin') {
     setAuthNotice(null);
     app.setAuthError(null);
-    const result = await app.requestMagicLink(loginEmail);
+    const result = await app.requestMagicLink(loginEmail, mode);
     if (!result.ok) {
       app.setAuthError(result.error || 'Could not send magic link.');
       return;
     }
-    setAuthNotice('Magic link sent. Open the email on this device to claim the crew.');
+    setAuthNotice(mode === 'claim'
+      ? 'Magic link sent. Open the email on this device to claim the crew.'
+      : 'Magic link sent. Open the email on this device to sign back in as the crew owner.');
   }
 
   async function handleClaimCrew() {
@@ -652,15 +654,22 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
                 {!app.workspaceRole && app.workspaceHasOwner ? <p className="text-sm text-[var(--text-muted)]">This crew is already managed by its owner, so claiming is no longer available from other devices.</p> : null}
               </>
             ) : app.workspaceHasOwner ? (
-              <Panel className="grid gap-2 p-4">
-                <div className="text-sm font-medium text-[var(--text)]">This crew has already been claimed</div>
-                <p className="text-sm leading-6 text-[var(--text-muted)]">Admin and founding-access controls now belong to the crew owner. Other people can still join and vote normally.</p>
-              </Panel>
+              <>
+                <Panel className="grid gap-2 p-4">
+                  <div className="text-sm font-medium text-[var(--text)]">This crew has already been claimed</div>
+                  <p className="text-sm leading-6 text-[var(--text-muted)]">Admin and founding-access controls belong to the crew owner. Sign back in with the owner email to manage this crew.</p>
+                </Panel>
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <Input value={loginEmail} onChange={(e) => { setLoginEmail(e.target.value); setAuthNotice(null); app.setAuthError(null); }} placeholder="owner@company.com" />
+                  <Button disabled={!loginEmail.trim() || app.authBusy} onClick={() => handleMagicLink('signin')}><Mail className="h-4 w-4" /> {app.authBusy ? 'Sending…' : 'Email sign-in link'}</Button>
+                </div>
+                <p className="text-sm text-[var(--text-muted)]">Use the same owner email that claimed this crew. Other people can still join and vote normally without signing in.</p>
+              </>
             ) : (
               <>
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                   <Input value={loginEmail} onChange={(e) => { setLoginEmail(e.target.value); setAuthNotice(null); app.setAuthError(null); }} placeholder="you@company.com" />
-                  <Button disabled={!loginEmail.trim() || app.authBusy} onClick={handleMagicLink}><Mail className="h-4 w-4" /> {app.authBusy ? 'Sending…' : 'Email magic link'}</Button>
+                  <Button disabled={!loginEmail.trim() || app.authBusy} onClick={() => handleMagicLink('claim')}><Mail className="h-4 w-4" /> {app.authBusy ? 'Sending…' : 'Email magic link'}</Button>
                 </div>
                 <p className="text-sm text-[var(--text-muted)]">Once you’re signed in, you can claim this crew and later manage payments and admin controls.</p>
               </>
