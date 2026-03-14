@@ -107,7 +107,7 @@ export function MonetizationModal({
                   <Button
                     disabled={!canCheckout || checkoutBusy}
                     onClick={onStartCheckout}
-                    className="min-h-14 rounded-[22px] border border-emerald-400/35 bg-[linear-gradient(135deg,#34d399,#22c55e)] px-6 text-base font-extrabold tracking-[0.01em] text-emerald-950 shadow-[0_20px_44px_rgba(34,197,94,0.26)] hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(34,197,94,0.32)]"
+                    className="min-h-14 rounded-[22px] border border-emerald-300/55 bg-[linear-gradient(135deg,#4ade80,#22c55e)] px-6 text-base font-black tracking-[0.01em] text-white shadow-[0_20px_44px_rgba(34,197,94,0.24)] hover:-translate-y-1 hover:bg-[linear-gradient(135deg,#5eea8a,#2dd16a)] hover:shadow-[0_24px_52px_rgba(34,197,94,0.3)]"
                   >
                     {checkoutBusy ? 'Opening checkout…' : <><ArrowRight className="h-5 w-5" /> Unlock this crew for $29</>}
                   </Button>
