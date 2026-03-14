@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSelectedLayoutSegments } from 'next/navigation';
-import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Sparkles, Trash2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
+import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, LogOut, Mail, MapPinned, Plus, Rocket, Search, Share2, Shield, Sparkles, Trash2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
@@ -559,6 +559,8 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
 
   async function handleFeedbackSubmit() {
     if (feedbackStatus === 'saving') return;
@@ -573,6 +575,28 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
     setFeedbackStatus('saved');
     setFeedbackMessage('');
     setFeedbackEmail('');
+  }
+
+  async function handleMagicLink() {
+    setAuthNotice(null);
+    app.setAuthError(null);
+    const result = await app.requestMagicLink(loginEmail);
+    if (!result.ok) {
+      app.setAuthError(result.error || 'Could not send magic link.');
+      return;
+    }
+    setAuthNotice('Magic link sent. Open the email on this device to claim the crew.');
+  }
+
+  async function handleClaimCrew() {
+    setAuthNotice(null);
+    app.setAuthError(null);
+    const result = await app.claimWorkspace();
+    if (!result.ok) {
+      app.setAuthError(result.error || 'Could not claim this crew.');
+      return;
+    }
+    setAuthNotice('This crew is now claimed by your account.');
   }
 
   return (
@@ -594,6 +618,37 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
           <Panel className="grid gap-3 p-4">
             <div className="text-sm font-medium text-[var(--text)]">Evaluation pricing</div>
             <p className="text-sm leading-6 text-[var(--text-muted)]">Upgrade this crew to founding access during evaluation and lock in early pricing for this specific crew.</p>
+          </Panel>
+          <Panel className="grid gap-4 p-4 sm:p-5">
+            <div className="grid gap-1">
+              <div className="text-sm font-semibold text-[var(--text)]">Crew ownership</div>
+              <p className="text-sm leading-6 text-[var(--text-muted)]">Admins will log in with a magic link. Regular voters can keep using LunchCrew without an account.</p>
+            </div>
+            {app.authUser ? (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Pill className="pill-sky">Signed in as {app.authUser.email || 'account owner'}</Pill>
+                  {app.workspaceRole ? <Pill className="pill-amber">{app.workspaceRole === 'owner' ? 'Crew owner' : 'Crew admin'}</Pill> : null}
+                  {!app.workspaceRole && app.workspaceHasOwner ? <Pill>This crew already has an owner</Pill> : null}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {!app.workspaceRole && !app.workspaceHasOwner ? (
+                    <Button disabled={app.authBusy} onClick={handleClaimCrew}><Shield className="h-4 w-4" /> Claim this crew</Button>
+                  ) : null}
+                  <Button variant="secondary" disabled={app.authBusy} onClick={() => app.signOutAuthUser()}><LogOut className="h-4 w-4" /> Sign out</Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <Input value={loginEmail} onChange={(e) => { setLoginEmail(e.target.value); setAuthNotice(null); app.setAuthError(null); }} placeholder="you@company.com" />
+                  <Button disabled={!loginEmail.trim() || app.authBusy} onClick={handleMagicLink}><Mail className="h-4 w-4" /> {app.authBusy ? 'Sending…' : 'Email magic link'}</Button>
+                </div>
+                <p className="text-sm text-[var(--text-muted)]">Once you’re signed in, you can claim this crew and later manage payments and admin controls.</p>
+              </>
+            )}
+            {authNotice ? <Pill className="pill-emerald w-fit">{authNotice}</Pill> : null}
+            {app.authError ? <p className="text-sm text-rose-700 dark:text-rose-300">{app.authError}</p> : null}
           </Panel>
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
             <p className="text-sm text-[var(--text-muted)]">Need a brand-new invite code and a clean ballot?</p>

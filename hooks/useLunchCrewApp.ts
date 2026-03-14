@@ -1,5 +1,6 @@
 'use client';
 
+import type { User as AuthUser } from '@supabase/supabase-js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { trackEvent } from '@/lib/analytics';
 import {
@@ -9,7 +10,7 @@ import {
   workspacePath,
 } from '@/lib/helpers';
 import { isConfigured, supabase } from '@/lib/supabase';
-import type { HistoryDaySummary, LeaderboardPlace, PlaceSuggestion, Poll, PollOption, Workspace, WorkspaceMember } from '@/lib/types';
+import type { HistoryDaySummary, LeaderboardPlace, PlaceSuggestion, Poll, PollOption, Workspace, WorkspaceMember, WorkspaceRole } from '@/lib/types';
 
 type PlaceDetailsResponse = {
   provider: string; externalPlaceId: string; name: string; formattedAddress?: string | null; rating?: number | null;
@@ -64,6 +65,12 @@ export function useLunchCrewApp(initialCode?: string) {
   const [renaming, setRenaming] = useState(false);
   const [savingName, setSavingName] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [workspaceRole, setWorkspaceRole] = useState<WorkspaceRole['role'] | null>(null);
+  const [workspaceHasOwner, setWorkspaceHasOwner] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -86,8 +93,50 @@ export function useLunchCrewApp(initialCode?: string) {
   }, []);
 
   useEffect(() => {
+    if (!supabase) return setAuthReady(true);
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setAuthUser(data.session?.user ?? null);
+      setAuthReady(true);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      setAuthUser(session?.user ?? null);
+      setAuthReady(true);
+      setAuthError(null);
+    });
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     setSearchAreaInput(workspace?.search_area_label || '');
   }, [workspace?.id, workspace?.search_area_label]);
+
+  useEffect(() => {
+    if (!supabase || !workspace?.id) {
+      setWorkspaceRole(null);
+      setWorkspaceHasOwner(false);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await withTimeout(supabase.from('workspace_roles').select('workspace_id,user_id,role,created_at,id').eq('workspace_id', workspace.id));
+      if (cancelled) return;
+      if (error) {
+        setWorkspaceRole(null);
+        setWorkspaceHasOwner(false);
+        return;
+      }
+      const roles = (data || []) as WorkspaceRole[];
+      setWorkspaceHasOwner(roles.some((entry) => entry.role === 'owner'));
+      setWorkspaceRole(roles.find((entry) => entry.user_id === authUser?.id)?.role ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [workspace?.id, authUser?.id]);
 
   useEffect(() => {
     if (!onboardingReady || !onboardingDone || !supabase) return;
@@ -151,6 +200,52 @@ export function useLunchCrewApp(initialCode?: string) {
       return false;
     } finally {
       setSearchAreaLoading(false);
+    }
+  }
+  async function requestMagicLink(email: string) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) return { ok: false, error: 'Enter a valid email first.' };
+    if (!supabase) return { ok: false, error: 'Login is unavailable right now.' };
+    setAuthBusy(true);
+    setAuthError(null);
+    try {
+      const redirectTo = typeof window !== 'undefined' ? window.location.href : undefined;
+      const { error } = await supabase.auth.signInWithOtp({ email: cleanEmail, options: { emailRedirectTo: redirectTo, shouldCreateUser: true } });
+      if (error) return { ok: false, error: error.message || 'Could not send magic link.' };
+      return { ok: true };
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+  async function signOutAuthUser() {
+    if (!supabase) return;
+    setAuthBusy(true);
+    try {
+      await supabase.auth.signOut();
+      setWorkspaceRole(null);
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+  async function claimWorkspace() {
+    if (!supabase || !workspace || !authUser) return { ok: false, error: 'Sign in first.' };
+    setAuthBusy(true);
+    setAuthError(null);
+    try {
+      if (workspaceHasOwner && !workspaceRole) return { ok: false, error: 'This crew already has an owner.' };
+      const { error } = await withTimeout(
+        supabase.from('workspace_roles').upsert(
+          { workspace_id: workspace.id, user_id: authUser.id, role: 'owner' },
+          { onConflict: 'workspace_id,user_id' },
+        ),
+      );
+      if (error) return { ok: false, error: error.message || 'Could not claim this crew.' };
+      setWorkspaceRole('owner');
+      setWorkspaceHasOwner(true);
+      void trackEvent('workspace_claimed', { workspace_id: workspace.id }, deviceId || undefined);
+      return { ok: true };
+    } finally {
+      setAuthBusy(false);
     }
   }
   async function ensureMember(workspaceId: string, currentDeviceId: string) {
@@ -535,6 +630,7 @@ export function useLunchCrewApp(initialCode?: string) {
     suggestions, loadingSuggestions, selectedSuggestion, setSelectedSuggestion, history7Days, history30Days, leaderboard,
     searchAreaInput, setSearchAreaInput, searchAreaLoading, searchAreaError, clearSearchAreaError, applySearchArea, clearSearchArea,
     activeSearchAreaLabel, hasCrewSearchArea, geolocationAvailable, usingCurrentLocation, useCurrentLocationForCrewArea,
+    authUser, authReady, authBusy, authError, setAuthError, workspaceRole, workspaceHasOwner, requestMagicLink, signOutAuthUser, claimWorkspace,
     submitFeedback,
   };
 }
