@@ -383,7 +383,6 @@ export function useLunchCrewApp(initialCode?: string) {
   }
   async function refreshPollData(pollId: string, workspaceId: string, voterId: string) {
     if (!supabase) return;
-    setPollDataReady(false);
     const [optionsRes, myVoteRes, votesRes, membersRes] = await Promise.all([
       withTimeout(supabase.from('poll_options').select('id,poll_id,name,menu_url,place_cache_id,votes(count),place:places_cache(id,provider,external_place_id,name,formatted_address,rating,price_level,google_maps_url,website_url,detected_menu_url)').eq('poll_id', pollId).order('created_at')),
       withTimeout(supabase.from('votes').select('option_id').eq('poll_id', pollId).eq('voter_id', voterId).maybeSingle()),
