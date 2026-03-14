@@ -71,6 +71,8 @@ export function useLunchCrewApp(initialCode?: string) {
   const [authError, setAuthError] = useState<string | null>(null);
   const [workspaceRole, setWorkspaceRole] = useState<WorkspaceRole['role'] | null>(null);
   const [workspaceHasOwner, setWorkspaceHasOwner] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -227,6 +229,39 @@ export function useLunchCrewApp(initialCode?: string) {
       setWorkspaceRole(null);
     } finally {
       setAuthBusy(false);
+    }
+  }
+  async function startFoundingCheckout() {
+    if (!supabase || !workspace) return { ok: false, error: 'This crew is not ready for checkout yet.' };
+    if (!authUser) return { ok: false, error: 'Sign in first.' };
+    if (workspaceRole !== 'owner') return { ok: false, error: 'Only the crew owner can unlock founding access.' };
+    if (workspace.pro_enabled || workspace.plan === 'founding') return { ok: false, error: 'This crew already has founding access.' };
+    setCheckoutBusy(true);
+    setCheckoutError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-create-checkout', { body: { workspaceId: workspace.id } });
+      if (error) {
+        const message = typeof error.message === 'string' ? error.message : 'Could not start checkout.';
+        setCheckoutError(message);
+        return { ok: false, error: message };
+      }
+      if (data?.alreadyUnlocked) {
+        setCheckoutError('This crew already has founding access.');
+        return { ok: false, error: 'This crew already has founding access.' };
+      }
+      if (!data?.url) {
+        setCheckoutError('Stripe checkout URL was missing.');
+        return { ok: false, error: 'Stripe checkout URL was missing.' };
+      }
+      void trackEvent('founding_checkout_started', { workspace_id: workspace.id }, deviceId || undefined);
+      if (typeof window !== 'undefined') window.location.assign(data.url);
+      return { ok: true };
+    } catch (error: any) {
+      const message = error?.message || 'Could not start checkout.';
+      setCheckoutError(message);
+      return { ok: false, error: message };
+    } finally {
+      setCheckoutBusy(false);
     }
   }
   async function claimWorkspace() {
@@ -633,6 +668,7 @@ export function useLunchCrewApp(initialCode?: string) {
     searchAreaInput, setSearchAreaInput, searchAreaLoading, searchAreaError, clearSearchAreaError, applySearchArea, clearSearchArea,
     activeSearchAreaLabel, hasCrewSearchArea, geolocationAvailable, usingCurrentLocation, useCurrentLocationForCrewArea,
     authUser, authReady, authBusy, authError, setAuthError, workspaceRole, workspaceHasOwner, requestMagicLink, signOutAuthUser, claimWorkspace,
+    checkoutBusy, checkoutError, setCheckoutError, startFoundingCheckout,
     submitFeedback,
   };
 }

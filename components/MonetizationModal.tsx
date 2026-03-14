@@ -1,18 +1,34 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Sparkles } from 'lucide-react';
-import { trackEvent } from '@/lib/analytics';
-import { Badge, Button, Card, Input, Panel, Textarea } from '@/components/ui';
-import { MONETIZATION_LAST_PROMPT_AT_KEY, MONETIZATION_WAITLIST_JOINED_KEY, storage } from '@/lib/helpers';
-import { supabase } from '@/lib/supabase';
+import { useEffect } from 'react';
+import { ArrowRight, Shield, Sparkles } from 'lucide-react';
+import { Badge, Button, Card, Panel } from '@/components/ui';
 
-export function MonetizationModal({ visible, workspaceId, deviceId, onClose }: { visible: boolean; workspaceId?: string; deviceId?: string; onClose: () => void }) {
-  const [email, setEmail] = useState('');
-  const [note, setNote] = useState('');
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const canSubmit = useMemo(() => /^\S+@\S+\.\S+$/.test(email.trim()), [email]);
-
+export function MonetizationModal({
+  visible,
+  workspaceName,
+  proEnabled,
+  authReady,
+  authUserEmail,
+  workspaceRole,
+  workspaceHasOwner,
+  checkoutBusy,
+  checkoutError,
+  onStartCheckout,
+  onClose,
+}: {
+  visible: boolean;
+  workspaceName?: string;
+  proEnabled?: boolean;
+  authReady: boolean;
+  authUserEmail?: string | null;
+  workspaceRole?: 'owner' | 'admin' | null;
+  workspaceHasOwner: boolean;
+  checkoutBusy: boolean;
+  checkoutError?: string | null;
+  onStartCheckout: () => void;
+  onClose: () => void;
+}) {
   useEffect(() => {
     if (!visible || typeof document === 'undefined') return;
     const { body, documentElement } = document;
@@ -31,54 +47,77 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose }: {
 
   if (!visible) return null;
 
-  async function submit() {
-    if (!canSubmit || status === 'saving') return;
-    const cleanEmail = email.trim().toLowerCase();
-    setStatus('saving');
-    await trackEvent('upgrade_cta_clicked', { placement: 'return_modal', workspace_id: workspaceId ?? null }, deviceId);
-    if (!supabase) {
-      storage.set(MONETIZATION_WAITLIST_JOINED_KEY, '1');
-      storage.set(MONETIZATION_LAST_PROMPT_AT_KEY, String(Date.now()));
-      setStatus('saved');
-      return;
-    }
-    const { error } = await supabase.from('monetization_waitlist').insert({ email: cleanEmail, note: note.trim() || null, workspace_id: workspaceId ?? null, source: 'return_modal' });
-    if (error && error.code !== '23505') {
-      setStatus('error');
-      return;
-    }
-    storage.set(MONETIZATION_WAITLIST_JOINED_KEY, '1');
-    storage.set(MONETIZATION_LAST_PROMPT_AT_KEY, String(Date.now()));
-    setStatus('saved');
-  }
+  const canCheckout = !!authUserEmail && workspaceRole === 'owner' && !proEnabled;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/55 p-4 backdrop-blur-md">
       <div className="grid h-full place-items-center">
         <Card className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto overscroll-contain p-6 sm:max-h-[calc(100dvh-3rem)] sm:p-8 lg:p-10">
           <div className="grid gap-5">
-          <Badge className="w-fit"><Sparkles className="h-3.5 w-3.5" /> Founding Crew Access</Badge>
-          <div className="grid gap-2">
-            <h3 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Upgrade this crew during evaluation</h3>
-            <p className="text-sm leading-7 text-[var(--text-soft)]">The plan is a one-time upgrade per crew. Early buyers help shape LunchCrew, unlock upcoming Pro features for this crew, and get grandfathered as pricing evolves.</p>
-          </div>
-          <Panel className="grid gap-2 p-4 text-sm leading-6 text-[var(--text-soft)]">
-            <div className="font-semibold text-[var(--text)]">What this is shaping toward</div>
-            <div>• one-time payment tied to one crew</div>
-            <div>• admin controls, decision rules, recurring defaults, and richer history</div>
-            <div>• evaluation-phase access with future grandfathering for founding crews</div>
-          </Panel>
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email for founding access updates" />
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything you’d want included in Founding Crew Access?" rows={4} />
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs leading-6 text-[var(--text-muted)]">
-            Founding Crew Access is tied to a single crew during the evaluation phase. Long-term access depends on LunchCrew continuing to operate, so it cannot be guaranteed if the product is discontinued.
-          </div>
-          <div className="flex flex-wrap justify-end gap-3">
-            <Button variant="secondary" onClick={onClose}>Not now</Button>
-            <Button disabled={!canSubmit || status === 'saving'} onClick={submit}>{status === 'saving' ? 'Saving…' : 'Get founding access updates'}</Button>
-          </div>
-          {status === 'saved' ? <p className="text-sm text-emerald-600 dark:text-emerald-300">Saved — I’ll treat this crew as interested in founding access.</p> : null}
-          {status === 'error' ? <p className="text-sm text-rose-600 dark:text-rose-300">Couldn’t save right now. Please try again.</p> : null}
+            <Badge className="w-fit"><Sparkles className="h-3.5 w-3.5" /> Founding Crew Access</Badge>
+
+            <div className="grid gap-2">
+              <h3 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Upgrade this crew during evaluation</h3>
+              <p className="text-sm leading-7 text-[var(--text-soft)]">One-time payment, tied to one crew. Early buyers help shape LunchCrew, unlock upcoming Pro features for this crew, and get grandfathered as pricing evolves.</p>
+            </div>
+
+            <Panel className="grid gap-3 p-4 sm:p-5">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium text-[var(--text-muted)]">Founding price</div>
+                  <div className="mt-1 text-3xl font-semibold tracking-tight text-[var(--text)]">$29 <span className="text-base font-medium text-[var(--text-muted)]">one-time / crew</span></div>
+                </div>
+                {workspaceName ? <Badge className="badge-sky">{workspaceName}</Badge> : null}
+              </div>
+              <div className="grid gap-2 text-sm leading-6 text-[var(--text-soft)]">
+                <div>• one-time payment tied to this crew only</div>
+                <div>• admin controls, decision rules, recurring defaults, and richer history</div>
+                <div>• founders get grandfathered if pricing changes later</div>
+              </div>
+            </Panel>
+
+            {proEnabled ? (
+              <Panel className="grid gap-2 p-4 sm:p-5">
+                <div className="text-sm font-semibold text-[var(--text)]">This crew already has founding access</div>
+                <p className="text-sm leading-6 text-[var(--text-muted)]">No further purchase is needed for this crew.</p>
+              </Panel>
+            ) : !authReady ? (
+              <Panel className="grid gap-2 p-4 sm:p-5">
+                <div className="text-sm font-semibold text-[var(--text)]">Checking owner access…</div>
+                <p className="text-sm leading-6 text-[var(--text-muted)]">Give me a second to confirm who can unlock this crew.</p>
+              </Panel>
+            ) : !authUserEmail ? (
+              <Panel className="grid gap-2 p-4 sm:p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]"><Shield className="h-4 w-4" /> Sign in as the crew owner first</div>
+                <p className="text-sm leading-6 text-[var(--text-muted)]">Open Crew settings, use the magic-link login, and claim the crew. Once you’re the owner, this button will turn into real checkout.</p>
+              </Panel>
+            ) : workspaceRole !== 'owner' ? (
+              <Panel className="grid gap-2 p-4 sm:p-5">
+                <div className="text-sm font-semibold text-[var(--text)]">Only the crew owner can unlock founding access</div>
+                <p className="text-sm leading-6 text-[var(--text-muted)]">
+                  {workspaceHasOwner
+                    ? 'This crew is already owned from another device/account. Sign in as that owner account to continue.'
+                    : 'Claim this crew first from Crew settings, then come back here to pay.'}
+                </p>
+              </Panel>
+            ) : (
+              <Panel className="grid gap-3 p-4 sm:p-5">
+                <div className="text-sm leading-6 text-[var(--text-muted)]">Signed in as <span className="font-semibold text-[var(--text)]">{authUserEmail}</span>. This purchase will unlock founding access for this crew.</div>
+                <Button variant="gold" disabled={!canCheckout || checkoutBusy} onClick={onStartCheckout}>
+                  {checkoutBusy ? 'Opening checkout…' : <><ArrowRight className="h-4 w-4" /> Unlock this crew for $29</>}
+                </Button>
+              </Panel>
+            )}
+
+            {checkoutError ? <p className="text-sm text-rose-600 dark:text-rose-300">{checkoutError}</p> : null}
+
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs leading-6 text-[var(--text-muted)]">
+              Founding Crew Access is tied to a single crew during the evaluation phase. Long-term access depends on LunchCrew continuing to operate, so it cannot be guaranteed if the product is discontinued.
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-3">
+              <Button variant="secondary" onClick={onClose}>Close</Button>
+            </div>
           </div>
         </Card>
       </div>

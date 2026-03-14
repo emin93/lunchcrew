@@ -155,7 +155,19 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
           </nav>
         ) : null}
       </main>
-      <MonetizationModal visible={app.showMonetizationModal} workspaceId={app.workspace?.id} deviceId={app.deviceId} onClose={() => app.dismissMonetizationModal()} />
+      <MonetizationModal
+        visible={app.showMonetizationModal}
+        workspaceName={app.workspace?.name}
+        proEnabled={app.workspace?.pro_enabled}
+        authReady={app.authReady}
+        authUserEmail={app.authUser?.email}
+        workspaceRole={app.workspaceRole}
+        workspaceHasOwner={app.workspaceHasOwner}
+        checkoutBusy={app.checkoutBusy}
+        checkoutError={app.checkoutError}
+        onStartCheckout={() => void app.startFoundingCheckout()}
+        onClose={() => app.dismissMonetizationModal()}
+      />
     </>
   );
 }
