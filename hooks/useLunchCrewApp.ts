@@ -245,7 +245,17 @@ export function useLunchCrewApp(initialCode?: string) {
     setCheckoutBusy(true);
     setCheckoutError(null);
     try {
-      const { data, error } = await supabase.functions.invoke('stripe-create-checkout', { body: { workspaceId: workspace.id } });
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) {
+        const message = 'Your owner session expired. Sign in again from Crew settings.';
+        setCheckoutError(message);
+        return { ok: false, error: message };
+      }
+      const { data, error } = await supabase.functions.invoke('stripe-create-checkout', {
+        body: { workspaceId: workspace.id },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       if (error) {
         const message = typeof error.message === 'string' ? error.message : 'Could not start checkout.';
         setCheckoutError(message);
