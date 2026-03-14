@@ -660,7 +660,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
                   <p className="text-sm leading-6 text-[var(--text-muted)]">Admin and founding-access controls belong to the crew owner. Sign back in with the owner email to manage this crew.</p>
                 </Panel>
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                  <Input value={loginEmail} onChange={(e) => { setLoginEmail(e.target.value); setAuthNotice(null); app.setAuthError(null); }} placeholder="owner@company.com" />
+                  <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" value={loginEmail} onChange={(e) => { setLoginEmail(e.target.value); setAuthNotice(null); app.setAuthError(null); }} placeholder="owner@company.com" />
                   <Button disabled={!loginEmail.trim() || app.authBusy} onClick={() => handleMagicLink('signin')}><Mail className="h-4 w-4" /> {app.authBusy ? 'Sending…' : 'Email sign-in link'}</Button>
                 </div>
                 <p className="text-sm text-[var(--text-muted)]">Use the same owner email that claimed this crew. Other people can still join and vote normally without signing in.</p>
@@ -668,7 +668,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
             ) : (
               <>
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                  <Input value={loginEmail} onChange={(e) => { setLoginEmail(e.target.value); setAuthNotice(null); app.setAuthError(null); }} placeholder="you@company.com" />
+                  <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" value={loginEmail} onChange={(e) => { setLoginEmail(e.target.value); setAuthNotice(null); app.setAuthError(null); }} placeholder="you@company.com" />
                   <Button disabled={!loginEmail.trim() || app.authBusy} onClick={() => handleMagicLink('claim')}><Mail className="h-4 w-4" /> {app.authBusy ? 'Sending…' : 'Email magic link'}</Button>
                 </div>
                 <p className="text-sm text-[var(--text-muted)]">Once you’re signed in, you can claim this crew and later manage payments and admin controls.</p>
@@ -708,7 +708,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
               <div className="text-sm font-semibold text-[var(--text)]">Send feedback</div>
               <p className="text-sm leading-6 text-[var(--text-muted)]">Seen something odd or have an idea? Send it straight from here.</p>
             </div>
-            <Input value={feedbackEmail} onChange={(e) => { setFeedbackEmail(e.target.value); setFeedbackStatus('idle'); setFeedbackError(null); }} placeholder="Email (optional)" />
+            <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" value={feedbackEmail} onChange={(e) => { setFeedbackEmail(e.target.value); setFeedbackStatus('idle'); setFeedbackError(null); }} placeholder="Email (optional)" />
             <Textarea value={feedbackMessage} onChange={(e) => { setFeedbackMessage(e.target.value); setFeedbackStatus('idle'); setFeedbackError(null); }} placeholder="What should change, what felt confusing, or what would make this better?" rows={5} />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm text-[var(--text-muted)]">We’ll attach the current crew context automatically.</div>
