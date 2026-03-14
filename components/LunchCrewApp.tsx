@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSelectedLayoutSegments } from 'next/navigation';
+import { useSearchParams, useSelectedLayoutSegments } from 'next/navigation';
 import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, LogOut, Mail, MapPinned, Plus, Rocket, Search, Share2, Shield, Sparkles, Trash2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -31,7 +31,9 @@ function priceLabel(priceLevel?: number | null) {
 export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
   const app = useLunchCrewApp(initialCode);
   const segments = useSelectedLayoutSegments();
+  const searchParams = useSearchParams();
   const [joinCode, setJoinCode] = useState(initialCode || '');
+  const [checkoutResult, setCheckoutResult] = useState<'success' | 'cancelled' | null>(null);
 
   const activeHistory = app.show30DayHistory ? app.history30Days : app.history7Days;
   const totalVotes = useMemo(() => app.options.reduce((sum, opt) => sum + opt.votes, 0), [app.options]);
@@ -39,6 +41,18 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
   const emptyBallot = pollReady && app.pollDataReady && app.options.length === 0;
   const requestedView = (segments[0] as AppView | undefined) || 'today';
   const activeView: AppView = !app.workspace ? 'today' : requestedView === 'today' && emptyBallot ? 'plan' : requestedView;
+
+  useEffect(() => {
+    const checkout = searchParams.get('checkout');
+    if (checkout === 'success' || checkout === 'cancelled') {
+      setCheckoutResult(checkout);
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('checkout');
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  }, [searchParams]);
 
   if (!app.onboardingReady) {
     return (
@@ -62,6 +76,36 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
             <Link href="/"><Button variant="secondary" className="rounded-full px-4"><Compass className="h-4 w-4" /> <span className="hidden sm:inline">Landing</span></Button></Link>
           </div>
         </header>
+
+        {checkoutResult === 'success' ? (
+          <Card className="panel-fade relative overflow-hidden border-emerald-500/24 bg-[linear-gradient(135deg,rgba(16,185,129,0.16),rgba(255,209,102,0.18))] p-5">
+            <div className="celebration-burst celebration-burst-a" />
+            <div className="celebration-burst celebration-burst-b" />
+            <div className="relative flex flex-wrap items-start justify-between gap-4">
+              <div className="grid gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="badge-emerald tada-pop"><Sparkles className="h-3.5 w-3.5" /> Payment successful</Badge>
+                  {app.workspace?.pro_enabled ? <Pill className="pill-amber">Founding access enabled</Pill> : null}
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-[var(--text)]">Tada — this crew just unlocked founding access.</div>
+                  <p className="mt-1 text-sm leading-6 text-[var(--text-soft)]">
+                    {app.workspace?.pro_enabled
+                      ? 'Admin controls and upcoming founder features are now tied to this crew.'
+                      : 'Stripe sent us back successfully. If the unlocked state does not appear in a moment, refresh once while the webhook finishes.'}
+                  </p>
+                </div>
+              </div>
+              <Button variant="secondary" onClick={() => setCheckoutResult(null)}>Nice</Button>
+            </div>
+          </Card>
+        ) : null}
+
+        {checkoutResult === 'cancelled' ? (
+          <Card className="panel-fade border-amber-500/20 bg-amber-500/10 p-5 text-sm text-amber-900 dark:text-amber-100">
+            Checkout was cancelled. The crew stays on the free plan until you complete payment.
+          </Card>
+        ) : null}
 
         {app.loadError ? (
           <Card className="panel-fade border-rose-500/20 bg-rose-500/10 p-5">
@@ -627,11 +671,21 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button variant="secondary" className="justify-start" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share invite</Button>
-            <Button variant="gold" className="justify-start" onClick={() => app.setShowMonetizationModal(true)}><Sparkles className="h-4 w-4" /> Founding access</Button>
+            {app.workspace?.pro_enabled ? (
+              <Panel className="grid gap-2 border-emerald-500/24 bg-emerald-500/10 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="badge-emerald"><Sparkles className="h-3.5 w-3.5" /> Founding access enabled</Badge>
+                  <Pill className="pill-amber">Unlocked by crew admin</Pill>
+                </div>
+                <p className="text-sm leading-6 text-[var(--text-soft)]">This crew has already been upgraded during evaluation, so founder features now belong to the whole crew.</p>
+              </Panel>
+            ) : (
+              <Button variant="gold" className="justify-start" onClick={() => app.setShowMonetizationModal(true)}><Sparkles className="h-4 w-4" /> Founding access</Button>
+            )}
           </div>
           <Panel className="grid gap-3 p-4">
             <div className="text-sm font-medium text-[var(--text)]">Evaluation pricing</div>
-            <p className="text-sm leading-6 text-[var(--text-muted)]">Upgrade this crew to founding access during evaluation and lock in early pricing for this specific crew.</p>
+            <p className="text-sm leading-6 text-[var(--text-muted)]">{app.workspace?.pro_enabled ? 'This crew is already part of the founding group during evaluation.' : 'Upgrade this crew to founding access during evaluation and lock in early pricing for this specific crew.'}</p>
           </Panel>
           <Panel className="grid gap-4 p-4 sm:p-5">
             <div className="grid gap-1">
