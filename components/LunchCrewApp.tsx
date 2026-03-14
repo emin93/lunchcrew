@@ -151,7 +151,7 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
                     key={id}
                     href={href}
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-300 ease-out hover:-translate-y-0.5',
+                      'flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-300 ease-out',
                       isActive
                         ? 'border-transparent bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_16px_36px_rgba(255,122,89,0.24)]'
                         : 'border-[var(--border)] bg-[var(--surface-strong)] text-[var(--text-soft)] hover:bg-[var(--surface)]',
@@ -283,7 +283,7 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
                 key={opt.id}
                 className={cn(
                   'group relative grid gap-4 overflow-hidden rounded-[30px] border p-4 text-left transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] sm:p-5',
-                  'border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:bg-[var(--surface-strong)] hover:shadow-[0_22px_48px_rgba(0,0,0,0.08)] active:scale-[0.995]',
+                  'border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-strong)] hover:shadow-[0_22px_48px_rgba(0,0,0,0.08)] active:scale-[0.995]',
                   (isLeader || isActive) && 'border-[rgba(255,122,89,0.32)] bg-[rgba(255,122,89,0.11)]',
                   isVoting && 'pointer-events-none scale-[0.995] opacity-85',
                 )}
@@ -844,7 +844,7 @@ function Metric({ icon: Icon, label, value, compact = false, className }: { icon
 
 function ActionLink({ href, label, icon: Icon }: { href: string; label: string; icon: any }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--panel)] px-3 py-1.5 text-xs font-medium text-[var(--text-soft)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--surface)]">
+    <a href={href} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--panel)] px-3 py-1.5 text-xs font-medium text-[var(--text-soft)] transition-all duration-300 hover:bg-[var(--surface)]">
       <Icon className="h-3.5 w-3.5" /> {label}
     </a>
   );

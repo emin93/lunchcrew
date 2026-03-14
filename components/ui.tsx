@@ -9,10 +9,10 @@ export function Button({ className, variant = 'default', ...props }: React.Butto
       className={cn(
         'inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
-        variant === 'default' && 'border border-transparent bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_16px_40px_rgba(255,122,89,0.28)] hover:-translate-y-0.5 hover:shadow-[0_20px_46px_rgba(255,122,89,0.34)]',
-        variant === 'secondary' && 'border border-[var(--border)] bg-[color:var(--surface-strong)] text-[var(--text)] shadow-[var(--shadow-soft)] hover:-translate-y-0.5 hover:bg-[var(--surface)]',
+        variant === 'default' && 'border border-transparent bg-[linear-gradient(135deg,var(--accent),var(--accent-strong))] text-white shadow-[0_16px_40px_rgba(255,122,89,0.28)] hover:shadow-[0_20px_46px_rgba(255,122,89,0.34)]',
+        variant === 'secondary' && 'border border-[var(--border)] bg-[color:var(--surface-strong)] text-[var(--text)] shadow-[var(--shadow-soft)] hover:bg-[var(--surface)]',
         variant === 'ghost' && 'text-[var(--text-soft)] hover:bg-[var(--surface)] hover:text-[var(--text)]',
-        variant === 'gold' && 'border border-amber-400/30 bg-[linear-gradient(135deg,rgba(255,209,102,0.28),rgba(255,153,102,0.18))] text-[var(--text)] hover:-translate-y-0.5 hover:bg-[linear-gradient(135deg,rgba(255,209,102,0.38),rgba(255,153,102,0.24))]',
+        variant === 'gold' && 'border border-amber-400/30 bg-[linear-gradient(135deg,rgba(255,209,102,0.28),rgba(255,153,102,0.18))] text-[var(--text)] hover:bg-[linear-gradient(135deg,rgba(255,209,102,0.38),rgba(255,153,102,0.24))]',
         variant === 'destructive' && 'border border-rose-500/20 bg-rose-500/12 text-rose-700 hover:bg-rose-500/18 dark:text-rose-100',
         className,
       )}
