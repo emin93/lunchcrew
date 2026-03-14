@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams, useSelectedLayoutSegments } from 'next/navigation';
+import { usePathname, useSearchParams, useSelectedLayoutSegments } from 'next/navigation';
 import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, LogOut, Mail, MapPinned, Plus, Rocket, Search, Share2, Shield, Sparkles, Trash2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
 import { Onboarding } from '@/components/Onboarding';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -31,6 +31,7 @@ function priceLabel(priceLevel?: number | null) {
 export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
   const app = useLunchCrewApp(initialCode);
   const segments = useSelectedLayoutSegments();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [checkoutResult, setCheckoutResult] = useState<'success' | 'cancelled' | null>(null);
 
@@ -41,13 +42,13 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
   const requestedView = (segments[0] as AppView | undefined) || 'today';
   const activeView: AppView = !app.workspace ? 'today' : requestedView === 'today' && emptyBallot ? 'plan' : requestedView;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof document === 'undefined') return;
     const viewTitle = activeView === 'today' ? 'Today' : activeView === 'plan' ? 'Plan' : activeView === 'history' ? 'History' : 'Crew';
     const crewName = (app.workspace?.name || '').trim();
     const hasMeaningfulCrewName = !!crewName && crewName.toLowerCase() !== 'lunchcrew';
     document.title = hasMeaningfulCrewName ? `${viewTitle} · ${crewName} · LunchCrew` : `${viewTitle} · LunchCrew`;
-  }, [activeView, app.workspace?.name]);
+  }, [pathname, activeView, app.workspace?.name]);
 
   useEffect(() => {
     const checkout = searchParams.get('checkout');
