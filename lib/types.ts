@@ -5,7 +5,37 @@ export type Workspace = {
   search_area_label?: string | null;
   search_area_lat?: number | null;
   search_area_lng?: number | null;
+  plan?: 'free' | 'founding' | string;
+  billing_status?: 'free' | 'pending' | 'active' | 'canceled' | 'refunded' | string;
+  purchase_model?: 'one_time' | 'subscription' | string | null;
+  pro_enabled?: boolean;
+  upgraded_at?: string | null;
   created_at: string;
+};
+
+export type WorkspaceRole = {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  role: 'owner' | 'admin';
+  created_at: string;
+};
+
+export type WorkspacePurchase = {
+  id: string;
+  workspace_id: string;
+  user_id?: string | null;
+  provider: string;
+  purchase_type: 'founding_crew' | string;
+  status: 'pending' | 'paid' | 'failed' | 'refunded' | 'voided' | string;
+  access_scope: 'crew' | string;
+  checkout_session_id?: string | null;
+  payment_intent_id?: string | null;
+  amount_cents?: number | null;
+  currency: string;
+  metadata?: Record<string, unknown> | null;
+  created_at: string;
+  paid_at?: string | null;
 };
 export type Poll = { id: string; workspace_id: string; poll_date: string; title: string; created_at: string };
 export type WorkspaceMember = {

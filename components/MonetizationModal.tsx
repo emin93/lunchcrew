@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
-import { Badge, Button, Card, Input, Textarea } from '@/components/ui';
+import { Badge, Button, Card, Input, Panel, Textarea } from '@/components/ui';
 import { MONETIZATION_LAST_PROMPT_AT_KEY, MONETIZATION_WAITLIST_JOINED_KEY, storage } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
 
@@ -39,18 +39,27 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose }: {
     <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-md">
       <Card className="w-full max-w-2xl overflow-hidden p-8 sm:p-10">
         <div className="grid gap-5">
-          <Badge className="w-fit"><Sparkles className="h-3.5 w-3.5" /> LunchCrew Pro · coming soon</Badge>
+          <Badge className="w-fit"><Sparkles className="h-3.5 w-3.5" /> Founding Crew Access</Badge>
           <div className="grid gap-2">
-            <h3 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Want the deluxe control room for team lunch?</h3>
-            <p className="text-sm leading-7 text-[var(--text-soft)]">Join the early-access waitlist for richer analytics, recurring rules, and admin controls that build on the current daily voting flow.</p>
+            <h3 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Upgrade this crew during evaluation</h3>
+            <p className="text-sm leading-7 text-[var(--text-soft)]">The plan is a one-time upgrade per crew. Early buyers help shape LunchCrew, unlock upcoming Pro features for this crew, and get grandfathered as pricing evolves.</p>
           </div>
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Work email" />
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="What would make Pro worth paying for?" rows={4} />
+          <Panel className="grid gap-2 p-4 text-sm leading-6 text-[var(--text-soft)]">
+            <div className="font-semibold text-[var(--text)]">What this is shaping toward</div>
+            <div>• one-time payment tied to one crew</div>
+            <div>• admin controls, decision rules, recurring defaults, and richer history</div>
+            <div>• evaluation-phase access with future grandfathering for founding crews</div>
+          </Panel>
+          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email for founding access updates" />
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything you’d want included in Founding Crew Access?" rows={4} />
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs leading-6 text-[var(--text-muted)]">
+            Founding Crew Access is tied to a single crew during the evaluation phase. Long-term access depends on LunchCrew continuing to operate, so it cannot be guaranteed if the product is discontinued.
+          </div>
           <div className="flex flex-wrap justify-end gap-3">
             <Button variant="secondary" onClick={onClose}>Not now</Button>
-            <Button disabled={!canSubmit || status === 'saving'} onClick={submit}>{status === 'saving' ? 'Joining…' : 'Join waitlist'}</Button>
+            <Button disabled={!canSubmit || status === 'saving'} onClick={submit}>{status === 'saving' ? 'Saving…' : 'Get founding access updates'}</Button>
           </div>
-          {status === 'saved' ? <p className="text-sm text-emerald-600 dark:text-emerald-300">You’re on the list.</p> : null}
+          {status === 'saved' ? <p className="text-sm text-emerald-600 dark:text-emerald-300">Saved — I’ll treat this crew as interested in founding access.</p> : null}
           {status === 'error' ? <p className="text-sm text-rose-600 dark:text-rose-300">Couldn’t save right now. Please try again.</p> : null}
         </div>
       </Card>

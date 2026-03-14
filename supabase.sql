@@ -7,13 +7,56 @@ create table if not exists public.workspaces (
   search_area_label text,
   search_area_lat double precision,
   search_area_lng double precision,
+  plan text not null default 'free',
+  billing_status text not null default 'free',
+  purchase_model text,
+  pro_enabled boolean not null default false,
+  upgraded_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 alter table public.workspaces
   add column if not exists search_area_label text,
   add column if not exists search_area_lat double precision,
-  add column if not exists search_area_lng double precision;
+  add column if not exists search_area_lng double precision,
+  add column if not exists plan text not null default 'free',
+  add column if not exists billing_status text not null default 'free',
+  add column if not exists purchase_model text,
+  add column if not exists pro_enabled boolean not null default false,
+  add column if not exists upgraded_at timestamptz;
+
+create table if not exists public.workspace_roles (
+  id uuid primary key default gen_random_uuid(),
+  workspace_id uuid not null references public.workspaces(id) on delete cascade,
+  user_id uuid not null,
+  role text not null check (role in ('owner', 'admin')),
+  created_at timestamptz not null default now(),
+  unique (workspace_id, user_id)
+);
+
+create index if not exists idx_workspace_roles_workspace_id on public.workspace_roles(workspace_id);
+create index if not exists idx_workspace_roles_user_id on public.workspace_roles(user_id);
+
+create table if not exists public.workspace_purchases (
+  id uuid primary key default gen_random_uuid(),
+  workspace_id uuid not null references public.workspaces(id) on delete cascade,
+  user_id uuid,
+  provider text not null default 'stripe',
+  purchase_type text not null default 'founding_crew',
+  status text not null default 'pending' check (status in ('pending', 'paid', 'failed', 'refunded', 'voided')),
+  access_scope text not null default 'crew',
+  checkout_session_id text unique,
+  payment_intent_id text unique,
+  amount_cents integer,
+  currency text not null default 'usd',
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  paid_at timestamptz
+);
+
+create index if not exists idx_workspace_purchases_workspace_id on public.workspace_purchases(workspace_id);
+create index if not exists idx_workspace_purchases_user_id on public.workspace_purchases(user_id);
+create index if not exists idx_workspace_purchases_status on public.workspace_purchases(status);
 
 create table if not exists public.polls (
   id uuid primary key default gen_random_uuid(),
@@ -51,6 +94,8 @@ create table if not exists public.workspace_members (
 );
 
 alter table public.workspaces enable row level security;
+alter table public.workspace_roles enable row level security;
+alter table public.workspace_purchases enable row level security;
 alter table public.polls enable row level security;
 alter table public.poll_options enable row level security;
 alter table public.votes enable row level security;
@@ -63,6 +108,20 @@ drop policy if exists "workspaces_update_all" on public.workspaces;
 create policy "workspaces_select_all" on public.workspaces for select using (true);
 create policy "workspaces_insert_all" on public.workspaces for insert with check (true);
 create policy "workspaces_update_all" on public.workspaces for update using (true) with check (true);
+
+drop policy if exists "workspace_roles_select_all" on public.workspace_roles;
+drop policy if exists "workspace_roles_insert_all" on public.workspace_roles;
+drop policy if exists "workspace_roles_update_all" on public.workspace_roles;
+create policy "workspace_roles_select_all" on public.workspace_roles for select using (true);
+create policy "workspace_roles_insert_all" on public.workspace_roles for insert with check (true);
+create policy "workspace_roles_update_all" on public.workspace_roles for update using (true) with check (true);
+
+drop policy if exists "workspace_purchases_select_all" on public.workspace_purchases;
+drop policy if exists "workspace_purchases_insert_all" on public.workspace_purchases;
+drop policy if exists "workspace_purchases_update_all" on public.workspace_purchases;
+create policy "workspace_purchases_select_all" on public.workspace_purchases for select using (true);
+create policy "workspace_purchases_insert_all" on public.workspace_purchases for insert with check (true);
+create policy "workspace_purchases_update_all" on public.workspace_purchases for update using (true) with check (true);
 
 drop policy if exists "polls_select_all" on public.polls;
 drop policy if exists "polls_insert_all" on public.polls;
