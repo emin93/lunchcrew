@@ -125,6 +125,18 @@ a {
   text-decoration: none;
 }
 
+a[href],
+button,
+[role='button'],
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
 button,
 input,
 textarea {
