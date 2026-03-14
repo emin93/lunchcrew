@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Shield, ShieldCheck, Sparkles } from 'lucide-react';
+import { Gem, Shield, Sparkles } from 'lucide-react';
 import { Badge, Button, Card, Panel } from '@/components/ui';
 
 export function MonetizationModal({
@@ -109,7 +109,7 @@ export function MonetizationModal({
                     onClick={onStartCheckout}
                     className="min-h-14 rounded-[22px] border border-emerald-400/40 bg-[linear-gradient(135deg,#3ecf72,#28b463)] px-6 text-white shadow-[0_20px_44px_rgba(34,197,94,0.2)] hover:-translate-y-1 hover:bg-[linear-gradient(135deg,#48d579,#30bb69)] hover:shadow-[0_24px_52px_rgba(34,197,94,0.26)]"
                   >
-                    {checkoutBusy ? 'Opening checkout…' : <><ShieldCheck className="h-5 w-5" /> <span className="text-[17px] font-black tracking-normal [text-shadow:0_1px_1px_rgba(0,0,0,0.18)]">Unlock this crew for $29</span></>}
+                    {checkoutBusy ? 'Opening checkout…' : <><Gem className="h-5 w-5" /> <span className="text-[17px] font-black tracking-normal [text-shadow:0_1px_1px_rgba(0,0,0,0.18)]">Make this a founding crew · $29</span></>}
                   </Button>
                   <p className="text-xs leading-6 text-[var(--text-muted)]">One payment. One crew. Founder pricing locked in during evaluation.</p>
                 </div>
