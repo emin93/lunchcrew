@@ -54,6 +54,19 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (checkoutResult !== 'success' || typeof window === 'undefined') return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    void import('canvas-confetti').then(({ default: confetti }) => {
+      const originY = window.innerWidth < 640 ? 0.72 : 0.78;
+      confetti({ particleCount: 120, spread: 80, startVelocity: 42, origin: { y: originY } });
+      window.setTimeout(() => {
+        confetti({ particleCount: 80, angle: 60, spread: 60, origin: { x: 0.12, y: originY } });
+        confetti({ particleCount: 80, angle: 120, spread: 60, origin: { x: 0.88, y: originY } });
+      }, 180);
+    }).catch(() => {});
+  }, [checkoutResult]);
+
   if (!app.onboardingReady) {
     return (
       <section className="mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-10 sm:px-6 lg:px-8">
@@ -81,9 +94,6 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
           <Card className="panel-fade relative overflow-hidden border-emerald-500/24 bg-[linear-gradient(135deg,rgba(16,185,129,0.16),rgba(255,209,102,0.18))] p-5">
             <div className="celebration-burst celebration-burst-a" />
             <div className="celebration-burst celebration-burst-b" />
-            <div className="celebration-confetti celebration-confetti-a" />
-            <div className="celebration-confetti celebration-confetti-b" />
-            <div className="celebration-confetti celebration-confetti-c" />
             <div className="relative grid gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className="badge-emerald tada-pop"><Sparkles className="h-3.5 w-3.5" /> Payment successful</Badge>
