@@ -209,7 +209,9 @@ export function useLunchCrewApp(initialCode?: string) {
     setAuthBusy(true);
     setAuthError(null);
     try {
-      const redirectTo = typeof window !== 'undefined' ? window.location.href : undefined;
+      const redirectTo = typeof window !== 'undefined'
+        ? `${window.location.origin}${workspace?.invite_code ? workspacePath(workspace.invite_code.toUpperCase(), 'crew') : window.location.pathname}`
+        : undefined;
       const { error } = await supabase.auth.signInWithOtp({ email: cleanEmail, options: { emailRedirectTo: redirectTo, shouldCreateUser: true } });
       if (error) return { ok: false, error: error.message || 'Could not send magic link.' };
       return { ok: true };
