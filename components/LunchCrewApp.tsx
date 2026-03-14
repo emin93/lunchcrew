@@ -602,8 +602,8 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
               <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Recent winners and repeat favorites live here instead of competing with today’s main task.</p>
             </div>
             <div className="flex rounded-full border border-[var(--border)] bg-[var(--surface)] p-1 shadow-[var(--shadow-soft)]">
-              <button className={cn('rounded-full px-4 py-2 text-sm transition-all duration-300', !app.show30DayHistory ? 'bg-[var(--text)] text-[var(--bg)] shadow-[var(--shadow-soft)]' : 'text-[var(--text-muted)]')} onClick={() => app.setShow30DayHistory(false)}>7 days</button>
-              <button className={cn('rounded-full px-4 py-2 text-sm transition-all duration-300', app.show30DayHistory ? 'bg-[var(--text)] text-[var(--bg)] shadow-[var(--shadow-soft)]' : 'text-[var(--text-muted)]')} onClick={() => app.setShow30DayHistory(true)}>30 days</button>
+              <button className={cn('cursor-pointer rounded-full px-4 py-2 text-sm transition-all duration-300', !app.show30DayHistory ? 'bg-[var(--text)] text-[var(--bg)] shadow-[var(--shadow-soft)]' : 'text-[var(--text-muted)]')} onClick={() => app.setShow30DayHistory(false)}>7 days</button>
+              <button className={cn('cursor-pointer rounded-full px-4 py-2 text-sm transition-all duration-300', app.show30DayHistory ? 'bg-[var(--text)] text-[var(--bg)] shadow-[var(--shadow-soft)]' : 'text-[var(--text-muted)]')} onClick={() => app.setShow30DayHistory(true)}>30 days</button>
             </div>
           </div>
           <Panel className="panel-fade grid gap-3 p-4">
