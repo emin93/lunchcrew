@@ -259,7 +259,13 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
 
       <Card className="panel-fade p-4 sm:p-6">
         <div className="grid gap-4">
-          {app.options.length === 0 ? (
+          {!app.pollDataReady ? (
+            <Panel className="grid gap-3 p-8 text-center">
+              <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-[var(--text-muted)]" /></div>
+              <div className="text-lg font-semibold text-[var(--text)]">Loading today’s ballot…</div>
+              <p className="text-sm text-[var(--text-muted)]">Pulling in the current shortlist and votes.</p>
+            </Panel>
+          ) : app.options.length === 0 ? (
             <Panel className="grid gap-3 p-8 text-center">
               <div className="text-lg font-semibold text-[var(--text)]">No places yet</div>
               <p className="text-sm text-[var(--text-muted)]">Start in Plan mode to shape the shortlist before the votes roll in.</p>
@@ -477,7 +483,12 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
               <Pill>{shortlistCountLabel}</Pill>
             </div>
 
-            {app.options.length === 0 ? (
+            {!app.pollDataReady ? (
+              <Panel className="grid gap-3 p-5">
+                <div className="flex items-center gap-2 text-base font-semibold text-[var(--text)]"><Loader2 className="h-4 w-4 animate-spin text-[var(--text-muted)]" /> Loading shortlist…</div>
+                <p className="text-sm leading-6 text-[var(--text-muted)]">Fetching today’s places before we decide whether the list is empty.</p>
+              </Panel>
+            ) : app.options.length === 0 ? (
               <Panel className="grid gap-3 p-5">
                 <div className="text-base font-semibold text-[var(--text)]">Start the list with the first place</div>
                 <p className="text-sm leading-6 text-[var(--text-muted)]">Search nearby or type a custom idea. As soon as you add one, it will stay visible here.</p>
@@ -597,7 +608,9 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
           </div>
           <Panel className="panel-fade grid gap-3 p-4">
             <div className="text-sm font-medium text-[var(--text-muted)]">Leaderboard</div>
-            {app.leaderboard.slice(0, 5).length ? app.leaderboard.slice(0, 5).map((place, i) => <Pill key={place.name}>#{i + 1} · {place.name} · {place.wins} wins</Pill>) : <span className="text-sm text-[var(--text-muted)]">No winners yet.</span>}
+            {!app.historyDataReady ? (
+              <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]"><Loader2 className="h-4 w-4 animate-spin" /> Loading history…</div>
+            ) : app.leaderboard.slice(0, 5).length ? app.leaderboard.slice(0, 5).map((place, i) => <Pill key={place.name}>#{i + 1} · {place.name} · {place.wins} wins</Pill>) : <span className="text-sm text-[var(--text-muted)]">No winners yet.</span>}
           </Panel>
         </div>
       </Card>
@@ -607,7 +620,11 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
           <span>Date</span><span>Winner</span><span>Votes</span>
         </div>
         <div className="max-h-[36rem] overflow-auto">
-          {activeHistory.map((row, index) => (
+          {!app.historyDataReady ? (
+            <div className="flex items-center gap-2 px-4 py-6 text-sm text-[var(--text-muted)]"><Loader2 className="h-4 w-4 animate-spin" /> Loading recent lunches…</div>
+          ) : activeHistory.length === 0 ? (
+            <div className="px-4 py-6 text-sm text-[var(--text-muted)]">No history yet.</div>
+          ) : activeHistory.map((row, index) => (
             <div key={row.poll_date} className="grid grid-cols-[120px_1fr_72px] gap-3 border-b border-[var(--border)] px-4 py-3 text-sm text-[var(--text-soft)] transition-colors duration-300 last:border-b-0 hover:bg-[var(--surface)]/65" style={{ animationDelay: `${index * 40}ms` }}>
               <span className="text-[var(--text-muted)]">{row.poll_date}</span>
               <span>{row.winner_name || 'No winner'}</span>

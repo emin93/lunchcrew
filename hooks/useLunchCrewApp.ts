@@ -52,6 +52,7 @@ export function useLunchCrewApp(initialCode?: string) {
   const [history7Days, setHistory7Days] = useState<HistoryDaySummary[]>([]);
   const [history30Days, setHistory30Days] = useState<HistoryDaySummary[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardPlace[]>([]);
+  const [historyDataReady, setHistoryDataReady] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
   const [searchAreaInput, setSearchAreaInput] = useState('');
@@ -405,9 +406,16 @@ export function useLunchCrewApp(initialCode?: string) {
   }
   async function refreshHistory(workspaceId: string) {
     if (!supabase) return;
+    setHistoryDataReady(false);
     const pollsRes = await withTimeout(supabase.from('polls').select('id,poll_date').eq('workspace_id', workspaceId).order('poll_date', { ascending: false }).limit(30));
     const polls = (pollsRes.data as any[]) || [];
-    if (!polls.length) return void (setHistory7Days([]), setHistory30Days([]), setLeaderboard([]));
+    if (!polls.length) {
+      setHistory7Days([]);
+      setHistory30Days([]);
+      setLeaderboard([]);
+      setHistoryDataReady(true);
+      return;
+    }
     const pollIds = polls.map((p) => p.id);
     const optionsRes = await withTimeout(supabase.from('poll_options').select('poll_id,name,votes(count)').in('poll_id', pollIds));
     const byPoll = new Map<string, Array<{ name: string; votes: number }>>();
@@ -420,8 +428,10 @@ export function useLunchCrewApp(initialCode?: string) {
     });
     const wins = new Map<string, number>();
     summaries.forEach((s) => { if (s.winner_name) wins.set(s.winner_name, (wins.get(s.winner_name) || 0) + 1); });
-    setHistory30Days(summaries); setHistory7Days(summaries.slice(0, 7));
+    setHistory30Days(summaries);
+    setHistory7Days(summaries.slice(0, 7));
     setLeaderboard(Array.from(wins.entries()).map(([name, count]) => ({ name, wins: count })).sort((a, b) => b.wins - a.wins));
+    setHistoryDataReady(true);
   }
   async function fetchPlaceDetails(suggestion: PlaceSuggestion): Promise<PlaceDetailsResponse | null> {
     if (!supabase) return null;
@@ -606,6 +616,7 @@ export function useLunchCrewApp(initialCode?: string) {
   async function retryLoad() {
     setLoadError(null);
     setPollDataReady(false);
+    setHistoryDataReady(false);
     if (!workspace) {
       const lastWorkspaceId = storage.get(LAST_WORKSPACE_ID_KEY);
       if (lastWorkspaceId) {
@@ -619,7 +630,7 @@ export function useLunchCrewApp(initialCode?: string) {
   }
 
   useEffect(() => { if (!workspace || !deviceId) return; void ensureMember(workspace.id, deviceId); }, [workspace?.id, deviceId]);
-  useEffect(() => { if (!workspace || !deviceId) return; void (async () => { setPollDataReady(false); const todayPoll = await ensureTodayPoll(workspace.id); if (!todayPoll) return; setPoll(todayPoll); await refreshPollData(todayPoll.id, workspace.id, deviceId); await refreshHistory(workspace.id); })(); }, [workspace?.id, deviceId]);
+  useEffect(() => { if (!workspace || !deviceId) return; void (async () => { setPollDataReady(false); setHistoryDataReady(false); const todayPoll = await ensureTodayPoll(workspace.id); if (!todayPoll) return; setPoll(todayPoll); await refreshPollData(todayPoll.id, workspace.id, deviceId); await refreshHistory(workspace.id); })(); }, [workspace?.id, deviceId]);
   useEffect(() => {
     if (!supabase || !poll || !workspace || !deviceId) return;
     const client = supabase;
@@ -680,7 +691,7 @@ export function useLunchCrewApp(initialCode?: string) {
     showMonetizationModal, setShowMonetizationModal, dismissMonetizationModal, show30DayHistory, setShow30DayHistory,
     workspace, deviceId, member, loading, renaming, savingName, loadError, setLoadError, renameCrew, saveDisplayName,
     poll, pollDataReady, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, removingOptionId, topChoice, vote, addOption, removeOption,
-    suggestions, loadingSuggestions, selectedSuggestion, setSelectedSuggestion, history7Days, history30Days, leaderboard,
+    suggestions, loadingSuggestions, selectedSuggestion, setSelectedSuggestion, history7Days, history30Days, leaderboard, historyDataReady,
     searchAreaInput, setSearchAreaInput, searchAreaLoading, searchAreaError, clearSearchAreaError, applySearchArea, clearSearchArea,
     activeSearchAreaLabel, hasCrewSearchArea, geolocationAvailable, usingCurrentLocation, useCurrentLocationForCrewArea,
     authUser, authReady, authBusy, authError, setAuthError, workspaceRole, workspaceHasOwner, requestMagicLink, signOutAuthUser, claimWorkspace,
