@@ -629,7 +629,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
                 <div className="flex flex-wrap items-center gap-2">
                   <Pill className="pill-sky">Signed in as {app.authUser.email || 'account owner'}</Pill>
                   {app.workspaceRole ? <Pill className="pill-amber">{app.workspaceRole === 'owner' ? 'Crew owner' : 'Crew admin'}</Pill> : null}
-                  {!app.workspaceRole && app.workspaceHasOwner ? <Pill>This crew already has an owner</Pill> : null}
+                  {!app.workspaceRole && app.workspaceHasOwner ? <Pill>This crew has already been claimed</Pill> : null}
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {!app.workspaceRole && !app.workspaceHasOwner ? (
@@ -637,7 +637,13 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
                   ) : null}
                   <Button variant="secondary" disabled={app.authBusy} onClick={() => app.signOutAuthUser()}><LogOut className="h-4 w-4" /> Sign out</Button>
                 </div>
+                {!app.workspaceRole && app.workspaceHasOwner ? <p className="text-sm text-[var(--text-muted)]">This crew is already managed by its owner, so claiming is no longer available from other devices.</p> : null}
               </>
+            ) : app.workspaceHasOwner ? (
+              <Panel className="grid gap-2 p-4">
+                <div className="text-sm font-medium text-[var(--text)]">This crew has already been claimed</div>
+                <p className="text-sm leading-6 text-[var(--text-muted)]">Admin and founding-access controls now belong to the crew owner. Other people can still join and vote normally.</p>
+              </Panel>
             ) : (
               <>
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
