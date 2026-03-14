@@ -81,22 +81,22 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
           <Card className="panel-fade relative overflow-hidden border-emerald-500/24 bg-[linear-gradient(135deg,rgba(16,185,129,0.16),rgba(255,209,102,0.18))] p-5">
             <div className="celebration-burst celebration-burst-a" />
             <div className="celebration-burst celebration-burst-b" />
-            <div className="relative flex flex-wrap items-start justify-between gap-4">
-              <div className="grid gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="badge-emerald tada-pop"><Sparkles className="h-3.5 w-3.5" /> Payment successful</Badge>
-                  {app.workspace?.pro_enabled ? <Pill className="pill-amber">Founding access enabled</Pill> : null}
-                </div>
-                <div>
-                  <div className="text-lg font-semibold text-[var(--text)]">Tada — this crew just unlocked founding access.</div>
-                  <p className="mt-1 text-sm leading-6 text-[var(--text-soft)]">
-                    {app.workspace?.pro_enabled
-                      ? 'Admin controls and upcoming founder features are now tied to this crew.'
-                      : 'Stripe sent us back successfully. If the unlocked state does not appear in a moment, refresh once while the webhook finishes.'}
-                  </p>
-                </div>
+            <div className="celebration-confetti celebration-confetti-a" />
+            <div className="celebration-confetti celebration-confetti-b" />
+            <div className="celebration-confetti celebration-confetti-c" />
+            <div className="relative grid gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="badge-emerald tada-pop"><Sparkles className="h-3.5 w-3.5" /> Payment successful</Badge>
+                {app.workspace?.pro_enabled ? <Pill className="pill-amber">Founding access enabled</Pill> : null}
               </div>
-              <Button variant="secondary" onClick={() => setCheckoutResult(null)}>Nice</Button>
+              <div>
+                <div className="text-lg font-semibold text-[var(--text)]">This crew just unlocked founding access.</div>
+                <p className="mt-1 text-sm leading-6 text-[var(--text-soft)]">
+                  {app.workspace?.pro_enabled
+                    ? 'Admin controls and upcoming founder features are now tied to this crew.'
+                    : 'Stripe sent us back successfully. If the unlocked state does not appear in a moment, refresh once while the webhook finishes.'}
+                </p>
+              </div>
             </div>
           </Card>
         ) : null}
@@ -669,9 +669,9 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
           <div className="grid gap-3 sm:grid-cols-1">
             <Metric icon={Share2} label="Invite code" value={app.workspace?.invite_code || '—'} />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Button variant="secondary" className="justify-start" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share invite</Button>
-            {app.workspace?.pro_enabled ? (
+          {app.workspace?.pro_enabled ? (
+            <div className="grid gap-3">
+              <Button variant="secondary" className="justify-start sm:w-fit" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share invite</Button>
               <Panel className="grid gap-2 border-emerald-500/24 bg-emerald-500/10 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className="badge-emerald"><Sparkles className="h-3.5 w-3.5" /> Founding access enabled</Badge>
@@ -679,10 +679,13 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
                 </div>
                 <p className="text-sm leading-6 text-[var(--text-soft)]">This crew has already been upgraded during evaluation, so founder features now belong to the whole crew.</p>
               </Panel>
-            ) : (
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 sm:items-start">
+              <Button variant="secondary" className="justify-start" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share invite</Button>
               <Button variant="gold" className="justify-start" onClick={() => app.setShowMonetizationModal(true)}><Sparkles className="h-4 w-4" /> Founding access</Button>
-            )}
-          </div>
+            </div>
+          )}
           <Panel className="grid gap-3 p-4">
             <div className="text-sm font-medium text-[var(--text)]">Evaluation pricing</div>
             <p className="text-sm leading-6 text-[var(--text-muted)]">{app.workspace?.pro_enabled ? 'This crew is already part of the founding group during evaluation.' : 'Upgrade this crew to founding access during evaluation and lock in early pricing for this specific crew.'}</p>
