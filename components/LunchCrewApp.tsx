@@ -591,6 +591,9 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
             <Button variant="secondary" className="justify-start" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share invite</Button>
             <Button variant="gold" className="justify-start" onClick={() => app.createNewCrew()}><Rocket className="h-4 w-4" /> Create fresh crew</Button>
           </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button variant="secondary" className="justify-start" onClick={() => app.setShowMonetizationModal(true)}><Rocket className="h-4 w-4" /> Founding access</Button>
+          </div>
           <p className="text-sm text-[var(--text-muted)]">Fresh crew makes a new invite code and an empty ballot. It does not just clear votes inside the current crew.</p>
           <div className="grid gap-2">
             <label className="text-sm text-[var(--text-muted)]">Rename crew</label>
