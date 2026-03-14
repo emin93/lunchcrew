@@ -32,7 +32,6 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
   const app = useLunchCrewApp(initialCode);
   const segments = useSelectedLayoutSegments();
   const searchParams = useSearchParams();
-  const [joinCode, setJoinCode] = useState(initialCode || '');
   const [checkoutResult, setCheckoutResult] = useState<'success' | 'cancelled' | null>(null);
 
   const activeHistory = app.show30DayHistory ? app.history30Days : app.history7Days;
@@ -133,14 +132,11 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
 
         {!app.workspace ? (
           <Card className="panel-fade p-6">
-            <div className="grid gap-4">
+            <div className="grid gap-4 text-center">
+              <div className="flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-[var(--text-muted)]" /></div>
               <div>
-                <div className="text-lg font-semibold text-[var(--text)]">Join or restore a crew</div>
-                <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Use an invite code or full invite link. If this device already knows the crew, the restore flow still works automatically.</p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="Invite code, e.g. LC-ABCD-EFGH" />
-                <Link href={workspacePath(joinCode)} className="sm:w-auto"><Button className="w-full">Join crew</Button></Link>
+                <div className="text-lg font-semibold text-[var(--text)]">Loading crew…</div>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Resolving the invite link and restoring the current crew.</p>
               </div>
             </div>
           </Card>
