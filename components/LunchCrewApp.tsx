@@ -700,6 +700,9 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
             <Panel className="grid gap-3 p-4">
               <div className="text-sm font-medium text-[var(--text)]">Evaluation pricing</div>
               <p className="text-sm leading-6 text-[var(--text-muted)]">Upgrade this crew to founding access during evaluation and lock in early pricing for this specific crew.</p>
+              <div>
+                <Button variant="default" className="sm:w-fit" onClick={() => app.setShowMonetizationModal(true)}><Sparkles className="h-4 w-4" /> See founding access</Button>
+              </div>
             </Panel>
           ) : null}
           <Panel className="grid gap-4 p-4 sm:p-5">

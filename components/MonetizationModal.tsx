@@ -101,11 +101,18 @@ export function MonetizationModal({
                 </p>
               </Panel>
             ) : (
-              <Panel className="grid gap-3 p-4 sm:p-5">
+              <Panel className="grid gap-4 p-4 sm:p-5">
                 <div className="text-sm leading-6 text-[var(--text-muted)]">Signed in as <span className="font-semibold text-[var(--text)]">{authUserEmail}</span>. This purchase will unlock founding access for this crew.</div>
-                <Button variant="gold" disabled={!canCheckout || checkoutBusy} onClick={onStartCheckout}>
-                  {checkoutBusy ? 'Opening checkout…' : <><ArrowRight className="h-4 w-4" /> Unlock this crew for $29</>}
-                </Button>
+                <div className="grid gap-2">
+                  <Button
+                    disabled={!canCheckout || checkoutBusy}
+                    onClick={onStartCheckout}
+                    className="min-h-14 rounded-[22px] border border-emerald-400/35 bg-[linear-gradient(135deg,#34d399,#22c55e)] px-6 text-base font-extrabold tracking-[0.01em] text-emerald-950 shadow-[0_20px_44px_rgba(34,197,94,0.26)] hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(34,197,94,0.32)]"
+                  >
+                    {checkoutBusy ? 'Opening checkout…' : <><ArrowRight className="h-5 w-5" /> Unlock this crew for $29</>}
+                  </Button>
+                  <p className="text-xs leading-6 text-[var(--text-muted)]">One payment. One crew. Founder pricing locked in during evaluation.</p>
+                </div>
               </Panel>
             )}
 
