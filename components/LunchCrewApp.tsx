@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
 import { Onboarding } from '@/components/Onboarding';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Badge, Button, Card, Input, Panel } from '@/components/ui';
+import { Badge, Button, Card, Input, Panel, Textarea } from '@/components/ui';
 import { useLunchCrewApp } from '@/hooks/useLunchCrewApp';
 import { initialsForName, workspacePath } from '@/lib/helpers';
 import type { PlaceSuggestion } from '@/lib/types';
@@ -155,7 +155,7 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
           </nav>
         ) : null}
       </main>
-      <MonetizationModal visible={app.showMonetizationModal} workspaceId={app.workspace?.id} deviceId={app.deviceId} onClose={() => app.setShowMonetizationModal(false)} />
+      <MonetizationModal visible={app.showMonetizationModal} workspaceId={app.workspace?.id} deviceId={app.deviceId} onClose={() => app.dismissMonetizationModal()} />
     </>
   );
 }
@@ -297,6 +297,10 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
     if (added) setRecentlyAddedName(name);
   }
 
+  async function handleApplyArea() {
+    await app.applySearchArea();
+  }
+
   return (
     <section className="grid gap-4 sm:gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
       <Card className="panel-fade p-6 sm:p-8">
@@ -314,6 +318,31 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
           </div>
 
           <Panel className="grid gap-4 p-4 sm:p-5">
+            <div className="grid gap-3 rounded-[22px] border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
+              <div className="grid gap-1">
+                <div className="text-sm font-semibold text-[var(--text)]">Search near</div>
+                <p className="text-sm leading-6 text-[var(--text-muted)]">Optional fallback if location is off. Add a city or address and nearby search will bias around that area instead.</p>
+              </div>
+              <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
+                <Input
+                  placeholder="Tulum, Centro, or a full address"
+                  value={app.searchAreaInput}
+                  onChange={(e) => app.setSearchAreaInput(e.target.value)}
+                />
+                <Button variant="secondary" disabled={!app.searchAreaInput.trim() || app.searchAreaLoading} onClick={handleApplyArea}>
+                  {app.searchAreaLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Setting…</> : 'Use area'}
+                </Button>
+                {app.usingManualSearchArea ? <Button variant="ghost" onClick={() => app.clearSearchArea()}>Clear</Button> : null}
+              </div>
+              {app.activeSearchAreaLabel ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Pill className={cn(app.usingManualSearchArea ? 'border-sky-500/25 bg-sky-500/12 text-sky-900 dark:text-sky-100' : 'border-[var(--border)]')}>
+                    {app.usingManualSearchArea ? `Using area: ${app.activeSearchAreaLabel}` : 'Using current area'}
+                  </Pill>
+                </div>
+              ) : null}
+            </div>
+
             <div className="grid gap-1">
               <div className="text-sm font-semibold text-[var(--text)]">Search & add</div>
               <p className="text-sm leading-6 text-[var(--text-muted)]">Tap a suggested place to add it instantly, or type your own and use the button.</p>
@@ -342,18 +371,18 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
             {!app.selectedSuggestion && app.newOption.trim().length >= 2 ? <Suggestions loading={app.loadingSuggestions} suggestions={app.suggestions} onSelect={handleSuggestionSelect} /> : null}
 
             {recentlyAddedName ? (
-              <Panel className="border-emerald-500/20 bg-emerald-500/10 p-4">
+              <Panel className="border-emerald-500/28 bg-emerald-500/14 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-100">Added to today’s shortlist</div>
-                    <p className="mt-1 text-sm text-emerald-900/90 dark:text-emerald-100/90">{recentlyAddedName} is now in the shortlist and ready for votes.</p>
+                    <div className="text-sm font-semibold text-[var(--text)]">Added to today’s shortlist</div>
+                    <p className="mt-1 text-sm text-[var(--text-soft)]">{recentlyAddedName} is now in the shortlist and ready for votes.</p>
                   </div>
-                  <Pill className="border-emerald-500/25 bg-white/60 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-100">{shortlistCountLabel}</Pill>
+                  <Pill className="border-emerald-500/30 bg-emerald-500/18 text-emerald-950 dark:bg-emerald-500/12 dark:text-emerald-100">{shortlistCountLabel}</Pill>
                 </div>
               </Panel>
             ) : null}
 
-            {manualAdded && !recentlyAddedName ? <Pill className="w-fit border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100">Added to today’s shortlist.</Pill> : null}
+            {manualAdded && !recentlyAddedName ? <Pill className="w-fit border-emerald-500/30 bg-emerald-500/18 text-emerald-950 dark:text-emerald-100">Added to today’s shortlist.</Pill> : null}
           </Panel>
         </div>
       </Card>
@@ -452,6 +481,26 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
 }
 
 function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>; totalVotes: number }) {
+  const [feedbackEmail, setFeedbackEmail] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+
+  async function handleFeedbackSubmit() {
+    if (feedbackStatus === 'saving') return;
+    setFeedbackStatus('saving');
+    setFeedbackError(null);
+    const result = await app.submitFeedback({ email: feedbackEmail, message: feedbackMessage });
+    if (!result.ok) {
+      setFeedbackStatus('error');
+      setFeedbackError(result.error || 'Could not send feedback.');
+      return;
+    }
+    setFeedbackStatus('saved');
+    setFeedbackMessage('');
+    setFeedbackEmail('');
+  }
+
   return (
     <section className="grid gap-4 sm:gap-5 lg:grid-cols-[1.05fr_0.95fr]">
       <Card className="panel-fade p-6 sm:p-8">
@@ -466,15 +515,16 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button variant="secondary" className="justify-start" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share invite</Button>
-            <Button variant="gold" className="justify-start" onClick={() => app.createNewCrew()}><Rocket className="h-4 w-4" /> Create new crew</Button>
+            <Button variant="gold" className="justify-start" onClick={() => app.createNewCrew()}><Rocket className="h-4 w-4" /> Create fresh crew</Button>
           </div>
+          <p className="text-sm text-[var(--text-muted)]">Fresh crew makes a new invite code and an empty ballot. It does not just clear votes inside the current crew.</p>
           <div className="grid gap-2">
             <label className="text-sm text-[var(--text-muted)]">Rename crew</label>
-            <Input defaultValue={app.workspace?.name || ''} onBlur={(e) => app.renameCrew(e.target.value)} />
+            <Input key={`workspace-name-${app.workspace?.id || 'none'}`} defaultValue={app.workspace?.name || ''} onBlur={(e) => app.renameCrew(e.target.value)} />
           </div>
           <div className="grid gap-2">
             <label className="text-sm text-[var(--text-muted)]">Your display name</label>
-            <Input defaultValue={app.member?.display_name || ''} onBlur={(e) => app.saveDisplayName(e.target.value)} />
+            <Input key={`member-name-${app.workspace?.id || 'none'}-${app.member?.device_id || 'anon'}`} defaultValue={app.member?.display_name || ''} onBlur={(e) => app.saveDisplayName(e.target.value)} />
           </div>
         </div>
       </Card>
@@ -489,6 +539,22 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
           <Panel className="panel-fade p-4">
             <div className="text-sm font-medium text-[var(--text)]">Restore and invite flows stay intact</div>
             <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">This redesign changes the information architecture, not the existing workspace logic, persistence, or realtime/polling behavior.</p>
+          </Panel>
+          <Panel className="grid gap-4 p-4 sm:p-5">
+            <div className="grid gap-1">
+              <div className="text-sm font-semibold text-[var(--text)]">Send feedback</div>
+              <p className="text-sm leading-6 text-[var(--text-muted)]">Seen something odd or have an idea? Send it straight from here.</p>
+            </div>
+            <Input value={feedbackEmail} onChange={(e) => { setFeedbackEmail(e.target.value); setFeedbackStatus('idle'); setFeedbackError(null); }} placeholder="Email (optional)" />
+            <Textarea value={feedbackMessage} onChange={(e) => { setFeedbackMessage(e.target.value); setFeedbackStatus('idle'); setFeedbackError(null); }} placeholder="What should change, what felt confusing, or what would make this better?" rows={5} />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="text-sm text-[var(--text-muted)]">We’ll attach the current crew context automatically.</div>
+              <Button disabled={!feedbackMessage.trim() || feedbackStatus === 'saving'} onClick={handleFeedbackSubmit}>
+                {feedbackStatus === 'saving' ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</> : 'Send feedback'}
+              </Button>
+            </div>
+            {feedbackStatus === 'saved' ? <Pill className="w-fit border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100">Feedback sent. Thank you.</Pill> : null}
+            {feedbackStatus === 'error' && feedbackError ? <p className="text-sm text-rose-700 dark:text-rose-300">{feedbackError}</p> : null}
           </Panel>
         </div>
       </Card>

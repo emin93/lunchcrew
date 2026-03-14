@@ -3,6 +3,7 @@
 // Endpoints:
 //   GET /places-proxy/autocomplete?q=<query>
 //   GET /places-proxy/details?placeId=<google_place_id>
+//   GET /places-proxy/geocode?q=<city_or_address>
 //
 // Required secrets:
 //   GOOGLE_MAPS_API_KEY
@@ -128,6 +129,37 @@ Deno.serve(async (req) => {
         .filter((x) => x.externalPlaceId && x.name);
 
       return json({ items });
+    }
+
+    if (url.pathname.endsWith('/geocode')) {
+      const q = (url.searchParams.get('q') || '').trim();
+      if (q.length < 2) return json({ item: null });
+
+      const regionCode = (url.searchParams.get('regionCode') || 'MX').toLowerCase();
+      const languageCode = url.searchParams.get('languageCode') || 'en';
+      const geocodeUrl = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+      geocodeUrl.searchParams.set('address', q);
+      geocodeUrl.searchParams.set('region', regionCode);
+      geocodeUrl.searchParams.set('language', languageCode);
+      geocodeUrl.searchParams.set('key', googleApiKey);
+
+      const resp = await fetch(geocodeUrl.toString());
+      if (!resp.ok) {
+        const errBody = await resp.text();
+        return json({ error: 'Google geocode failed', details: errBody }, 502);
+      }
+
+      const payload = await resp.json();
+      const top = (payload.results || [])[0];
+      if (!top?.geometry?.location) return json({ item: null });
+
+      return json({
+        item: {
+          label: top.formatted_address || q,
+          lat: top.geometry.location.lat,
+          lng: top.geometry.location.lng,
+        },
+      });
     }
 
     if (url.pathname.endsWith('/details')) {

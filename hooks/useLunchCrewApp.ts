@@ -16,6 +16,23 @@ type PlaceDetailsResponse = {
   priceLevel?: number | null; googleMapsUrl?: string | null; websiteUrl?: string | null; detectedMenuUrl?: string | null;
 };
 
+type SearchAreaResponse = {
+  item?: { label: string; lat: number; lng: number } | null;
+};
+
+const MONETIZATION_PROMPT_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+const MONETIZATION_SESSION_SNOOZE_KEY = 'lunchcrew.monetization_session_snoozed';
+
+function isMonetizationSessionSnoozed() {
+  if (typeof window === 'undefined') return false;
+  return window.sessionStorage.getItem(MONETIZATION_SESSION_SNOOZE_KEY) === '1';
+}
+
+function snoozeMonetizationForSession() {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(MONETIZATION_SESSION_SNOOZE_KEY, '1');
+}
+
 export function useLunchCrewApp(initialCode?: string) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [deviceId, setDeviceId] = useState('');
@@ -36,7 +53,11 @@ export function useLunchCrewApp(initialCode?: string) {
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
   const [requestLocation, setRequestLocation] = useState(false);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geolocationCoords, setGeolocationCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [manualSearchCoords, setManualSearchCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [manualSearchLabel, setManualSearchLabel] = useState<string | null>(null);
+  const [searchAreaInput, setSearchAreaInput] = useState('');
+  const [searchAreaLoading, setSearchAreaLoading] = useState(false);
   const [showMonetizationModal, setShowMonetizationModal] = useState(false);
   const [show30DayHistory, setShow30DayHistory] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,6 +69,9 @@ export function useLunchCrewApp(initialCode?: string) {
 
   const configError = !isConfigured ? 'Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY in runtime.' : null;
   const topChoice = useMemo(() => options.slice().sort((a, b) => b.votes - a.votes)[0]?.name, [options]);
+  const activeSearchCoords = manualSearchCoords || geolocationCoords;
+  const activeSearchAreaLabel = manualSearchLabel || (geolocationCoords ? 'Current area' : null);
+  const usingManualSearchArea = !!manualSearchCoords;
 
   useEffect(() => {
     const seen = storage.get(ONBOARDING_SEEN_KEY);
@@ -65,7 +89,7 @@ export function useLunchCrewApp(initialCode?: string) {
   useEffect(() => {
     if (!requestLocation || typeof navigator === 'undefined' || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) => setGeolocationCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => {},
       { enableHighAccuracy: true, timeout: 7000 },
     );
@@ -243,6 +267,68 @@ export function useLunchCrewApp(initialCode?: string) {
     if (!resp.ok) throw new Error(`Place details failed (${resp.status})`);
     return await resp.json() as PlaceDetailsResponse;
   }
+  async function applySearchArea(rawQuery?: string) {
+    const query = (rawQuery ?? searchAreaInput).trim();
+    if (!query) {
+      setLoadError('Add a city or area first.');
+      return false;
+    }
+    if (!supabase) {
+      setLoadError('Search area is unavailable right now.');
+      return false;
+    }
+    setSearchAreaLoading(true);
+    try {
+      const supabaseUrl = (supabase as any).supabaseUrl as string; const anonKey = (supabase as any).supabaseKey as string;
+      const url = `${supabaseUrl}/functions/v1/places-proxy/geocode?q=${encodeURIComponent(query)}&regionCode=MX&languageCode=en`;
+      const resp = await withTimeout(fetch(url, { headers: { apikey: anonKey } }));
+      if (!resp.ok) throw new Error(`Area lookup failed (${resp.status})`);
+      const payload = await resp.json() as SearchAreaResponse;
+      if (!payload.item) {
+        setLoadError('Could not find that area. Try a city or fuller address.');
+        return false;
+      }
+      setManualSearchCoords({ lat: payload.item.lat, lng: payload.item.lng });
+      setManualSearchLabel(payload.item.label);
+      setSearchAreaInput(payload.item.label);
+      setLoadError(null);
+      return true;
+    } catch (error: any) {
+      setLoadError(error?.message || 'Could not set search area.');
+      return false;
+    } finally {
+      setSearchAreaLoading(false);
+    }
+  }
+  function clearSearchArea() {
+    setManualSearchCoords(null);
+    setManualSearchLabel(null);
+    setSearchAreaInput('');
+  }
+  async function submitFeedback({ email, message, source = 'crew_settings' }: { email?: string; message: string; source?: string }) {
+    const cleanMessage = message.trim();
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanMessage) return { ok: false, error: 'Write a little feedback first.' };
+    if (cleanEmail && !/^\S+@\S+\.\S+$/.test(cleanEmail)) return { ok: false, error: 'That email looks off.' };
+    if (!supabase) return { ok: false, error: 'Feedback is unavailable right now.' };
+    const page = typeof window !== 'undefined' ? window.location.pathname : null;
+    const { error } = await supabase.from('feedback_submissions').insert({
+      workspace_id: workspace?.id ?? null,
+      device_id: deviceId || null,
+      display_name: member?.display_name || null,
+      email: cleanEmail || null,
+      message: cleanMessage,
+      source,
+      page,
+      metadata: {
+        invite_code: workspace?.invite_code ?? null,
+        search_area_label: manualSearchLabel ?? null,
+      },
+    });
+    if (error) return { ok: false, error: error.message || 'Could not send feedback.' };
+    await trackEvent('feedback_submitted', { workspace_id: workspace?.id ?? null, source }, deviceId || undefined);
+    return { ok: true };
+  }
   async function vote(optionId: string) {
     if (!supabase || !poll || !workspace || !deviceId || votingOptionId) return;
     setVotingOptionId(optionId);
@@ -335,7 +421,7 @@ export function useLunchCrewApp(initialCode?: string) {
       try {
         setLoadingSuggestions(true);
         const supabaseUrl = (supabase as any).supabaseUrl as string; const anonKey = (supabase as any).supabaseKey as string;
-        const geo = coords ? `&lat=${coords.lat}&lng=${coords.lng}&radiusMeters=8000` : '';
+        const geo = activeSearchCoords ? `&lat=${activeSearchCoords.lat}&lng=${activeSearchCoords.lng}&radiusMeters=8000` : '';
         const url = `${supabaseUrl}/functions/v1/places-proxy/autocomplete?q=${encodeURIComponent(query)}&regionCode=MX&languageCode=en${geo}`;
         const resp = await withTimeout(fetch(url, { headers: { apikey: anonKey } }));
         if (!resp.ok) throw new Error(`Autocomplete failed (${resp.status})`);
@@ -343,20 +429,35 @@ export function useLunchCrewApp(initialCode?: string) {
       } catch { setSuggestions([]); } finally { setLoadingSuggestions(false); }
     }, 350);
     return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); };
-  }, [newOption, selectedSuggestion, coords?.lat, coords?.lng]);
+  }, [newOption, selectedSuggestion, activeSearchCoords?.lat, activeSearchCoords?.lng]);
+  function dismissMonetizationModal() {
+    const now = Date.now();
+    storage.set(MONETIZATION_LAST_PROMPT_AT_KEY, String(now));
+    snoozeMonetizationForSession();
+    setShowMonetizationModal(false);
+  }
+
   useEffect(() => {
     if (!onboardingReady || !onboardingDone || !workspace?.id) return;
+    if (showMonetizationModal) return;
+    if (isMonetizationSessionSnoozed()) return;
     const joined = storage.get(MONETIZATION_WAITLIST_JOINED_KEY); if (joined === '1') return;
     const now = Date.now(); const lastPromptRaw = storage.get(MONETIZATION_LAST_PROMPT_AT_KEY);
     if (!lastPromptRaw) return void storage.set(MONETIZATION_LAST_PROMPT_AT_KEY, String(now));
-    const lastPrompt = Number(lastPromptRaw); if (Number.isFinite(lastPrompt) && now - lastPrompt >= 24 * 60 * 60 * 1000) setShowMonetizationModal(true);
-  }, [onboardingReady, onboardingDone, workspace?.id]);
+    const lastPrompt = Number(lastPromptRaw);
+    if (Number.isFinite(lastPrompt) && now - lastPrompt >= MONETIZATION_PROMPT_COOLDOWN_MS) {
+      storage.set(MONETIZATION_LAST_PROMPT_AT_KEY, String(now));
+      setShowMonetizationModal(true);
+    }
+  }, [onboardingReady, onboardingDone, workspace?.id, showMonetizationModal]);
 
   return {
     configError, onboardingDone, onboardingReady, completeOnboarding, shareInvite, createNewCrew, retryLoad,
-    showMonetizationModal, setShowMonetizationModal, show30DayHistory, setShow30DayHistory,
+    showMonetizationModal, setShowMonetizationModal, dismissMonetizationModal, show30DayHistory, setShow30DayHistory,
     workspace, deviceId, member, loading, renaming, savingName, loadError, setLoadError, renameCrew, saveDisplayName,
     poll, pollDataReady, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, topChoice, vote, addOption,
     suggestions, loadingSuggestions, selectedSuggestion, setSelectedSuggestion, history7Days, history30Days, leaderboard,
+    searchAreaInput, setSearchAreaInput, searchAreaLoading, applySearchArea, clearSearchArea, activeSearchAreaLabel, usingManualSearchArea,
+    submitFeedback,
   };
 }

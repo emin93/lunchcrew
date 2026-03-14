@@ -189,3 +189,27 @@ drop policy if exists "monetization_waitlist_select_all" on public.monetization_
 drop policy if exists "monetization_waitlist_insert_all" on public.monetization_waitlist;
 create policy "monetization_waitlist_select_all" on public.monetization_waitlist for select using (true);
 create policy "monetization_waitlist_insert_all" on public.monetization_waitlist for insert with check (true);
+
+-- Feedback v1
+create table if not exists public.feedback_submissions (
+  id uuid primary key default gen_random_uuid(),
+  workspace_id uuid references public.workspaces(id) on delete set null,
+  device_id text,
+  display_name text,
+  email text,
+  message text not null,
+  source text not null default 'crew_settings',
+  page text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_feedback_submissions_created_at on public.feedback_submissions(created_at desc);
+create index if not exists idx_feedback_submissions_workspace_id on public.feedback_submissions(workspace_id);
+
+alter table public.feedback_submissions enable row level security;
+
+drop policy if exists "feedback_submissions_select_all" on public.feedback_submissions;
+drop policy if exists "feedback_submissions_insert_all" on public.feedback_submissions;
+create policy "feedback_submissions_select_all" on public.feedback_submissions for select using (true);
+create policy "feedback_submissions_insert_all" on public.feedback_submissions for insert with check (true);
