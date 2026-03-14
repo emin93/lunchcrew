@@ -696,10 +696,12 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
               <Button variant="gold" className="justify-start" onClick={() => app.setShowMonetizationModal(true)}><Sparkles className="h-4 w-4" /> Founding access</Button>
             </div>
           )}
-          <Panel className="grid gap-3 p-4">
-            <div className="text-sm font-medium text-[var(--text)]">Evaluation pricing</div>
-            <p className="text-sm leading-6 text-[var(--text-muted)]">{app.workspace?.pro_enabled ? 'This crew is already part of the founding group during evaluation.' : 'Upgrade this crew to founding access during evaluation and lock in early pricing for this specific crew.'}</p>
-          </Panel>
+          {!app.workspace?.pro_enabled ? (
+            <Panel className="grid gap-3 p-4">
+              <div className="text-sm font-medium text-[var(--text)]">Evaluation pricing</div>
+              <p className="text-sm leading-6 text-[var(--text-muted)]">Upgrade this crew to founding access during evaluation and lock in early pricing for this specific crew.</p>
+            </Panel>
+          ) : null}
           <Panel className="grid gap-4 p-4 sm:p-5">
             <div className="grid gap-1">
               <div className="text-sm font-semibold text-[var(--text)]">Crew ownership</div>
