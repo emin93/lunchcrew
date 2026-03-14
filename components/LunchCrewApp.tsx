@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSelectedLayoutSegments } from 'next/navigation';
-import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
+import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Trash2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
@@ -437,8 +437,19 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
                           <div className="mt-1.5 text-sm font-semibold text-[var(--text)] sm:text-base">{opt.name}</div>
                           {opt.place?.formatted_address ? <div className="mt-0.5 line-clamp-1 text-xs text-[var(--text-muted)]">{opt.place.formatted_address}</div> : null}
                         </div>
-                        <div className="shrink-0 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-sm font-semibold text-[var(--text)]">
-                          <AnimatedNumber value={opt.votes} />
+                        <div className="flex shrink-0 items-center gap-2">
+                          <div className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-sm font-semibold text-[var(--text)]">
+                            <AnimatedNumber value={opt.votes} />
+                          </div>
+                          <Button
+                            variant="ghost"
+                            className="min-h-9 rounded-full px-3 text-rose-700 hover:bg-rose-500/12 hover:text-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/18 dark:hover:text-rose-100"
+                            disabled={app.removingOptionId === opt.id}
+                            onClick={() => void app.removeOption(opt.id)}
+                            aria-label={`Remove ${opt.name}`}
+                          >
+                            {app.removingOptionId === opt.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          </Button>
                         </div>
                       </div>
                     </Panel>

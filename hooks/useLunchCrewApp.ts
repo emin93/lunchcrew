@@ -44,6 +44,7 @@ export function useLunchCrewApp(initialCode?: string) {
   const [newOption, setNewOption] = useState('');
   const [votingOptionId, setVotingOptionId] = useState<string | null>(null);
   const [addingOption, setAddingOption] = useState(false);
+  const [removingOptionId, setRemovingOptionId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<PlaceSuggestion | null>(null);
@@ -424,6 +425,23 @@ export function useLunchCrewApp(initialCode?: string) {
     } catch (error: any) { setLoadError(error?.message || 'Could not add option.'); return false; }
     finally { setAddingOption(false); }
   }
+  async function removeOption(optionId: string) {
+    if (!supabase || !poll || !workspace || removingOptionId) return false;
+    setRemovingOptionId(optionId);
+    setLoadError(null);
+    try {
+      const { error } = await withTimeout(supabase.from('poll_options').delete().eq('id', optionId).eq('poll_id', poll.id));
+      if (error) throw error;
+      if (myOptionId === optionId) setMyOptionId(null);
+      await refreshPollData(poll.id, workspace.id, deviceId); await refreshHistory(workspace.id);
+      return true;
+    } catch (error: any) {
+      setLoadError(error?.message || 'Could not remove place.');
+      return false;
+    } finally {
+      setRemovingOptionId(null);
+    }
+  }
   async function shareInvite() {
     if (!workspace || typeof window === 'undefined') return;
     const inviteLink = `${window.location.origin}${workspacePath(workspace.invite_code)}`;
@@ -513,7 +531,7 @@ export function useLunchCrewApp(initialCode?: string) {
     configError, onboardingDone, onboardingReady, completeOnboarding, shareInvite, createNewCrew, retryLoad,
     showMonetizationModal, setShowMonetizationModal, dismissMonetizationModal, show30DayHistory, setShow30DayHistory,
     workspace, deviceId, member, loading, renaming, savingName, loadError, setLoadError, renameCrew, saveDisplayName,
-    poll, pollDataReady, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, topChoice, vote, addOption,
+    poll, pollDataReady, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, removingOptionId, topChoice, vote, addOption, removeOption,
     suggestions, loadingSuggestions, selectedSuggestion, setSelectedSuggestion, history7Days, history30Days, leaderboard,
     searchAreaInput, setSearchAreaInput, searchAreaLoading, searchAreaError, clearSearchAreaError, applySearchArea, clearSearchArea,
     activeSearchAreaLabel, hasCrewSearchArea, geolocationAvailable, usingCurrentLocation, useCurrentLocationForCrewArea,
