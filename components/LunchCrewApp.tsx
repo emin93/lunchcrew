@@ -231,7 +231,7 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
                     <div className="flex flex-wrap items-center gap-2">
                       <AnimatedBadge visible={isLeader} className="border-amber-500/30 bg-amber-500/18">Leading</AnimatedBadge>
                       <AnimatedBadge visible={isActive}>Your vote</AnimatedBadge>
-                      <AnimatedBadge visible={isVoting} className="border-sky-500/25 bg-sky-500/14 text-sky-900 dark:text-sky-100">Casting…</AnimatedBadge>
+                      <AnimatedBadge visible={isVoting} className="badge-sky">Casting…</AnimatedBadge>
                     </div>
                     <div>
                       <div className="text-xl font-semibold text-[var(--text)] transition-colors duration-300 sm:text-2xl">{opt.name}</div>
