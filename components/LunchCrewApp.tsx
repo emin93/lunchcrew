@@ -351,7 +351,7 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
 
             <Panel className="grid gap-4 p-4 sm:p-5">
               <div className="flex flex-wrap items-center gap-2">
-                <Pill className={cn(app.hasCrewSearchArea ? 'border-sky-500/30 bg-sky-500/18 text-sky-950 dark:bg-sky-500/12 dark:text-sky-100' : 'border-[var(--border)] text-[var(--text)]')}>
+                <Pill className={cn(app.hasCrewSearchArea ? 'pill-sky' : 'border-[var(--border)] text-[var(--text)]')}>
                   {app.activeSearchAreaLabel ? `Crew area: ${app.activeSearchAreaLabel}` : 'No crew area set'}
                 </Pill>
               </div>
@@ -390,12 +390,12 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
                       <div className="text-sm font-semibold text-[var(--text)]">Added to today’s shortlist</div>
                       <p className="mt-1 text-sm text-[var(--text-soft)]">{recentlyAddedName} is now in the shortlist and ready for votes.</p>
                     </div>
-                    <Pill className="border-emerald-500/32 bg-emerald-500/20 text-emerald-950 dark:bg-emerald-500/12 dark:text-emerald-100">{shortlistCountLabel}</Pill>
+                    <Pill className="pill-emerald">{shortlistCountLabel}</Pill>
                   </div>
                 </Panel>
               ) : null}
 
-              {manualAdded && !recentlyAddedName ? <Pill className="w-fit border-emerald-500/32 bg-emerald-500/20 text-emerald-950 dark:bg-emerald-500/12 dark:text-emerald-100">Added to today’s shortlist.</Pill> : null}
+              {manualAdded && !recentlyAddedName ? <Pill className="pill-emerald w-fit">Added to today’s shortlist.</Pill> : null}
             </Panel>
           </div>
         </Card>
@@ -404,7 +404,7 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
           <div className="grid gap-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <Badge className="border-sky-500/30 bg-sky-500/18 text-sky-950 dark:bg-sky-500/14 dark:text-sky-100">Today’s shortlist</Badge>
+                <Badge className="badge-sky">Today’s shortlist</Badge>
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">What’s already in</h2>
                 <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">This stays visible while you plan, so duplicates make sense and the flow feels grounded.</p>
               </div>
@@ -431,8 +431,8 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            {index === 0 ? <Pill className="border-amber-500/30 bg-amber-500/18 text-amber-950 dark:bg-amber-500/12 dark:text-amber-100">Top voted</Pill> : null}
-                            {isRecentlyAdded ? <Pill className="border-emerald-500/30 bg-emerald-500/18 text-emerald-950 dark:bg-emerald-500/12 dark:text-emerald-100">Just added</Pill> : null}
+                            {index === 0 ? <Pill className="pill-amber">Top voted</Pill> : null}
+                            {isRecentlyAdded ? <Pill className="pill-emerald">Just added</Pill> : null}
                           </div>
                           <div className="mt-1.5 text-sm font-semibold text-[var(--text)] sm:text-base">{opt.name}</div>
                           {opt.place?.formatted_address ? <div className="mt-0.5 line-clamp-1 text-xs text-[var(--text-muted)]">{opt.place.formatted_address}</div> : null}
@@ -455,14 +455,14 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
           <Card className="w-full max-w-lg p-6 sm:p-8">
             <div className="grid gap-5">
               <div className="grid gap-2">
-                <Badge className="w-fit border-sky-500/30 bg-sky-500/18 text-sky-950 dark:bg-sky-500/14 dark:text-sky-100">Crew area</Badge>
+                <Badge className="badge-sky w-fit">Crew area</Badge>
                 <h3 className="text-2xl font-semibold tracking-tight text-[var(--text)]">Choose where nearby search should focus</h3>
                 <p className="text-sm leading-7 text-[var(--text-soft)]">This area belongs to the crew, so everyone searches around the same place. You can type an area manually or use the current GPS location from this device.</p>
               </div>
 
               <Panel className="grid gap-3 p-4">
                 <div className="text-sm font-medium text-[var(--text)]">Current crew area</div>
-                <Pill className={cn(app.hasCrewSearchArea ? 'border-sky-500/30 bg-sky-500/18 text-sky-950 dark:bg-sky-500/12 dark:text-sky-100' : 'border-[var(--border)] text-[var(--text)]')}>
+                <Pill className={cn(app.hasCrewSearchArea ? 'pill-sky' : 'border-[var(--border)] text-[var(--text)]')}>
                   {app.activeSearchAreaLabel ? `Crew area: ${app.activeSearchAreaLabel}` : 'No crew area yet'}
                 </Pill>
                 <p className="text-sm text-[var(--text-muted)]">Try a city, neighbourhood, or fuller address if the crew should search somewhere else.</p>
@@ -509,7 +509,7 @@ function HistoryView({ app, activeHistory }: { app: ReturnType<typeof useLunchCr
         <div className="grid gap-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <Badge className="border-sky-500/30 bg-sky-500/18 text-sky-950 dark:bg-sky-500/14 dark:text-sky-100">History</Badge>
+              <Badge className="badge-sky">History</Badge>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">Patterns, not just receipts</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Recent winners and repeat favorites live here instead of competing with today’s main task.</p>
             </div>
@@ -594,7 +594,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
 
       <Card className="panel-fade p-6 sm:p-8">
         <div className="grid gap-4">
-          <Badge className="border-fuchsia-500/30 bg-fuchsia-500/18 text-fuchsia-950 dark:bg-fuchsia-500/14 dark:text-fuchsia-100">Snapshot</Badge>
+          <Badge className="badge-fuchsia">Snapshot</Badge>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <Metric icon={Clock3} label="Votes cast" value={totalVotes} compact />
             <Metric icon={Crown} label="Front runner" value={app.topChoice || 'Waiting'} compact />
@@ -616,7 +616,7 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
                 {feedbackStatus === 'saving' ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</> : 'Send feedback'}
               </Button>
             </div>
-            {feedbackStatus === 'saved' ? <Pill className="w-fit border-emerald-500/30 bg-emerald-500/18 text-emerald-950 dark:bg-emerald-500/12 dark:text-emerald-100">Feedback sent. Thank you.</Pill> : null}
+            {feedbackStatus === 'saved' ? <Pill className="pill-emerald w-fit">Feedback sent. Thank you.</Pill> : null}
             {feedbackStatus === 'error' && feedbackError ? <p className="text-sm text-rose-700 dark:text-rose-300">{feedbackError}</p> : null}
           </Panel>
         </div>

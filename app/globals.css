@@ -227,6 +227,62 @@ span {
   animation: live-dot-ping 2.4s ease-in-out infinite;
 }
 
+.pill-sky,
+.badge-sky {
+  border-color: rgba(14, 116, 144, 0.3) !important;
+  background: rgba(14, 165, 233, 0.18) !important;
+  color: #082f49 !important;
+}
+
+.pill-emerald,
+.badge-emerald {
+  border-color: rgba(5, 150, 105, 0.32) !important;
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #052e16 !important;
+}
+
+.pill-amber,
+.badge-amber {
+  border-color: rgba(217, 119, 6, 0.3) !important;
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #451a03 !important;
+}
+
+.pill-fuchsia,
+.badge-fuchsia {
+  border-color: rgba(192, 38, 211, 0.3) !important;
+  background: rgba(217, 70, 239, 0.18) !important;
+  color: #4a044e !important;
+}
+
+.dark .pill-sky,
+.dark .badge-sky {
+  border-color: rgba(56, 189, 248, 0.24) !important;
+  background: rgba(14, 165, 233, 0.14) !important;
+  color: #e0f2fe !important;
+}
+
+.dark .pill-emerald,
+.dark .badge-emerald {
+  border-color: rgba(52, 211, 153, 0.24) !important;
+  background: rgba(16, 185, 129, 0.14) !important;
+  color: #d1fae5 !important;
+}
+
+.dark .pill-amber,
+.dark .badge-amber {
+  border-color: rgba(251, 191, 36, 0.24) !important;
+  background: rgba(245, 158, 11, 0.14) !important;
+  color: #fef3c7 !important;
+}
+
+.dark .pill-fuchsia,
+.dark .badge-fuchsia {
+  border-color: rgba(232, 121, 249, 0.24) !important;
+  background: rgba(217, 70, 239, 0.14) !important;
+  color: #fae8ff !important;
+}
+
 .shimmer {
   position: relative;
   overflow: hidden;
