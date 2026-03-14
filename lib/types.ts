@@ -1,4 +1,12 @@
-export type Workspace = { id: string; name: string; invite_code: string; created_at: string };
+export type Workspace = {
+  id: string;
+  name: string;
+  invite_code: string;
+  search_area_label?: string | null;
+  search_area_lat?: number | null;
+  search_area_lng?: number | null;
+  created_at: string;
+};
 export type Poll = { id: string; workspace_id: string; poll_date: string; title: string; created_at: string };
 export type WorkspaceMember = {
   id: string;

@@ -4,8 +4,16 @@ create table if not exists public.workspaces (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   invite_code text not null unique,
+  search_area_label text,
+  search_area_lat double precision,
+  search_area_lng double precision,
   created_at timestamptz not null default now()
 );
+
+alter table public.workspaces
+  add column if not exists search_area_label text,
+  add column if not exists search_area_lat double precision,
+  add column if not exists search_area_lng double precision;
 
 create table if not exists public.polls (
   id uuid primary key default gen_random_uuid(),

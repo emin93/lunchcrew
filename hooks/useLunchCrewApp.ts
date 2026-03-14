@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { trackEvent } from '@/lib/analytics';
 import {
-  DEVICE_ID_KEY, DISPLAY_NAME_KEY, LAST_WORKSPACE_CODE_KEY, LAST_WORKSPACE_ID_KEY, LOCATION_PROMPT_SEEN_KEY,
+  DEVICE_ID_KEY, DISPLAY_NAME_KEY, LAST_WORKSPACE_CODE_KEY, LAST_WORKSPACE_ID_KEY,
   MONETIZATION_LAST_PROMPT_AT_KEY, MONETIZATION_WAITLIST_JOINED_KEY, ONBOARDING_SEEN_KEY,
   extractInviteCode, generateInviteCode, makeDeviceId, normalizeDisplayName, storage, todayDateUTC, withTimeout,
   workspacePath,
@@ -52,14 +52,11 @@ export function useLunchCrewApp(initialCode?: string) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardPlace[]>([]);
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingReady, setOnboardingReady] = useState(false);
-  const [requestLocation, setRequestLocation] = useState(false);
-  const [geolocationCoords, setGeolocationCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [geolocationAreaLabel, setGeolocationAreaLabel] = useState<string | null>(null);
-  const [manualSearchCoords, setManualSearchCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [manualSearchLabel, setManualSearchLabel] = useState<string | null>(null);
   const [searchAreaInput, setSearchAreaInput] = useState('');
   const [searchAreaLoading, setSearchAreaLoading] = useState(false);
   const [searchAreaError, setSearchAreaError] = useState<string | null>(null);
+  const [geolocationAvailable, setGeolocationAvailable] = useState(false);
+  const [usingCurrentLocation, setUsingCurrentLocation] = useState(false);
   const [showMonetizationModal, setShowMonetizationModal] = useState(false);
   const [show30DayHistory, setShow30DayHistory] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,9 +68,11 @@ export function useLunchCrewApp(initialCode?: string) {
 
   const configError = !isConfigured ? 'Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY in runtime.' : null;
   const topChoice = useMemo(() => options.slice().sort((a, b) => b.votes - a.votes)[0]?.name, [options]);
-  const activeSearchCoords = manualSearchCoords || geolocationCoords;
-  const activeSearchAreaLabel = manualSearchLabel || geolocationAreaLabel;
-  const usingManualSearchArea = !!manualSearchCoords;
+  const activeSearchCoords = workspace && Number.isFinite(workspace.search_area_lat) && Number.isFinite(workspace.search_area_lng)
+    ? { lat: workspace.search_area_lat as number, lng: workspace.search_area_lng as number }
+    : null;
+  const activeSearchAreaLabel = workspace?.search_area_label || null;
+  const hasCrewSearchArea = !!activeSearchCoords && !!activeSearchAreaLabel;
 
   useEffect(() => {
     const seen = storage.get(ONBOARDING_SEEN_KEY);
@@ -82,34 +81,12 @@ export function useLunchCrewApp(initialCode?: string) {
   }, []);
 
   useEffect(() => {
-    if (!onboardingReady || !onboardingDone) return;
-    const seen = storage.get(LOCATION_PROMPT_SEEN_KEY);
-    if (!seen) storage.set(LOCATION_PROMPT_SEEN_KEY, '1');
-    setRequestLocation(true);
-  }, [onboardingReady, onboardingDone]);
+    setGeolocationAvailable(typeof navigator !== 'undefined' && !!navigator.geolocation);
+  }, []);
 
   useEffect(() => {
-    if (!requestLocation || typeof navigator === 'undefined' || !navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setGeolocationCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {},
-      { enableHighAccuracy: true, timeout: 7000 },
-    );
-  }, [requestLocation]);
-
-  useEffect(() => {
-    if (!supabase || !geolocationCoords) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const item = await lookupSearchArea({ lat: geolocationCoords.lat, lng: geolocationCoords.lng });
-        if (!cancelled) setGeolocationAreaLabel(item?.label || null);
-      } catch {
-        if (!cancelled) setGeolocationAreaLabel(null);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [supabase, geolocationCoords?.lat, geolocationCoords?.lng]);
+    setSearchAreaInput(workspace?.search_area_label || '');
+  }, [workspace?.id, workspace?.search_area_label]);
 
   useEffect(() => {
     if (!onboardingReady || !onboardingDone || !supabase) return;
@@ -151,6 +128,28 @@ export function useLunchCrewApp(initialCode?: string) {
       const path = window.location.pathname.replace(/\/+$/, '') || '/';
       const section = path.endsWith('/plan') ? 'plan' : path.endsWith('/history') ? 'history' : path.endsWith('/crew') ? 'crew' : 'today';
       window.history.replaceState({}, '', workspacePath(next.invite_code.toUpperCase(), section));
+    }
+  }
+  async function saveWorkspaceSearchArea(area: { label: string; lat: number; lng: number } | null) {
+    if (!supabase || !workspace) return false;
+    setSearchAreaLoading(true);
+    setSearchAreaError(null);
+    try {
+      const updates = area
+        ? { search_area_label: area.label, search_area_lat: area.lat, search_area_lng: area.lng }
+        : { search_area_label: null, search_area_lat: null, search_area_lng: null };
+      const { data, error } = await withTimeout(supabase.from('workspaces').update(updates).eq('id', workspace.id).select('*').single());
+      if (error || !data) {
+        setSearchAreaError(`Could not save crew area${error?.message ? ` (${error.message})` : '.'}`);
+        return false;
+      }
+      await setCurrentWorkspace(data as Workspace);
+      return true;
+    } catch {
+      setSearchAreaError('Network timeout while saving crew area. Please retry.');
+      return false;
+    } finally {
+      setSearchAreaLoading(false);
     }
   }
   async function ensureMember(workspaceId: string, currentDeviceId: string) {
@@ -320,22 +319,46 @@ export function useLunchCrewApp(initialCode?: string) {
         setSearchAreaError('Could not find that area. Try a city, neighbourhood, or fuller address.');
         return false;
       }
-      setManualSearchCoords({ lat: item.lat, lng: item.lng });
-      setManualSearchLabel(item.label);
-      setSearchAreaInput(item.label);
-      return true;
+      return await saveWorkspaceSearchArea({ label: item.label, lat: item.lat, lng: item.lng });
     } catch (error: any) {
-      setSearchAreaError(error?.message || 'Could not set search area.');
+      setSearchAreaError(error?.message || 'Could not set crew area.');
       return false;
     } finally {
       setSearchAreaLoading(false);
     }
   }
-  function clearSearchArea() {
-    setManualSearchCoords(null);
-    setManualSearchLabel(null);
-    setSearchAreaInput('');
+  async function useCurrentLocationForCrewArea() {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setSearchAreaError('Current location is not available on this device.');
+      return false;
+    }
+    setUsingCurrentLocation(true);
     setSearchAreaError(null);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 7000 });
+      });
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const item = await lookupSearchArea({ lat, lng });
+      return await saveWorkspaceSearchArea({ label: item?.label || 'Current area', lat, lng });
+    } catch (error: any) {
+      const message = error?.code === 1
+        ? 'Location permission was denied.'
+        : error?.code === 2
+          ? 'Current location is unavailable right now.'
+          : error?.code === 3
+            ? 'Current location timed out. Please retry.'
+            : error?.message || 'Could not use current location.';
+      setSearchAreaError(message);
+      return false;
+    } finally {
+      setUsingCurrentLocation(false);
+    }
+  }
+  async function clearSearchArea() {
+    setSearchAreaError(null);
+    return await saveWorkspaceSearchArea(null);
   }
   function clearSearchAreaError() {
     setSearchAreaError(null);
@@ -357,7 +380,7 @@ export function useLunchCrewApp(initialCode?: string) {
       page,
       metadata: {
         invite_code: workspace?.invite_code ?? null,
-        search_area_label: manualSearchLabel ?? null,
+        search_area_label: activeSearchAreaLabel ?? null,
       },
     });
     if (error) return { ok: false, error: error.message || 'Could not send feedback.' };
@@ -492,7 +515,8 @@ export function useLunchCrewApp(initialCode?: string) {
     workspace, deviceId, member, loading, renaming, savingName, loadError, setLoadError, renameCrew, saveDisplayName,
     poll, pollDataReady, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, topChoice, vote, addOption,
     suggestions, loadingSuggestions, selectedSuggestion, setSelectedSuggestion, history7Days, history30Days, leaderboard,
-    searchAreaInput, setSearchAreaInput, searchAreaLoading, searchAreaError, clearSearchAreaError, applySearchArea, clearSearchArea, activeSearchAreaLabel, usingManualSearchArea,
+    searchAreaInput, setSearchAreaInput, searchAreaLoading, searchAreaError, clearSearchAreaError, applySearchArea, clearSearchArea,
+    activeSearchAreaLabel, hasCrewSearchArea, geolocationAvailable, usingCurrentLocation, useCurrentLocationForCrewArea,
     submitFeedback,
   };
 }

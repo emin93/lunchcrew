@@ -280,7 +280,7 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
   const [showAreaDialog, setShowAreaDialog] = useState(false);
   const sortedShortlist = [...app.options].sort((a, b) => b.votes - a.votes || a.name.localeCompare(b.name));
   const shortlistCountLabel = `${app.options.length} ${app.options.length === 1 ? 'place' : 'places'}`;
-  const areaButtonLabel = app.activeSearchAreaLabel ? (app.usingManualSearchArea ? `Near ${app.activeSearchAreaLabel}` : app.activeSearchAreaLabel) : 'Set area';
+  const areaButtonLabel = app.activeSearchAreaLabel || 'Set crew area';
 
   async function handleSuggestionSelect(suggestion: PlaceSuggestion) {
     app.setSelectedSuggestion(suggestion);
@@ -317,10 +317,18 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
     setShowAreaDialog(false);
   }
 
-  function handleClearAreaOverride() {
-    app.clearSearchArea();
+  async function handleClearAreaOverride() {
+    const cleared = await app.clearSearchArea();
     app.clearSearchAreaError();
-    setShowAreaDialog(false);
+    if (cleared) setShowAreaDialog(false);
+  }
+
+  async function handleUseCurrentLocation() {
+    const applied = await app.useCurrentLocationForCrewArea();
+    if (applied) {
+      app.clearSearchAreaError();
+      setShowAreaDialog(false);
+    }
   }
 
   return (
@@ -343,8 +351,8 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
 
             <Panel className="grid gap-4 p-4 sm:p-5">
               <div className="flex flex-wrap items-center gap-2">
-                <Pill className={cn(app.usingManualSearchArea ? 'border-sky-500/25 bg-sky-500/12 text-sky-900 dark:text-sky-100' : 'border-[var(--border)]')}>
-                  {app.activeSearchAreaLabel ? (app.usingManualSearchArea ? `Manual area: ${app.activeSearchAreaLabel}` : `Detected area: ${app.activeSearchAreaLabel}`) : 'No area set'}
+                <Pill className={cn(app.hasCrewSearchArea ? 'border-sky-500/25 bg-sky-500/12 text-sky-900 dark:text-sky-100' : 'border-[var(--border)]')}>
+                  {app.activeSearchAreaLabel ? `Crew area: ${app.activeSearchAreaLabel}` : 'No crew area set'}
                 </Pill>
               </div>
 
@@ -447,17 +455,17 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
           <Card className="w-full max-w-lg p-6 sm:p-8">
             <div className="grid gap-5">
               <div className="grid gap-2">
-                <Badge className="w-fit border-sky-500/25 bg-sky-500/14">Area settings</Badge>
+                <Badge className="w-fit border-sky-500/25 bg-sky-500/14">Crew area</Badge>
                 <h3 className="text-2xl font-semibold tracking-tight text-[var(--text)]">Choose where nearby search should focus</h3>
-                <p className="text-sm leading-7 text-[var(--text-soft)]">By default LunchCrew uses your detected area. If you’d rather search near somewhere else, set a manual area here.</p>
+                <p className="text-sm leading-7 text-[var(--text-soft)]">This area belongs to the crew, so everyone searches around the same place. You can type an area manually or use the current GPS location from this device.</p>
               </div>
 
               <Panel className="grid gap-3 p-4">
-                <div className="text-sm font-medium text-[var(--text)]">Current search area</div>
-                <Pill className={cn(app.usingManualSearchArea ? 'border-sky-500/25 bg-sky-500/12 text-sky-900 dark:text-sky-100' : 'border-[var(--border)]')}>
-                  {app.activeSearchAreaLabel ? (app.usingManualSearchArea ? `Manual area: ${app.activeSearchAreaLabel}` : `Detected area: ${app.activeSearchAreaLabel}`) : 'No detected area yet'}
+                <div className="text-sm font-medium text-[var(--text)]">Current crew area</div>
+                <Pill className={cn(app.hasCrewSearchArea ? 'border-sky-500/25 bg-sky-500/12 text-sky-900 dark:text-sky-100' : 'border-[var(--border)]')}>
+                  {app.activeSearchAreaLabel ? `Crew area: ${app.activeSearchAreaLabel}` : 'No crew area yet'}
                 </Pill>
-                <p className="text-sm text-[var(--text-muted)]">Try a city, neighbourhood, or fuller address if the detected area isn’t the one you want.</p>
+                <p className="text-sm text-[var(--text-muted)]">Try a city, neighbourhood, or fuller address if the crew should search somewhere else.</p>
               </Panel>
 
               <div className="grid gap-3">
@@ -472,12 +480,19 @@ function PlanView({ app, todayHref }: { app: ReturnType<typeof useLunchCrewApp>;
                 {app.searchAreaError ? <p className="text-sm text-rose-700 dark:text-rose-300">{app.searchAreaError}</p> : null}
               </div>
 
-              <div className="flex flex-wrap justify-end gap-3">
-                {app.usingManualSearchArea ? <Button variant="ghost" onClick={handleClearAreaOverride}>Use detected area</Button> : null}
-                <Button variant="secondary" onClick={handleCloseAreaDialog}>Close</Button>
-                <Button disabled={!app.searchAreaInput.trim() || app.searchAreaLoading} onClick={handleApplyArea}>
-                  {app.searchAreaLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : 'Use this area'}
-                </Button>
+              <div className="flex flex-wrap justify-between gap-3">
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="secondary" disabled={!app.geolocationAvailable || app.usingCurrentLocation || app.searchAreaLoading} onClick={handleUseCurrentLocation}>
+                    {app.usingCurrentLocation ? <><Loader2 className="h-4 w-4 animate-spin" /> Locating…</> : <><MapPinned className="h-4 w-4" /> Use current location</>}
+                  </Button>
+                  {app.hasCrewSearchArea ? <Button variant="ghost" onClick={handleClearAreaOverride}>Clear crew area</Button> : null}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="secondary" onClick={handleCloseAreaDialog}>Close</Button>
+                  <Button disabled={!app.searchAreaInput.trim() || app.searchAreaLoading || app.usingCurrentLocation} onClick={handleApplyArea}>
+                    {app.searchAreaLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : 'Use this area'}
+                  </Button>
+                </div>
               </div>
             </div>
           </Card>

@@ -40,7 +40,7 @@ export function Onboarding({ onComplete }: { onComplete: (name?: string) => void
               <h2 className="mt-2 text-3xl font-semibold text-[var(--text)]">How should your crew see you?</h2>
             </div>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Emin, Em, Taco Scout…" maxLength={32} />
-            <Panel className="p-4 text-sm leading-6 text-[var(--text-muted)]">Optional now, editable later in crew settings. Location only improves nearby suggestions and is never stored.</Panel>
+            <Panel className="p-4 text-sm leading-6 text-[var(--text-muted)]">Optional now, editable later in crew settings. Crew area is optional too, and your group can set or change it later.</Panel>
             <Button onClick={() => onComplete(name)} className="h-12 rounded-2xl">Enter the app <ArrowRight className="h-4 w-4" /></Button>
           </div>
         </Card>
