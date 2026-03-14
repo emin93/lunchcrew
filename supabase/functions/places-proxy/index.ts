@@ -169,8 +169,10 @@ Deno.serve(async (req) => {
 
     if (url.pathname.endsWith('/geocode')) {
       const q = (url.searchParams.get('q') || '').trim();
-      const lat = Number(url.searchParams.get('lat'));
-      const lng = Number(url.searchParams.get('lng'));
+      const latParam = url.searchParams.get('lat');
+      const lngParam = url.searchParams.get('lng');
+      const lat = latParam === null ? NaN : Number(latParam);
+      const lng = lngParam === null ? NaN : Number(lngParam);
       const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
       if (!hasCoords && q.length < 2) return json({ item: null });
 
