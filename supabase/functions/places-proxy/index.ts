@@ -57,6 +57,27 @@ function toPriceLevel(value?: string | number | null): number | null {
   return map[value] ?? null;
 }
 
+function pickAddressComponent(result: any, ...types: string[]) {
+  const components = Array.isArray(result?.address_components) ? result.address_components : [];
+  for (const type of types) {
+    const match = components.find((component: any) => Array.isArray(component?.types) && component.types.includes(type));
+    if (match?.long_name) return match.long_name as string;
+  }
+  return null;
+}
+
+function areaLabelFromGeocode(result: any) {
+  const neighborhood = pickAddressComponent(result, 'neighborhood', 'sublocality', 'sublocality_level_1');
+  const locality = pickAddressComponent(result, 'locality', 'postal_town', 'administrative_area_level_2');
+  const admin = pickAddressComponent(result, 'administrative_area_level_1');
+  const country = pickAddressComponent(result, 'country');
+
+  if (neighborhood && locality) return `${neighborhood}, ${locality}`;
+  if (locality && admin) return `${locality}, ${admin}`;
+  if (locality && country) return `${locality}, ${country}`;
+  return result?.formatted_address || null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
 
@@ -133,10 +154,40 @@ Deno.serve(async (req) => {
 
     if (url.pathname.endsWith('/geocode')) {
       const q = (url.searchParams.get('q') || '').trim();
-      if (q.length < 2) return json({ item: null });
+      const lat = Number(url.searchParams.get('lat'));
+      const lng = Number(url.searchParams.get('lng'));
+      const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+      if (!hasCoords && q.length < 2) return json({ item: null });
 
       const regionCode = (url.searchParams.get('regionCode') || 'MX').toLowerCase();
       const languageCode = url.searchParams.get('languageCode') || 'en';
+
+      if (hasCoords) {
+        const reverseUrl = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+        reverseUrl.searchParams.set('latlng', `${lat},${lng}`);
+        reverseUrl.searchParams.set('language', languageCode);
+        reverseUrl.searchParams.set('result_type', 'neighborhood|sublocality|locality|administrative_area_level_2|administrative_area_level_1');
+        reverseUrl.searchParams.set('key', googleApiKey);
+
+        const reverseResp = await fetch(reverseUrl.toString());
+        if (!reverseResp.ok) {
+          const errBody = await reverseResp.text();
+          return json({ error: 'Google reverse geocode failed', details: errBody }, 502);
+        }
+
+        const reversePayload = await reverseResp.json();
+        const top = (reversePayload.results || [])[0];
+        if (!top) return json({ item: null });
+
+        return json({
+          item: {
+            label: areaLabelFromGeocode(top) || 'Current area',
+            lat,
+            lng,
+          },
+        });
+      }
+
       const geocodeUrl = new URL('https://maps.googleapis.com/maps/api/geocode/json');
       geocodeUrl.searchParams.set('address', q);
       geocodeUrl.searchParams.set('region', regionCode);
@@ -151,13 +202,45 @@ Deno.serve(async (req) => {
 
       const payload = await resp.json();
       const top = (payload.results || [])[0];
-      if (!top?.geometry?.location) return json({ item: null });
+      if (top?.geometry?.location) {
+        return json({
+          item: {
+            label: areaLabelFromGeocode(top) || top.formatted_address || q,
+            lat: top.geometry.location.lat,
+            lng: top.geometry.location.lng,
+          },
+        });
+      }
+
+      const textSearchResp = await fetch('https://places.googleapis.com/v1/places:searchText', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'X-Goog-Api-Key': googleApiKey,
+          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location',
+        },
+        body: JSON.stringify({
+          textQuery: q,
+          languageCode,
+          regionCode: regionCode.toUpperCase(),
+          maxResultCount: 1,
+        }),
+      });
+
+      if (!textSearchResp.ok) {
+        const errBody = await textSearchResp.text();
+        return json({ error: 'Google text search failed', details: errBody }, 502);
+      }
+
+      const textSearchPayload = await textSearchResp.json();
+      const place = (textSearchPayload.places || [])[0];
+      if (!place?.location) return json({ item: null });
 
       return json({
         item: {
-          label: top.formatted_address || q,
-          lat: top.geometry.location.lat,
-          lng: top.geometry.location.lng,
+          label: place.displayName?.text || place.formattedAddress || q,
+          lat: place.location.latitude,
+          lng: place.location.longitude,
         },
       });
     }

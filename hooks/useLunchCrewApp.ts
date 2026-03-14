@@ -54,10 +54,12 @@ export function useLunchCrewApp(initialCode?: string) {
   const [onboardingReady, setOnboardingReady] = useState(false);
   const [requestLocation, setRequestLocation] = useState(false);
   const [geolocationCoords, setGeolocationCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geolocationAreaLabel, setGeolocationAreaLabel] = useState<string | null>(null);
   const [manualSearchCoords, setManualSearchCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [manualSearchLabel, setManualSearchLabel] = useState<string | null>(null);
   const [searchAreaInput, setSearchAreaInput] = useState('');
   const [searchAreaLoading, setSearchAreaLoading] = useState(false);
+  const [searchAreaError, setSearchAreaError] = useState<string | null>(null);
   const [showMonetizationModal, setShowMonetizationModal] = useState(false);
   const [show30DayHistory, setShow30DayHistory] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -70,7 +72,7 @@ export function useLunchCrewApp(initialCode?: string) {
   const configError = !isConfigured ? 'Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY in runtime.' : null;
   const topChoice = useMemo(() => options.slice().sort((a, b) => b.votes - a.votes)[0]?.name, [options]);
   const activeSearchCoords = manualSearchCoords || geolocationCoords;
-  const activeSearchAreaLabel = manualSearchLabel || (geolocationCoords ? 'Current area' : null);
+  const activeSearchAreaLabel = manualSearchLabel || geolocationAreaLabel;
   const usingManualSearchArea = !!manualSearchCoords;
 
   useEffect(() => {
@@ -94,6 +96,20 @@ export function useLunchCrewApp(initialCode?: string) {
       { enableHighAccuracy: true, timeout: 7000 },
     );
   }, [requestLocation]);
+
+  useEffect(() => {
+    if (!supabase || !geolocationCoords) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const item = await lookupSearchArea({ lat: geolocationCoords.lat, lng: geolocationCoords.lng });
+        if (!cancelled) setGeolocationAreaLabel(item?.label || null);
+      } catch {
+        if (!cancelled) setGeolocationAreaLabel(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [supabase, geolocationCoords?.lat, geolocationCoords?.lng]);
 
   useEffect(() => {
     if (!onboardingReady || !onboardingDone || !supabase) return;
@@ -267,34 +283,46 @@ export function useLunchCrewApp(initialCode?: string) {
     if (!resp.ok) throw new Error(`Place details failed (${resp.status})`);
     return await resp.json() as PlaceDetailsResponse;
   }
+  async function lookupSearchArea({ query, lat, lng }: { query?: string; lat?: number; lng?: number }) {
+    if (!supabase) return null;
+    const supabaseUrl = (supabase as any).supabaseUrl as string; const anonKey = (supabase as any).supabaseKey as string;
+    const params = new URLSearchParams({ regionCode: 'MX', languageCode: 'en' });
+    const cleanQuery = (query || '').trim();
+    if (cleanQuery) params.set('q', cleanQuery);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      params.set('lat', String(lat));
+      params.set('lng', String(lng));
+    }
+    const url = `${supabaseUrl}/functions/v1/places-proxy/geocode?${params.toString()}`;
+    const resp = await withTimeout(fetch(url, { headers: { apikey: anonKey } }));
+    if (!resp.ok) throw new Error(`Area lookup failed (${resp.status})`);
+    const payload = await resp.json() as SearchAreaResponse;
+    return payload.item ?? null;
+  }
   async function applySearchArea(rawQuery?: string) {
     const query = (rawQuery ?? searchAreaInput).trim();
     if (!query) {
-      setLoadError('Add a city or area first.');
+      setSearchAreaError('Add a city or area first.');
       return false;
     }
     if (!supabase) {
-      setLoadError('Search area is unavailable right now.');
+      setSearchAreaError('Search area is unavailable right now.');
       return false;
     }
     setSearchAreaLoading(true);
+    setSearchAreaError(null);
     try {
-      const supabaseUrl = (supabase as any).supabaseUrl as string; const anonKey = (supabase as any).supabaseKey as string;
-      const url = `${supabaseUrl}/functions/v1/places-proxy/geocode?q=${encodeURIComponent(query)}&regionCode=MX&languageCode=en`;
-      const resp = await withTimeout(fetch(url, { headers: { apikey: anonKey } }));
-      if (!resp.ok) throw new Error(`Area lookup failed (${resp.status})`);
-      const payload = await resp.json() as SearchAreaResponse;
-      if (!payload.item) {
-        setLoadError('Could not find that area. Try a city or fuller address.');
+      const item = await lookupSearchArea({ query });
+      if (!item) {
+        setSearchAreaError('Could not find that area. Try a city, neighbourhood, or fuller address.');
         return false;
       }
-      setManualSearchCoords({ lat: payload.item.lat, lng: payload.item.lng });
-      setManualSearchLabel(payload.item.label);
-      setSearchAreaInput(payload.item.label);
-      setLoadError(null);
+      setManualSearchCoords({ lat: item.lat, lng: item.lng });
+      setManualSearchLabel(item.label);
+      setSearchAreaInput(item.label);
       return true;
     } catch (error: any) {
-      setLoadError(error?.message || 'Could not set search area.');
+      setSearchAreaError(error?.message || 'Could not set search area.');
       return false;
     } finally {
       setSearchAreaLoading(false);
@@ -304,6 +332,10 @@ export function useLunchCrewApp(initialCode?: string) {
     setManualSearchCoords(null);
     setManualSearchLabel(null);
     setSearchAreaInput('');
+    setSearchAreaError(null);
+  }
+  function clearSearchAreaError() {
+    setSearchAreaError(null);
   }
   async function submitFeedback({ email, message, source = 'crew_settings' }: { email?: string; message: string; source?: string }) {
     const cleanMessage = message.trim();
@@ -457,7 +489,7 @@ export function useLunchCrewApp(initialCode?: string) {
     workspace, deviceId, member, loading, renaming, savingName, loadError, setLoadError, renameCrew, saveDisplayName,
     poll, pollDataReady, options, myOptionId, newOption, setNewOption, votingOptionId, addingOption, topChoice, vote, addOption,
     suggestions, loadingSuggestions, selectedSuggestion, setSelectedSuggestion, history7Days, history30Days, leaderboard,
-    searchAreaInput, setSearchAreaInput, searchAreaLoading, applySearchArea, clearSearchArea, activeSearchAreaLabel, usingManualSearchArea,
+    searchAreaInput, setSearchAreaInput, searchAreaLoading, searchAreaError, clearSearchAreaError, applySearchArea, clearSearchArea, activeSearchAreaLabel, usingManualSearchArea,
     submitFeedback,
   };
 }
