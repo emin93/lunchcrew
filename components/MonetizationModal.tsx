@@ -36,9 +36,10 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-md">
-      <Card className="w-full max-w-2xl overflow-hidden p-8 sm:p-10">
-        <div className="grid gap-5">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-md">
+      <div className="grid min-h-full place-items-center py-4 sm:py-6">
+        <Card className="max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto p-6 sm:max-h-[calc(100vh-3rem)] sm:p-8 lg:p-10">
+          <div className="grid gap-5">
           <Badge className="w-fit"><Sparkles className="h-3.5 w-3.5" /> Founding Crew Access</Badge>
           <div className="grid gap-2">
             <h3 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Upgrade this crew during evaluation</h3>
@@ -61,8 +62,9 @@ export function MonetizationModal({ visible, workspaceId, deviceId, onClose }: {
           </div>
           {status === 'saved' ? <p className="text-sm text-emerald-600 dark:text-emerald-300">Saved — I’ll treat this crew as interested in founding access.</p> : null}
           {status === 'error' ? <p className="text-sm text-rose-600 dark:text-rose-300">Couldn’t save right now. Please try again.</p> : null}
-        </div>
-      </Card>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
