@@ -64,7 +64,7 @@ export function LiveBoardDemo() {
   return (
     <div className="grid gap-5">
       <div className="flex items-center justify-between gap-3">
-        <Badge className="border-fuchsia-500/25 bg-fuchsia-500/14">Today’s board</Badge>
+        <Badge className="border-fuchsia-500/30 bg-fuchsia-500/18 text-fuchsia-950 dark:bg-fuchsia-500/14 dark:text-fuchsia-100">Today’s board</Badge>
         <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] transition-opacity duration-300">
           <span className="live-dot h-2.5 w-2.5 rounded-full bg-[var(--accent)]" />
           Live voting now
@@ -100,8 +100,8 @@ export function LiveBoardDemo() {
                 <div
                   className={cn(
                     'rounded-full border px-3 py-1 text-xs text-[var(--text-soft)] transition-all duration-500',
-                    isLeader ? 'border-amber-500/25 bg-amber-500/10 text-amber-900 dark:text-amber-100' : 'border-[var(--border)]',
-                    isHot && !isLeader && 'border-[rgba(255,122,89,0.22)] bg-[rgba(255,122,89,0.1)]',
+                    isLeader ? 'border-amber-500/30 bg-amber-500/18 text-amber-950 dark:bg-amber-500/12 dark:text-amber-100' : 'border-[var(--border)] text-[var(--text)]',
+                    isHot && !isLeader && 'border-[rgba(255,122,89,0.26)] bg-[rgba(255,122,89,0.16)] text-[var(--text)]',
                   )}
                 >
                   {isLeader ? 'Leading' : isHot ? 'Just voted' : 'Open vote'}
