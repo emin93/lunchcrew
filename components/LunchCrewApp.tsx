@@ -42,6 +42,14 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
   const activeView: AppView = !app.workspace ? 'today' : requestedView === 'today' && emptyBallot ? 'plan' : requestedView;
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const viewTitle = activeView === 'today' ? 'Today' : activeView === 'plan' ? 'Plan' : activeView === 'history' ? 'History' : 'Crew';
+    const crewName = (app.workspace?.name || '').trim();
+    const hasMeaningfulCrewName = !!crewName && crewName.toLowerCase() !== 'lunchcrew';
+    document.title = hasMeaningfulCrewName ? `${viewTitle} · ${crewName} · LunchCrew` : `${viewTitle} · LunchCrew`;
+  }, [activeView, app.workspace?.name]);
+
+  useEffect(() => {
     const checkout = searchParams.get('checkout');
     if (checkout === 'success' || checkout === 'cancelled') {
       setCheckoutResult(checkout);
