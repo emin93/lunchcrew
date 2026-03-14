@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSelectedLayoutSegments } from 'next/navigation';
-import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Trash2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
+import { CalendarDays, Clock3, Compass, Crown, ExternalLink, History, Loader2, MapPinned, Plus, Rocket, Search, Share2, Sparkles, Trash2, Trophy, Users2, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MonetizationModal } from '@/components/MonetizationModal';
@@ -589,12 +589,16 @@ function CrewView({ app, totalVotes }: { app: ReturnType<typeof useLunchCrewApp>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Button variant="secondary" className="justify-start" onClick={() => app.shareInvite()}><Share2 className="h-4 w-4" /> Share invite</Button>
-            <Button variant="gold" className="justify-start" onClick={() => app.createNewCrew()}><Rocket className="h-4 w-4" /> Create fresh crew</Button>
+            <Button variant="gold" className="justify-start" onClick={() => app.setShowMonetizationModal(true)}><Sparkles className="h-4 w-4" /> Founding access</Button>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Button variant="secondary" className="justify-start" onClick={() => app.setShowMonetizationModal(true)}><Rocket className="h-4 w-4" /> Founding access</Button>
+          <Panel className="grid gap-3 p-4">
+            <div className="text-sm font-medium text-[var(--text)]">Evaluation pricing</div>
+            <p className="text-sm leading-6 text-[var(--text-muted)]">Upgrade this crew to founding access during evaluation and lock in early pricing for this specific crew.</p>
+          </Panel>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+            <p className="text-sm text-[var(--text-muted)]">Need a brand-new invite code and a clean ballot?</p>
+            <Button variant="ghost" className="min-h-9 rounded-full px-3 text-sm" onClick={() => app.createNewCrew()}><Rocket className="h-4 w-4" /> Create fresh crew</Button>
           </div>
-          <p className="text-sm text-[var(--text-muted)]">Fresh crew makes a new invite code and an empty ballot. It does not just clear votes inside the current crew.</p>
           <div className="grid gap-2">
             <label className="text-sm text-[var(--text-muted)]">Rename crew</label>
             <Input key={`workspace-name-${app.workspace?.id || 'none'}`} defaultValue={app.workspace?.name || ''} onBlur={(e) => app.renameCrew(e.target.value)} />
