@@ -223,8 +223,9 @@ export function LunchCrewApp({ initialCode }: { initialCode?: string }) {
 }
 
 function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLunchCrewApp>; totalVotes: number; planHref: string }) {
-  const sortedOptions = [...app.options].sort((a, b) => b.votes - a.votes || a.name.localeCompare(b.name));
-  const maxVotes = Math.max(...sortedOptions.map((opt) => opt.votes), 1);
+  const displayedOptions = app.options;
+  const leaderOptionId = [...app.options].sort((a, b) => b.votes - a.votes || a.name.localeCompare(b.name))[0]?.id;
+  const maxVotes = Math.max(...displayedOptions.map((opt) => opt.votes), 1);
 
   return (
     <section className="grid gap-3 sm:gap-5">
@@ -269,11 +270,11 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
                 <Link href={planHref}><Button><Plus className="h-4 w-4" /> Open plan</Button></Link>
               </div>
             </Panel>
-          ) : sortedOptions.map((opt, index) => {
+          ) : displayedOptions.map((opt, index) => {
             const mapsUrl = opt.place?.google_maps_url;
             const menuUrl = opt.menu_url || opt.place?.detected_menu_url || opt.place?.website_url;
             const isActive = app.myOptionId === opt.id;
-            const isLeader = index === 0 && opt.votes > 0;
+            const isLeader = opt.id === leaderOptionId && opt.votes > 0;
             const isVoting = app.votingOptionId === opt.id;
             const width = Math.max(34, Math.round((opt.votes / maxVotes) * 100));
             const activityDots = Math.max(2, Math.min(4, opt.voters.length || opt.votes || 1));
