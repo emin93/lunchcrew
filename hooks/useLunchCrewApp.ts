@@ -547,10 +547,37 @@ export function useLunchCrewApp(initialCode?: string) {
   }
   async function vote(optionId: string) {
     if (!supabase || !poll || !workspace || !deviceId || votingOptionId) return;
+    if (myOptionId === optionId) return;
+
+    const previousOptionId = myOptionId;
+    const previousOptions = options;
+    const voterName = (member?.display_name || '').trim() || 'Guest';
+
     setVotingOptionId(optionId);
+    setLoadError(null);
+    setMyOptionId(optionId);
+    setOptions((current) => current.map((opt) => {
+      const withoutMe = opt.voters.filter((v) => v !== voterName);
+      const wasMine = opt.id === previousOptionId;
+      const isNext = opt.id === optionId;
+      return {
+        ...opt,
+        votes: wasMine ? Math.max(0, opt.votes - 1) : isNext ? opt.votes + 1 : opt.votes,
+        voters: isNext ? [...withoutMe, voterName] : withoutMe,
+      };
+    }));
+
     const { error } = await supabase.from('votes').upsert({ poll_id: poll.id, option_id: optionId, voter_id: deviceId }, { onConflict: 'poll_id,voter_id' });
-    if (error) { setVotingOptionId(null); setLoadError(`Vote failed: ${error.message}`); return; }
-    await refreshPollData(poll.id, workspace.id, deviceId); await refreshHistory(workspace.id); setVotingOptionId(null);
+    if (error) {
+      setOptions(previousOptions);
+      setMyOptionId(previousOptionId);
+      setVotingOptionId(null);
+      setLoadError(`Vote failed: ${error.message}`);
+      return;
+    }
+    await refreshPollData(poll.id, workspace.id, deviceId);
+    await refreshHistory(workspace.id);
+    setVotingOptionId(null);
   }
   async function addOption(suggestionArg?: PlaceSuggestion | null) {
     if (!supabase || !poll || !workspace || addingOption) return false;

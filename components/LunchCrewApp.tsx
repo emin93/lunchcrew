@@ -285,7 +285,6 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
                   'group relative grid cursor-pointer gap-4 overflow-hidden rounded-[30px] border p-4 text-left transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] sm:p-5',
                   'border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-strong)] hover:shadow-[0_22px_48px_rgba(0,0,0,0.08)] active:scale-[0.995]',
                   (isLeader || isActive) && 'border-[rgba(255,122,89,0.32)] bg-[rgba(255,122,89,0.11)]',
-                  isVoting && 'pointer-events-none scale-[0.995] opacity-85',
                 )}
                 disabled={!!app.votingOptionId}
                 onClick={() => app.vote(opt.id)}
@@ -300,7 +299,6 @@ function TodayView({ app, totalVotes, planHref }: { app: ReturnType<typeof useLu
                     <div className="flex min-h-7 flex-wrap items-center gap-2">
                       {isLeader ? <Badge className="pill-amber normal-case tracking-normal shadow-[var(--shadow-soft)]">Leading</Badge> : null}
                       {isActive ? <Badge className="normal-case tracking-normal shadow-[var(--shadow-soft)]">Your vote</Badge> : null}
-                      {isVoting ? <Badge className="badge-sky normal-case tracking-normal shadow-[var(--shadow-soft)]">Casting…</Badge> : null}
                     </div>
                     <div>
                       <div className="text-xl font-semibold text-[var(--text)] transition-colors duration-300 sm:text-2xl">{opt.name}</div>
