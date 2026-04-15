@@ -7,7 +7,6 @@ import {
   LAST_WORKSPACE_CODE_KEY,
   LAST_WORKSPACE_ID_KEY,
   extractInviteCode,
-  generateInviteCode,
   storage,
   workspacePath,
 } from '@/lib/helpers';
@@ -36,7 +35,10 @@ export function OpenAppButton({
         return;
       }
 
-      if (!supabase) return;
+      if (!supabase) {
+        router.push('/app');
+        return;
+      }
 
       const storedWorkspaceId = storage.get(LAST_WORKSPACE_ID_KEY);
       if (storedWorkspaceId) {
@@ -53,18 +55,7 @@ export function OpenAppButton({
           return;
         }
       }
-
-      const { data, error } = await supabase
-        .from('workspaces')
-        .insert({ name: 'LunchCrew', invite_code: generateInviteCode() })
-        .select('id,invite_code')
-        .single();
-
-      if (error || !data?.invite_code) throw error || new Error('create failed');
-
-      storage.set(LAST_WORKSPACE_ID_KEY, data.id);
-      storage.set(LAST_WORKSPACE_CODE_KEY, data.invite_code);
-      router.push(workspacePath(data.invite_code));
+      router.push('/app');
     } finally {
       setLoading(false);
     }
