@@ -213,6 +213,7 @@ export function usePollState({ activeSearchCoords, deviceId, member, setLoadErro
 
   useEffect(() => {
     if (!supabase) return;
+    const client = supabase;
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     const query = newOption.trim();
     if (query.length < 2 || selectedSuggestion) {
@@ -223,7 +224,7 @@ export function usePollState({ activeSearchCoords, deviceId, member, setLoadErro
     searchDebounceRef.current = setTimeout(async () => {
       try {
         setLoadingSuggestions(true);
-        const nextSuggestions = await searchPlaceSuggestions(supabase, query, activeSearchCoords);
+        const nextSuggestions = await searchPlaceSuggestions(client, query, activeSearchCoords);
         setSuggestions(nextSuggestions);
       } catch {
         setSuggestions([]);
