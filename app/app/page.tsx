@@ -1,5 +1,10 @@
+import { Suspense } from 'react';
 import { LunchCrewApp } from '@/components/LunchCrewApp';
 
 export default function AppEntryPage() {
-  return <LunchCrewApp />;
+  return (
+    <Suspense fallback={null}>
+      <LunchCrewApp />
+    </Suspense>
+  );
 }
