@@ -137,7 +137,7 @@ export default function MarketingPage() {
       </section>
 
       <footer className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] px-1 pt-6 text-sm text-[var(--text-muted)]">
-        <span>LunchCrew</span>
+        <span>&copy; 2026 Emin Khateeb</span>
         <a
           href="https://github.com/emin93/lunchcrew"
           target="_blank"
